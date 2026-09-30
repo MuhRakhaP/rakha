@@ -491,9 +491,9 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "Testing, deployment, ongoing improvements." },
     ],
     decisions: [
-      { title: "Laravel + MySQL for core", reason: "Team expertise, mature ecosystem for ticket management workflows." },
-      { title: "RAG for knowledge retrieval", reason: "Grounded answers from documentation, reduces manual lookup by 80%." },
-      { title: "Rule-based routing", reason: "Priority/category/topic-based assignment reduces manual effort by ~60%." },
+      { title: "Laravel + MySQL for core", reason: "Laravel controllers handle ticket CRUD, assignment, categorization; MySQL stores tickets, users, categories." },
+      { title: "RAG for knowledge retrieval", reason: "RAG pipeline retrieves relevant docs and generates contextual responses for agents." },
+      { title: "Rule-based ticket routing", reason: "Routing rules match ticket priority, category, topic to assignee; reduces manual assignment." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
@@ -546,9 +546,9 @@ export const projects: Project[] = [
       { area: "Integration", detail: "Enterprise Planning System (EPS) data ingestion, automated supplier communication." },
     ],
     decisions: [
-      { title: "Full loop automation", reason: "Eliminated 490→60 min/week manual follow-up; EPS feeds data directly." },
-      { title: "Auto In Portal for suppliers", reason: "Suppliers enter data in standardized format; downstream processes receive clean input." },
-      { title: "Programmatic PO/due-date updates", reason: "Eliminates manual errors in date/PO revisions and cancellations." },
+      { title: "Automated EPS data ingestion", reason: "EPS feeds delivery data into automated pipeline for due-date and PO updates." },
+      { title: "Auto In Portal for suppliers", reason: "Web portal where suppliers enter data; downstream processes consume standardized input." },
+      { title: "Automated PO and due-date updates", reason: "Code applies due-date changes, PO revisions, and cancellations without manual steps." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
