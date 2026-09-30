@@ -45,3 +45,6 @@ Thumbs.db
 opencode.json
 .opencode/
 CV_*.pdf
+
+# visual check output — regenerate with pnpm visual-check
+screenshots-web/
