@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProjectCard } from "@/components/projects/project-card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { projects } from "@/data/projects";
 import { certification, education, summary } from "@/lib/experience";
 import { skillGroups } from "@/lib/skills";
@@ -109,9 +109,9 @@ export default function AboutPage() {
           ))}
         </ul>
         <div>
-          <Button variant="outline" render={<Link href="/projects" />}>
+          <Link href="/projects" className={buttonVariants({ variant: "outline" })}>
             All projects
-          </Button>
+          </Link>
         </div>
       </section>
     </div>

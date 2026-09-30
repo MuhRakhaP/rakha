@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProjectCard } from "@/components/projects/project-card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { getFeaturedProjects, getProjectsByTags } from "@/data/projects";
 import { summary } from "@/lib/experience";
 import { skillGroups } from "@/lib/skills";
@@ -31,16 +31,15 @@ export default function HomePage() {
         <p className="max-w-2xl text-lg text-muted-foreground">{summary}</p>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button size="lg" render={<Link href="/projects" />}>
+          <Link href="/projects" className={buttonVariants({ size: "lg" })}>
             View Projects
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            render={<a href={`mailto:${site.email}`} />}
+          </Link>
+          <a
+            href={`mailto:${site.email}`}
+            className={buttonVariants({ variant: "outline", size: "lg" })}
           >
             Let&apos;s Talk
-          </Button>
+          </a>
         </div>
 
         <dl className="grid max-w-2xl gap-4 pt-2 sm:grid-cols-2">

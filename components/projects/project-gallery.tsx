@@ -44,32 +44,33 @@ export function ProjectGallery({
             >
               <DialogTrigger
                 render={
-                  framed ? (
-                    <DeviceFrame className="w-full max-w-64 cursor-zoom-in">
-                      <Image
-                        src={shot.src}
-                        alt={shot.alt}
-                        width={1080}
-                        height={1920}
-                        className="h-auto w-full"
-                      />
-                    </DeviceFrame>
-                  ) : (
-                    <button
-                      type="button"
-                      className="block w-full cursor-zoom-in overflow-hidden rounded-md border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                    >
-                      <Image
-                        src={shot.src}
-                        alt={shot.alt}
-                        width={1600}
-                        height={1000}
-                        className="h-auto w-full"
-                      />
-                    </button>
-                  )
+                  // Always a real <button> so the trigger keeps native
+                  // keyboard semantics; the device frame goes inside it.
+                  <button
+                    type="button"
+                    className="block w-full cursor-zoom-in rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  />
                 }
               >
+                {framed ? (
+                  <DeviceFrame className="mx-auto w-full max-w-64">
+                    <Image
+                      src={shot.src}
+                      alt={shot.alt}
+                      width={1080}
+                      height={1920}
+                      className="h-auto w-full"
+                    />
+                  </DeviceFrame>
+                ) : (
+                  <Image
+                    src={shot.src}
+                    alt={shot.alt}
+                    width={1600}
+                    height={1000}
+                    className="h-auto w-full rounded-md border border-border"
+                  />
+                )}
                 <span className="sr-only">Open image: {shot.alt}</span>
               </DialogTrigger>
 
