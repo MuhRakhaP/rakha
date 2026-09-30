@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { projects } from "@/data/projects";
 import { certification, education, summary } from "@/lib/experience";
 import { skillGroups } from "@/lib/skills";
+import { ClosingCta } from "@/components/closing-cta";
 
 export const metadata: Metadata = {
   title: "About",
@@ -113,6 +114,8 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
+
+      <ClosingCta />
     </div>
   );
 }

@@ -50,6 +50,12 @@ export interface Project {
   cvName?: string;
   downloadApk?: string | null;
   github?: string | null;
+  /** Private source code — show "Source code: Private" muted text when true and github is null. */
+  sourcePrivate?: boolean;
+  /** My contribution areas and details. Rendered after Tech Stack. */
+  contribution?: { area: string; detail: string }[];
+  /** Engineering decisions: title + reason. Max 5. Rendered after Architecture. */
+  decisions?: { title: string; reason: string }[];
 }
 
 export const PROJECT_TYPES: { value: ProjectType | "all"; label: string }[] = [
@@ -145,6 +151,18 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "ISP Billing & Network Management Platform",
+    sourcePrivate: true,
+    contribution: [
+      { area: "Backend", detail: "REST APIs, database workflows, business logic for customer management, subscription, billing, and network operations." },
+      { area: "Integration", detail: "MikroTik PPPoE synchronization, Xendit payment gateway, WhatsApp notifications." },
+      { area: "Database", detail: "PostgreSQL schema design, Prisma migrations, query optimization." },
+      { area: "Deployment", detail: "Docker, CI/CD pipelines, Nginx reverse proxy, production maintenance." },
+    ],
+    decisions: [
+      { title: "NestJS + BullMQ for async work", reason: "Invoice generation, notifications, and payment callbacks handled reliably outside the request path." },
+      { title: "PostgreSQL + Prisma", reason: "Type-safe database access, migrations, and relation modeling for billing, customers, and network accounts." },
+      { title: "Nginx reverse proxy", reason: "Terminates TLS, routes to Node.js apps, serves static assets efficiently." },
+    ],
     // TODO: add the public URL once the platform is reachable on a real domain
     liveDemo: null,
     // not an APK project
@@ -229,7 +247,18 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    liveDemo: null,
+    sourcePrivate: true,
+    contribution: [
+      { area: "Mobile", detail: "Flutter app: cashier checkout, product/category/employee management, local SQLite cache, thermal printing." },
+      { area: "Backend", detail: "Node.js + Express REST API, JWT auth, PostgreSQL schema." },
+      { area: "Integration", detail: "ESC/POS thermal printing, Excel export, camera for product images." },
+      { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
+    ],
+    decisions: [
+      { title: "Flutter for mobile", reason: "Single codebase, native performance, thermal printer libraries available." },
+      { title: "SQLite offline cache", reason: "Counter stays usable during backend connectivity issues." },
+      { title: "Express over NestJS", reason: "Simpler for REST API with PostgreSQL; team familiarity." },
+    ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
     // TODO: add only if a public repository actually exists
@@ -311,7 +340,18 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    liveDemo: null,
+    sourcePrivate: true,
+    contribution: [
+      { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
+      { area: "Backend", detail: "Node.js + Express REST API, TypeORM, JWT auth, PostgreSQL, scheduled jobs for reports." },
+      { area: "Integration", detail: "QR scanning, geolocation, camera, secure storage, local notifications." },
+      { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
+    ],
+    decisions: [
+      { title: "Riverpod for state", reason: "Compile-time safety, testability, less boilerplate than Provider." },
+      { title: "TypeORM with PostgreSQL", reason: "Entity-based modeling, migrations, relations for attendance records." },
+      { title: "Scheduled jobs on backend", reason: "Daily reports and notifications offloaded from request path." },
+    ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
     // TODO: add only if a public repository actually exists
@@ -378,8 +418,18 @@ export const projects: Project[] = [
     ],
     tags: ["operations"],
     caseStudy: false,
-    liveDemo: null,
-    downloadApk: null,
+    sourcePrivate: true,
+    contribution: [
+      { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
+      { area: "Backend", detail: "Server Actions, Auth.js v5, JWT, Zod validation, role-based access (Owner/Staff)." },
+      { area: "Database", detail: "PostgreSQL, Prisma ORM, stock movements, suppliers, production, costs, sales." },
+      { area: "Infra", detail: "Docker Compose for local development." },
+    ],
+    decisions: [
+      { title: "Server Actions for mutations", reason: "Type-safe mutations at the boundary, no separate API layer needed." },
+      { title: "Prisma with PostgreSQL", reason: "Type-safe database access, migrations, relations for stock, suppliers, production." },
+      { title: "Role-based access (Owner/Staff)", reason: "CV: Owner manages users, Staff works within allowed modules." },
+    ],
     // TODO: add only if a public repository actually exists
     github: null,
   },
@@ -433,8 +483,18 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "AI-Powered Helpdesk Assistant",
-    liveDemo: null,
-    downloadApk: null,
+    sourcePrivate: true,
+    contribution: [
+      { area: "Backend", detail: "Laravel + PHP core application: ticket management, assignment, categorization, resolution workflows." },
+      { area: "AI", detail: "RAG assistant: retrieval-augmented knowledge lookup, contextual response generation." },
+      { area: "Automation", detail: "Rule-based routing by priority, category, topic; automated ticket assignment." },
+      { area: "Deployment", detail: "Testing, deployment, ongoing improvements." },
+    ],
+    decisions: [
+      { title: "Laravel + MySQL for core", reason: "Team expertise, mature ecosystem for ticket management workflows." },
+      { title: "RAG for knowledge retrieval", reason: "Grounded answers from documentation, reduces manual lookup by 80%." },
+      { title: "Rule-based routing", reason: "Priority/category/topic-based assignment reduces manual effort by ~60%." },
+    ],
     // TODO: add only if a public repository actually exists
     github: null,
   },
@@ -479,8 +539,17 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "Outstanding Delivery Digitalization & Automation System",
-    liveDemo: null,
-    downloadApk: null,
+    sourcePrivate: true,
+    contribution: [
+      { area: "Backend", detail: "Automated delivery data retrieval, processing, due-date updates, PO revisions/cancellations." },
+      { area: "Automation", detail: "Supplier follow-ups, Auto In Portal for supplier data entry, EPS integration." },
+      { area: "Integration", detail: "Enterprise Planning System (EPS) data ingestion, automated supplier communication." },
+    ],
+    decisions: [
+      { title: "Full loop automation", reason: "Eliminated 490→60 min/week manual follow-up; EPS feeds data directly." },
+      { title: "Auto In Portal for suppliers", reason: "Suppliers enter data in standardized format; downstream processes receive clean input." },
+      { title: "Programmatic PO/due-date updates", reason: "Eliminates manual errors in date/PO revisions and cancellations." },
+    ],
     // TODO: add only if a public repository actually exists
     github: null,
   },

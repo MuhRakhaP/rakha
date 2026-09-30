@@ -93,6 +93,15 @@ export function ProjectCtas({
         </a>
       ),
     });
+  } else if (project.sourcePrivate) {
+    links.push({
+      key: "source-private",
+      node: (
+        <span className="text-muted-foreground text-sm">
+          Source code: Private
+        </span>
+      ),
+    });
   }
 
   if (links.length === 0) return null;

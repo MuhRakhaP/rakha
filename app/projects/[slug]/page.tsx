@@ -17,6 +17,7 @@ import {
 import { Reveal } from "@/components/reveal";
 import { getProject, getRelatedProjects, projects } from "@/data/projects";
 import { site } from "@/lib/site";
+import { ClosingCta } from "@/components/closing-cta";
 
 type Params = Promise<{ slug: string }>;
 
@@ -116,9 +117,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
     sections.push({ id: "features", title: "Key Features" });
   if (project.technologies.length > 0)
     sections.push({ id: "stack", title: "Tech Stack" });
+  if (project.contribution && project.contribution.length > 0)
+    sections.push({ id: "contribution", title: "My Contribution" });
   if (project.role) sections.push({ id: "role", title: "My Role" });
   if (project.architecture)
     sections.push({ id: "architecture", title: "Architecture" });
+  if (project.decisions && project.decisions.length > 0)
+    sections.push({ id: "decisions", title: "Engineering Decisions" });
   if (project.challenges?.length)
     sections.push({ id: "challenges", title: "Challenges" });
   if (project.results?.length) sections.push({ id: "results", title: "Results" });
@@ -237,6 +242,21 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </Section>
         )}
 
+        {project.contribution && project.contribution.length > 0 && (
+          <Section id="contribution" eyebrow="My work" title="My Contribution">
+            <dl className="grid gap-6 sm:grid-cols-2">
+              {project.contribution.map((item) => (
+                <div key={item.area}>
+                  <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+                    {item.area}
+                  </dt>
+                  <dd className="mt-2 text-sm">{item.detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </Section>
+        )}
+
         {project.role && (
           <Section id="role" eyebrow="Responsibility" title="My Role">
             <p className="max-w-2xl">{project.role}</p>
@@ -246,6 +266,19 @@ export default async function ProjectPage({ params }: { params: Params }) {
         {project.architecture && (
           <Section id="architecture" eyebrow="How it works" title="Architecture">
             <ProjectArchitecture architecture={project.architecture} />
+          </Section>
+        )}
+
+        {project.decisions && project.decisions.length > 0 && (
+          <Section id="decisions" eyebrow="Engineering" title="Engineering Decisions">
+            <ul className="flex max-w-2xl flex-col gap-3">
+              {project.decisions.map((d) => (
+                <li key={d.title} className="flex gap-3 text-sm">
+                  <span className="font-medium">{d.title}</span>
+                  <span className="text-muted-foreground">{d.reason}</span>
+                </li>
+              ))}
+            </ul>
           </Section>
         )}
 
@@ -290,6 +323,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </Reveal>
         )}
       </article>
+
+      <ClosingCta />
     </div>
   );
 }

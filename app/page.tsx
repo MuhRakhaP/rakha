@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Reveal } from "@/components/reveal";
 import { buttonVariants } from "@/components/ui/button";
+import { ClosingCta } from "@/components/closing-cta";
 import { getFeaturedProjects, getProjectsByTags } from "@/data/projects";
 import { skillGroups } from "@/lib/skills";
 import { site } from "@/lib/site";
@@ -203,6 +204,8 @@ export default function HomePage() {
           </dl>
         </section>
       </Reveal>
+
+      <ClosingCta />
     </div>
   );
 }
