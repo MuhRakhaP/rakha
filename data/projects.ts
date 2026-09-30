@@ -95,7 +95,7 @@ export const projects: Project[] = [
       },
       {
         category: "Infra",
-        items: ["Docker", "CI/CD", "Nginx"],
+        items: ["Docker", "CI/CD"],
       },
       {
         category: "Integrations",
@@ -151,17 +151,17 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "ISP Billing & Network Management Platform",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Backend", detail: "REST APIs, database workflows, business logic for customer management, subscription, billing, and network operations." },
       { area: "Integration", detail: "MikroTik PPPoE synchronization, Xendit payment gateway, WhatsApp notifications." },
       { area: "Database", detail: "PostgreSQL schema design, Prisma migrations, query optimization." },
-      { area: "Deployment", detail: "Docker, CI/CD pipelines, Nginx reverse proxy, production maintenance." },
+      { area: "Deployment", detail: "Docker multi-stage builds, CI/CD pipelines, production maintenance." },
     ],
     decisions: [
-      { title: "NestJS + BullMQ for async work", reason: "Invoice generation, notifications, and payment callbacks handled reliably outside the request path." },
-      { title: "PostgreSQL + Prisma", reason: "Type-safe database access, migrations, and relation modeling for billing, customers, and network accounts." },
-      { title: "Nginx reverse proxy", reason: "Terminates TLS, routes to Node.js apps, serves static assets efficiently." },
+      { title: "NestJS + BullMQ for async work", reason: "Job queue handles invoice generation, payment callbacks, and WhatsApp notifications outside the HTTP request cycle." },
+      { title: "PostgreSQL + Prisma", reason: "Relational schema for customers, subscriptions, invoices, PPPoE accounts; Prisma provides type-safe queries and migrations." },
+      { title: "Docker + CI/CD", reason: "Multi-stage Dockerfile builds standalone Next.js output; CI/CD pipeline deploys to container runtime." },
     ],
     // TODO: add the public URL once the platform is reachable on a real domain
     liveDemo: null,
@@ -247,7 +247,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Mobile", detail: "Flutter app: cashier checkout, product/category/employee management, local SQLite cache, thermal printing." },
       { area: "Backend", detail: "Node.js + Express REST API, JWT auth, PostgreSQL schema." },
@@ -255,9 +255,9 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "Flutter for mobile", reason: "Single codebase, native performance, thermal printer libraries available." },
-      { title: "SQLite offline cache", reason: "Counter stays usable during backend connectivity issues." },
-      { title: "Express over NestJS", reason: "Simpler for REST API with PostgreSQL; team familiarity." },
+      { title: "Flutter for mobile", reason: "Single Dart codebase targets Android; pubspec includes fl_chart, sqflite, blue_thermal_printer." },
+      { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable." },
+      { title: "Express.js REST API", reason: "Node.js + Express serves JWT-authenticated endpoints for checkout, products, employees, reports." },
     ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
@@ -340,7 +340,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
       { area: "Backend", detail: "Node.js + Express REST API, TypeORM, JWT auth, PostgreSQL, scheduled jobs for reports." },
@@ -348,9 +348,9 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "Riverpod for state", reason: "Compile-time safety, testability, less boilerplate than Provider." },
-      { title: "TypeORM with PostgreSQL", reason: "Entity-based modeling, migrations, relations for attendance records." },
-      { title: "Scheduled jobs on backend", reason: "Daily reports and notifications offloaded from request path." },
+      { title: "Riverpod for state", reason: "pubspec.yaml lists flutter_riverpod; state management for attendance capture flow." },
+      { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema." },
+      { title: "Node-cron scheduled jobs", reason: "package.json includes node-cron; backend runs daily report generation and notifications." },
     ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
@@ -418,7 +418,7 @@ export const projects: Project[] = [
     ],
     tags: ["operations"],
     caseStudy: false,
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
       { area: "Backend", detail: "Server Actions, Auth.js v5, JWT, Zod validation, role-based access (Owner/Staff)." },
@@ -426,9 +426,9 @@ export const projects: Project[] = [
       { area: "Infra", detail: "Docker Compose for local development." },
     ],
     decisions: [
-      { title: "Server Actions for mutations", reason: "Type-safe mutations at the boundary, no separate API layer needed." },
-      { title: "Prisma with PostgreSQL", reason: "Type-safe database access, migrations, relations for stock, suppliers, production." },
-      { title: "Role-based access (Owner/Staff)", reason: "CV: Owner manages users, Staff works within allowed modules." },
+      { title: "Server Actions for mutations", reason: "Next.js Server Actions handle purchase, supplier, production mutations with Zod validation." },
+      { title: "Prisma with PostgreSQL", reason: "Prisma schema defines Supplier, Purchase, StockMovement, Production models with relations." },
+      { title: "Auth.js v5 role-based access", reason: "Credentials provider with JWT; session callback checks is_active and role (OWNER/STAFF)." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
@@ -483,7 +483,7 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "AI-Powered Helpdesk Assistant",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Backend", detail: "Laravel + PHP core application: ticket management, assignment, categorization, resolution workflows." },
       { area: "AI", detail: "RAG assistant: retrieval-augmented knowledge lookup, contextual response generation." },
@@ -539,7 +539,7 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "Outstanding Delivery Digitalization & Automation System",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Backend", detail: "Automated delivery data retrieval, processing, due-date updates, PO revisions/cancellations." },
       { area: "Automation", detail: "Supplier follow-ups, Auto In Portal for supplier data entry, EPS integration." },

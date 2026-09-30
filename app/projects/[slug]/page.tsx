@@ -119,7 +119,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
     sections.push({ id: "stack", title: "Tech Stack" });
   if (project.contribution && project.contribution.length > 0)
     sections.push({ id: "contribution", title: "My Contribution" });
-  if (project.role) sections.push({ id: "role", title: "My Role" });
   if (project.architecture)
     sections.push({ id: "architecture", title: "Architecture" });
   if (project.decisions && project.decisions.length > 0)
@@ -244,6 +243,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
         {project.contribution && project.contribution.length > 0 && (
           <Section id="contribution" eyebrow="My work" title="My Contribution">
+            {project.role && (
+              <p className="mb-4 text-sm text-muted-foreground">
+                <span className="font-medium">Role:</span> {project.role}
+              </p>
+            )}
             <dl className="grid gap-6 sm:grid-cols-2">
               {project.contribution.map((item) => (
                 <div key={item.area}>
@@ -257,11 +261,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </Section>
         )}
 
-        {project.role && (
-          <Section id="role" eyebrow="Responsibility" title="My Role">
-            <p className="max-w-2xl">{project.role}</p>
-          </Section>
-        )}
+        
 
         {project.architecture && (
           <Section id="architecture" eyebrow="How it works" title="Architecture">
