@@ -17,8 +17,8 @@ export default function ExperiencePage() {
           Experience
         </h1>
         <p className="max-w-2xl text-muted-foreground">
-          Four years across backend services, full-stack applications, and
-          internal business systems.
+          3+ years of professional experience across backend services, full-stack
+          applications, and business automation systems.
         </p>
       </header>
 
