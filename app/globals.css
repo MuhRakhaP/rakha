@@ -174,18 +174,20 @@
     background-image:
       radial-gradient(
         circle at 1px 1px,
-        color-mix(in oklch, var(--brand) 22%, transparent) 1px,
+        color-mix(in oklch, var(--brand) 42%, transparent) 1px,
         transparent 0
       );
-    background-size: 22px 22px;
+    background-size: 20px 20px;
     -webkit-mask-image: radial-gradient(
-      ellipse 80% 60% at 50% 0%,
-      #000 40%,
+      ellipse 85% 75% at 50% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.55) 55%,
       transparent 100%
     );
     mask-image: radial-gradient(
-      ellipse 80% 60% at 50% 0%,
-      #000 40%,
+      ellipse 85% 75% at 50% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.55) 55%,
       transparent 100%
     );
   }

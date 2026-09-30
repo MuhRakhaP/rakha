@@ -55,9 +55,11 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-5">
+        <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-5 sm:px-6 lg:px-8">
           <SiteHeader />
-          <main id="main" tabIndex={-1} className="flex-1 py-10">
+          {/* Programmatic focus target only — suppress the global outline so
+              it does not draw a box around the whole page after a skip. */}
+          <main id="main" tabIndex={-1} className="flex-1 py-10 outline-none">
             {children}
           </main>
           <SiteFooter />

@@ -22,30 +22,37 @@ export default function ExperiencePage() {
         </p>
       </header>
 
-      <ol className="flex flex-col gap-10">
-        {roles.map((role) => (
+      <ol className="flex flex-col">
+        {roles.map((role, index) => (
           <li
             key={`${role.company}-${role.period}`}
-            className="flex flex-col gap-3 border-t border-border pt-8"
+            className="relative border-t border-border pt-8 pb-10 last:pb-0 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10"
           >
-            <div className="flex flex-col gap-1">
-              <h2 className="font-heading text-lg font-semibold tracking-tight">
+            {/* Timeline rail: hidden on mobile, a thin line on desktop. */}
+            <span
+              aria-hidden="true"
+              className="absolute top-10 bottom-0 left-0 hidden w-px bg-border lg:block"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute top-12 -left-[3px] hidden size-[7px] rounded-full bg-brand lg:block"
+            />
+
+            <div className="lg:sticky lg:top-8 lg:self-start lg:pl-6">
+              <h2 className="font-heading text-lg font-semibold tracking-[-0.015em]">
                 {role.title}
-                <span className="font-normal text-muted-foreground">
-                  {" "}
-                  · {role.company}
-                </span>
               </h2>
-              <p className="text-sm text-muted-foreground">
-                {role.location}
-                <span className="mx-2" aria-hidden="true">
-                  ·
-                </span>
-                <span className="tabular-nums">{role.period}</span>
+              <p className="mt-1 text-sm font-medium">{role.company}</p>
+              <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                {role.period}
               </p>
+              <p className="text-sm text-muted-foreground">{role.location}</p>
+              <span className="sr-only">
+                Role {index + 1} of {roles.length}
+              </span>
             </div>
 
-            <ul className="flex max-w-2xl flex-col gap-2.5">
+            <ul className="mt-5 flex flex-col gap-2.5 lg:mt-0">
               {role.highlights.map((highlight) => (
                 <li key={highlight} className="flex gap-3 text-sm">
                   <span aria-hidden="true" className="text-muted-foreground">
