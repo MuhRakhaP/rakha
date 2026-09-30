@@ -11,6 +11,8 @@ export const site = {
   github: "https://github.com/MuhRakhaP",
   linkedin: "https://linkedin.com/in/muhammad-rakha-putra",
   locale: "en_US",
+  /** Public resume URL. Set when a public PDF is hosted. Null by default — never link the private CV PDF. */
+  resumeUrl: null,
 } as const;
 
 /**

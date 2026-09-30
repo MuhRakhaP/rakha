@@ -1,24 +1,24 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProjectCard } from "@/components/projects/project-card";
 import { Reveal } from "@/components/reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
-import { getFeaturedProjects, getProjectsByTags } from "@/data/projects";
+import { getFeaturedProjects, getProjectsByTags, projects } from "@/data/projects";
 import { skillGroups } from "@/lib/skills";
 import { site } from "@/lib/site";
+import { roles } from "@/lib/experience";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
 /**
- * Hero copy: the CV summary trimmed to two sentences. `/about` keeps the
- * full `summary`. Nothing here is invented — it is the CV wording with the
- * second sentence shortened.
+ * Hero copy: the shortest CV summary sentence, verbatim.
+ * CV has 3 sentences; the shortest is the 3rd one.
  */
-const heroSummary = "Software Engineer with 3+ years of professional experience building and maintaining full-stack web applications, backend services, REST APIs, and business automation systems. Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, depl oyment, and maintenance.";
+const heroSummary = "Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, deployment, and maintenance.";
 
 /**
  * Skills shown in the hero panel, sliced out of `lib/skills.ts` so the panel
@@ -32,9 +32,29 @@ const panelSkills = [
   ...(skillGroups.find((g) => g.category === "DevOps")?.items ?? []).slice(0, 1),
 ];
 
+/**
+ * Projects grouped by type for "What I Build" section.
+ * Derived from project `type` and `tags` â€” no hardcoded names.
+ */
+function getProjectsByCategory() {
+  const web = projects.filter((p) => p.type === "web");
+  const mobile = projects.filter((p) => p.type === "mobile");
+  const backend = projects.filter((p) => p.type === "backend");
+  const ai = projects.filter((p) => p.type === "ai" || p.tags?.includes("automation"));
+
+  return [
+    { label: "Web Applications", projects: web },
+    { label: "Backend Systems", projects: backend },
+    { label: "Mobile Applications", projects: mobile },
+    { label: "AI & Automation", projects: ai },
+  ].filter((c) => c.projects.length > 0);
+}
+
 export default function HomePage() {
   const featured = getFeaturedProjects(4);
   const aiAndAutomation = getProjectsByTags(["ai", "automation"]);
+  const categories = getProjectsByCategory();
+  const latestRole = roles[0]; // latest role from experience.ts
 
   return (
     <div className="flex flex-col gap-16 py-6">
@@ -45,7 +65,7 @@ export default function HomePage() {
         <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-14">
           <div className="flex flex-col gap-6">
             <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-              {site.role} · {site.secondaryRole}
+              {site.role} Â· {site.secondaryRole}
             </p>
 
             <h1 className="max-w-3xl font-heading text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
@@ -76,6 +96,18 @@ export default function HomePage() {
               >
                 Let&apos;s Talk
               </a>
+              {site.resumeUrl && (
+                <a
+                  href={site.resumeUrl}
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "lg",
+                    className: "hover:bg-secondary hover:text-secondary-foreground",
+                  })}
+                >
+                  Download Resume
+                </a>
+              )}
             </div>
           </div>
 
@@ -142,6 +174,39 @@ export default function HomePage() {
         </section>
       </Reveal>
 
+      {/* What I Build */}
+      {categories.length > 0 && (
+        <Reveal>
+          <section className="flex flex-col gap-6 border-t border-border pt-12">
+            <div className="flex flex-col gap-2">
+              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+                What I Build
+              </p>
+              <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
+                What I Build
+              </h2>
+            </div>
+
+            <ul className="flex flex-col gap-6">
+              {categories.map((category) => (
+                <li key={category.label}>
+                  <h3 className="font-heading text-lg font-semibold tracking-tight mb-4">
+                    {category.label}
+                  </h3>
+                  <ul className="grid gap-6 sm:grid-cols-2">
+                    {category.projects.map((project) => (
+                      <li key={project.slug} className="flex">
+                        <ProjectCard project={project} />
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </Reveal>
+      )}
+
       {/* AI & Automation */}
       {aiAndAutomation.length > 0 && (
         <Reveal>
@@ -151,7 +216,7 @@ export default function HomePage() {
                 Automation
               </p>
               <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-                AI &amp; Automation
+                AI & Automation
               </h2>
               <p className="max-w-2xl text-muted-foreground">
                 Systems that replace manual work with automated workflows, and
@@ -169,6 +234,29 @@ export default function HomePage() {
           </section>
         </Reveal>
       )}
+
+      {/* Experience Teaser */}
+      <Reveal>
+        <section className="flex flex-col gap-6 border-t border-border pt-12">
+          <div className="flex flex-col gap-2">
+            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+              Experience
+            </p>
+            <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
+              Experience
+            </h2>
+            <p className="max-w-2xl text-muted-foreground">
+              {latestRole.highlights[0]}
+            </p>
+          </div>
+          <Link
+            href="/experience"
+            className="inline-flex w-fit items-center gap-1.5 text-sm text-brand underline-offset-4 transition-colors hover:decoration-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            View full experience
+          </Link>
+        </section>
+      </Reveal>
 
       {/* Skills */}
       <Reveal>
@@ -209,3 +297,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+
