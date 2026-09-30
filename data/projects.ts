@@ -160,7 +160,7 @@ export const projects: Project[] = [
     ],
     decisions: [
       { title: "BullMQ job queue", reason: "Handles invoice generation, payment callbacks, and WhatsApp notifications outside the HTTP request cycle." },
-      { title: "Docker multi-stage build", reason: "Dockerfile uses node:22-alpine base, installs deps, builds standalone Next.js output, runs on port 3003 with dumb-init." },
+      { title: "Multi-stage Docker build", reason: "Produces a standalone Next.js output for containerized deployment." },
     ],
     // TODO: add the public URL once the platform is reachable on a real domain
     liveDemo: null,
@@ -246,7 +246,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Mobile", detail: "Flutter app: cashier checkout, product/category/employee management, local SQLite cache, thermal printing." },
       { area: "Backend", detail: "Node.js + Express REST API, JWT auth, PostgreSQL schema." },
@@ -254,7 +254,7 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable, syncs on reconnect." },
+      { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable." },
       { title: "Express.js REST API with JWT", reason: "Serves checkout, products, employees, reports endpoints; JWT auth on each request." },
     ],
     // TODO: add a public download URL for the release APK
@@ -336,17 +336,17 @@ export const projects: Project[] = [
     results: [
       "Migrated production applications, databases, and file storage from shared hosting to VPS infrastructure, improving deployment and server resource efficiency by approximately 30%.",
     ],
-    caseStudy: true,
-    cvName: "Attendance & POS Android Systems",
-    sourcePrivate: true,
-    contribution: [
-      { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
+caseStudy: true,
+      cvName: "Attendance & POS Android Systems",
+      sourcePrivate: false,
+      contribution: [
+        { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
       { area: "Backend", detail: "Node.js + Express REST API, TypeORM, JWT auth, PostgreSQL, scheduled jobs for reports." },
       { area: "Integration", detail: "QR scanning, geolocation, camera, secure storage, local notifications." },
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema; backend syncs attendance records." },
+      { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema." },
       { title: "Scheduled report jobs", reason: "node-cron runs daily report generation and supervisor notifications on the backend." },
     ],
     // TODO: add a public download URL for the release APK
@@ -415,7 +415,7 @@ export const projects: Project[] = [
     ],
     tags: ["operations"],
     caseStudy: false,
-    sourcePrivate: true,
+    sourcePrivate: false,
     contribution: [
       { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
       { area: "Backend", detail: "Server Actions, Auth.js v5, JWT, Zod validation, role-based access (Owner/Staff)." },
@@ -545,7 +545,6 @@ export const projects: Project[] = [
     decisions: [
       { title: "Automated EPS data ingestion", reason: "EPS feeds delivery data into automated pipeline for due-date and PO updates." },
       { title: "Auto In Portal for suppliers", reason: "Web portal where suppliers enter data; downstream processes consume standardized input." },
-      { title: "Automated PO and due-date updates", reason: "Code applies due-date changes, PO revisions, and cancellations without manual steps." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
