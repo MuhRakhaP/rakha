@@ -41,9 +41,7 @@ __pycache__/
 # os
 Thumbs.db
 
-opencode.json
-.opencode/
-
+# local tooling and private documents — never commit
 opencode.json
 .opencode/
 CV_*.pdf

@@ -29,6 +29,11 @@ export interface Project {
   /** Grouped so the case study can render labelled columns. */
   technologies: { category: string; items: string[] }[];
   features: string[];
+  /**
+   * Optional free-form tags. Used to group projects into sections on the home
+   * page so no component ever has to match a project by name.
+   */
+  tags?: string[];
   /** Omitted entirely when the role is not documented — never guessed. */
   role?: string;
   problem?: string;
@@ -98,6 +103,7 @@ export const projects: Project[] = [
       "Operational dashboards for customer statistics, revenue, PPPoE status, network traffic, and router health",
       "Role-based access and audit logs",
     ],
+    tags: ["integration", "operations"],
     role: "Software Engineer — backend services, REST APIs, database workflows, third-party integrations, dashboards, CI/CD deployment, and production maintenance.",
     problem:
       "ISP operations were spread across disconnected tools. Customer records, billing, invoices, router accounts, and payment status each lived somewhere different, so day-to-day work meant a lot of manual reconciliation and manual monitoring.",
@@ -189,6 +195,7 @@ export const projects: Project[] = [
       "JWT authentication",
       "Local SQLite cache for offline counter work",
     ],
+    tags: ["offline"],
     role: "Full-stack developer — Flutter mobile client, Node.js and Express API, PostgreSQL schema, and release packaging.",
     problem:
       "Barbershops were running the counter on paper or on a general-purpose POS that did not fit the way a barber works. Staff needed a fast checkout, and owners needed sales numbers they could actually read and export.",
@@ -269,6 +276,7 @@ export const projects: Project[] = [
       "Secure credential storage on device",
       "Workforce reporting and export",
     ],
+    tags: ["workforce"],
     role: "Full-stack developer — Flutter mobile client, Node.js and Express API, PostgreSQL schema, scheduled jobs, and release packaging.",
     problem:
       "Manual attendance meant a paper log that was slow to check, easy to dispute, and impossible to turn into workforce data without retyping it.",
@@ -364,6 +372,7 @@ export const projects: Project[] = [
       "Protecting mutations at the Server Action boundary rather than trusting the UI.",
       "Making a partially finished set of modules usable without shipping half-built screens.",
     ],
+    tags: ["operations"],
     caseStudy: false,
     liveDemo: null,
     downloadApk: null,
@@ -403,6 +412,7 @@ export const projects: Project[] = [
       "Rule-based routing by priority, category, and topic",
       "Retrieval-augmented knowledge lookup with contextual responses",
     ],
+    tags: ["ai", "automation"],
     role: "Full-stack engineer — the Laravel and MySQL core application, the RAG assistant, the routing and automation rules, plus testing, deployment, and ongoing improvements.",
     problem:
       "Support staff spent their time finding information and assigning work by hand. Relevant knowledge was scattered, and every new ticket had to be read and routed to a person manually.",
@@ -448,6 +458,7 @@ export const projects: Project[] = [
       "Auto In Portal for supplier data entry",
       "Integration with the Enterprise Planning System (EPS)",
     ],
+    tags: ["automation"],
     // TODO: role and dates are not in the CV — supply them here.
     problem:
       "Outstanding deliveries were chased by hand. Someone pulled the data, worked out what was late, updated due dates and purchase orders, and then contacted suppliers one by one — every week.",
@@ -468,6 +479,21 @@ export const projects: Project[] = [
     github: null,
   },
 ];
+
+/** Projects carrying any of the given tags, in array order. */
+export function getProjectsByTags(tags: string[]): Project[] {
+  return projects.filter((project) =>
+    project.tags?.some((tag) => tags.includes(tag)),
+  );
+}
+
+/**
+ * The projects highlighted on the home page. Order in this file is the
+ * curation — the first N entries are the selected ones.
+ */
+export function getFeaturedProjects(limit = 4): Project[] {
+  return projects.slice(0, limit);
+}
 
 /** Image path convention: everything for a project lives under this folder. */
 export function projectImagePath(slug: string, file: string) {
