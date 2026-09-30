@@ -36,16 +36,22 @@ export function ProjectVisual({
   }
 
   return (
+    // Warm card surface with a restrained accent wash across the top only,
+    // rather than a solid block of accent. The label and name sit on the
+    // card surface below the band, never on the tint.
     <div
       aria-hidden="true"
-      className="relative flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden bg-brand-weak px-6"
+      className="relative flex h-full w-full flex-col overflow-hidden bg-card"
     >
-      <span className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-        {TYPE_LABEL[project.type]}
-      </span>
-      <span className="text-center font-heading text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
-        {project.name}
-      </span>
+      <span className="absolute inset-x-0 top-0 h-2/5 bg-brand-weak" />
+      <div className="relative mt-auto flex flex-col items-center gap-2 px-6 pt-6 pb-5">
+        <span className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+          {TYPE_LABEL[project.type]}
+        </span>
+        <span className="text-center font-heading text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
+          {project.name}
+        </span>
+      </div>
     </div>
   );
 }
