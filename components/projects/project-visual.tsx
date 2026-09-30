@@ -1,24 +1,22 @@
 import Image from "next/image";
 
+import { TYPE_LABEL } from "@/components/projects/project-badges";
 import type { Project } from "@/data/projects";
-import { projectImagePath } from "@/data/projects";
 
 /**
  * The visual for a project. When a thumbnail exists it is rendered as an
- * image; otherwise the project name is set large as the visual. Text-first is
- * a deliberate design, not a broken-image placeholder.
+ * image; otherwise the project name becomes the visual.
+ *
+ * The text-first branch is a deliberate composition — accent-tinted panel,
+ * oversized name, type label — not an empty grey box standing in for a
+ * missing image.
  */
 export function ProjectVisual({
   project,
-  alt,
-  className,
   sizes,
   priority = false,
 }: {
   project: Project;
-  /** Overrides the derived alt text. */
-  alt?: string;
-  className?: string;
   sizes?: string;
   priority?: boolean;
 }) {
@@ -26,11 +24,13 @@ export function ProjectVisual({
     return (
       <Image
         src={project.thumbnail}
-        alt={alt ?? `${project.name} interface`}
+        alt={`${project.name} interface`}
         fill
         sizes={sizes}
         priority={priority}
-        className={className ?? "object-cover"}
+        // Scale the image itself, never the card. The parent frame has a
+        // fixed aspect ratio and overflow-hidden, so this cannot reflow.
+        className="object-cover motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover:scale-[1.03]"
       />
     );
   }
@@ -38,26 +38,14 @@ export function ProjectVisual({
   return (
     <div
       aria-hidden="true"
-      className={
-        className ??
-        "flex h-full w-full items-center justify-center bg-muted px-6"
-      }
+      className="relative flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden bg-brand-weak px-6"
     >
-      <span className="text-center font-heading text-lg font-medium tracking-tight text-muted-foreground sm:text-xl">
+      <span className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+        {TYPE_LABEL[project.type]}
+      </span>
+      <span className="text-center font-heading text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
         {project.name}
       </span>
     </div>
   );
 }
-
-/** True when the project has at least one real gallery image. */
-export function hasScreenshots(project: Project) {
-  return project.screenshots.length > 0;
-}
-
-/** The first gallery image, used as the hero shot when no thumbnail is set. */
-export function heroScreenshot(project: Project) {
-  return project.screenshots[0] ?? null;
-}
-
-export { projectImagePath };

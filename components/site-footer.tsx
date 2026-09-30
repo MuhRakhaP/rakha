@@ -23,7 +23,7 @@ export function SiteFooter() {
                 rel={
                   item.href.startsWith("mailto:") ? undefined : "noopener noreferrer"
                 }
-                className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-brand hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 {item.label}
                 {item.href.startsWith("mailto:") && (

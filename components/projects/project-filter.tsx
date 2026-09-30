@@ -61,8 +61,8 @@ export function ProjectFilter({ counts }: { counts: Record<FilterValue, number> 
               "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
               isActive
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "border-brand bg-brand-weak text-brand"
+                : "border-border bg-background text-muted-foreground hover:border-brand hover:text-foreground",
             )}
           >
             {option.label}

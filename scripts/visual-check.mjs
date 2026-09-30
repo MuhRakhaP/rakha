@@ -156,6 +156,24 @@ async function findOverflow(page) {
   });
 }
 
+/**
+ * Scroll the whole page once so IntersectionObserver reveals fire.
+ * Without this, axe skips anything still at opacity-0 inside a <Reveal>
+ * and reports a false pass on the sections below the fold.
+ */
+async function settleReveals(page) {
+  await page.evaluate(async () => {
+    const step = window.innerHeight * 0.8;
+    for (let y = 0; y < document.body.scrollHeight; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    window.scrollTo(0, 0);
+    await new Promise((r) => setTimeout(r, 120));
+  });
+  await page.waitForTimeout(200);
+}
+
 async function main() {
   if (!existsSync(BUILD_ID)) {
     console.error(
@@ -216,25 +234,29 @@ async function main() {
               report.push(`    offender <${o.tag}> right=${o.right} .${o.cls}`);
             }
           }
-        } else {
-          const results = await new AxeBuilder({ page })
-            .withRules(["color-contrast"])
-            .analyze();
+        }
 
-          const violations = results.violations.filter((v) =>
-            v.nodes.some((n) => n.any.length > 0),
-          );
+        // Contrast at BOTH widths — text wrapping differs between them, and
+        // the below-the-fold reveals must be visible before axe will look.
+        await settleReveals(page);
 
-          report.push(
-            `[contrast @1440] ${target.path} -> ${
-              violations.length === 0 ? "pass" : "FAIL"
-            } (${violations.length} rule(s))`,
-          );
-          for (const v of violations) {
-            report.push(`    ${v.id} (${v.nodes.length} node(s))`);
-            for (const n of v.nodes.slice(0, 5)) {
-              report.push(`      ${n.target.join(" ")} :: ${n.any[0]?.message ?? ""}`);
-            }
+        const results = await new AxeBuilder({ page })
+          .withRules(["color-contrast"])
+          .analyze();
+
+        const violations = results.violations.filter((v) =>
+          v.nodes.some((n) => n.any.length > 0),
+        );
+
+        report.push(
+          `[contrast @${viewport.width}] ${target.path} -> ${
+            violations.length === 0 ? "pass" : "FAIL"
+          } (${violations.length} rule(s))`,
+        );
+        for (const v of violations) {
+          report.push(`    ${v.id} (${v.nodes.length} node(s))`);
+          for (const n of v.nodes.slice(0, 5)) {
+            report.push(`      ${n.target.join(" ")} :: ${n.any[0]?.message ?? ""}`);
           }
         }
 

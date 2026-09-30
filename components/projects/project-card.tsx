@@ -14,7 +14,7 @@ function CardTech({ items }: { items: string[] }) {
       {items.map((item) => (
         <li
           key={item}
-          className="rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground"
+          className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground"
         >
           {item}
         </li>
@@ -29,38 +29,45 @@ function pickCardTech(project: Project, limit = 4): string[] {
   return flat.slice(0, limit);
 }
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({
+  project,
+  headingLevel = 3,
+}: {
+  project: Project;
+  /** Keep the page's heading order intact: 2 under a bare h1, 3 under an h2. */
+  headingLevel?: 2 | 3;
+}) {
   const tech = pickCardTech(project);
+  const Heading = headingLevel === 2 ? "h2" : "h3";
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card focus-within:ring-2 focus-within:ring-ring">
+    <article className="group relative flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-[transform,box-shadow,border-color] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_4px_12px_-2px_oklch(0_0_0/0.10)] focus-within:border-brand focus-within:ring-2 focus-within:ring-ring">
       <div className="relative block aspect-16/10 w-full overflow-hidden border-b border-border">
         <ProjectVisual
           project={project}
-          className="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <ProjectBadges project={project} />
-        </div>
+        <ProjectBadges project={project} />
 
-        <h3 className="font-heading text-base font-semibold tracking-tight">
+        <Heading className="font-heading text-base font-semibold tracking-[-0.01em]">
           <Link
             href={`/projects/${project.slug}`}
             className="after:absolute after:inset-0 focus-visible:outline-none"
           >
             {project.name}
           </Link>
-        </h3>
+        </Heading>
 
         <p className="text-sm text-muted-foreground">{project.shortDescription}</p>
 
         <CardTech items={tech} />
 
-        <div className="mt-auto pt-1">
+        {/* z-10: the title's stretched ::after link paints above static
+            content, so without this the CTAs are unclickable. */}
+        <div className="relative z-10 mt-auto pt-1">
           <ProjectCtas project={project} size="sm" />
         </div>
       </div>

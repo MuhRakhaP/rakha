@@ -10,6 +10,11 @@ import { ProjectCard } from "@/components/projects/project-card";
 import { ProjectCtas } from "@/components/projects/project-ctas";
 import { DeviceFrame } from "@/components/projects/device-frame";
 import { ProjectGallery } from "@/components/projects/project-gallery";
+import {
+  SectionNav,
+  type SectionLink,
+} from "@/components/projects/section-nav";
+import { Reveal } from "@/components/reveal";
 import { getProject, getRelatedProjects, projects } from "@/data/projects";
 import { site } from "@/lib/site";
 
@@ -51,21 +56,45 @@ export async function generateMetadata({
   };
 }
 
-/** Section wrapper. Only rendered when there is something to show. */
+/** Section wrapper. Only ever rendered when there is something to show. */
 function Section({
+  id,
+  eyebrow,
   title,
   children,
 }: {
+  id: string;
+  eyebrow: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-border pt-8">
-      <h2 className="font-heading text-xl font-semibold tracking-tight">
-        {title}
-      </h2>
-      <div className="mt-4">{children}</div>
-    </section>
+    <Reveal>
+      <section id={id} className="scroll-mt-24 border-t border-border pt-8">
+        <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
+          {title}
+        </h2>
+        <div className="mt-4">{children}</div>
+      </section>
+    </Reveal>
+  );
+}
+
+function Bullets({ items }: { items: string[] }) {
+  return (
+    <ul className="flex max-w-2xl flex-col gap-3">
+      {items.map((item) => (
+        <li key={item} className="flex gap-3 text-sm">
+          <span aria-hidden="true" className="text-muted-foreground">
+            —
+          </span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -79,171 +108,183 @@ export default async function ProjectPage({ params }: { params: Params }) {
   const framed = project.type === "mobile";
   const heroImage = project.thumbnail ?? project.screenshots[0]?.src ?? null;
 
+  // Only sections that actually render appear in the page nav.
+  const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
+  if (project.problem) sections.push({ id: "problem", title: "Problem" });
+  if (project.solution) sections.push({ id: "solution", title: "Solution" });
+  if (project.features.length > 0)
+    sections.push({ id: "features", title: "Key Features" });
+  if (project.technologies.length > 0)
+    sections.push({ id: "stack", title: "Tech Stack" });
+  if (project.role) sections.push({ id: "role", title: "My Role" });
+  if (project.architecture)
+    sections.push({ id: "architecture", title: "Architecture" });
+  if (project.challenges?.length)
+    sections.push({ id: "challenges", title: "Challenges" });
+  if (project.results?.length) sections.push({ id: "results", title: "Results" });
+  if (project.screenshots.length > 0)
+    sections.push({ id: "gallery", title: "Gallery" });
+  if (related.length > 0)
+    sections.push({ id: "more", title: "More Projects" });
+
   return (
-    <article className="flex flex-col gap-10">
-      <Link
-        href="/projects"
-        className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-      >
-        <ArrowLeft aria-hidden="true" />
-        All projects
-      </Link>
+    <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+      <SectionNav sections={sections} />
 
-      {/* Hero */}
-      <header className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4">
-          <ProjectBadges project={project} />
-          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-            {project.name}
-          </h1>
-          <p className="max-w-2xl text-lg text-muted-foreground">
-            {project.tagline}
-          </p>
-        </div>
+      <article className="flex min-w-0 flex-1 flex-col gap-10">
+        <Link
+          href="/projects"
+          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          All projects
+        </Link>
 
-        {heroImage && (
-          <div className={framed ? "flex justify-center py-4" : undefined}>
-            {framed ? (
-              <DeviceFrame className="w-full max-w-64">
-                <Image
-                  src={heroImage}
-                  alt={`${project.name} interface`}
-                  width={1080}
-                  height={1920}
-                  priority
-                  className="h-auto w-full"
-                />
-              </DeviceFrame>
-            ) : (
-              <div className="relative aspect-16/10 w-full overflow-hidden rounded-lg border border-border">
-                <Image
-                  src={heroImage}
-                  alt={`${project.name} interface`}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 960px"
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {!heroImage && (
-          <div className="flex aspect-16/5 w-full items-center justify-center rounded-lg border border-border bg-muted">
-            <span className="font-heading text-xl font-medium tracking-tight text-muted-foreground">
+        {/* Hero */}
+        <header className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
+            <ProjectBadges project={project} />
+            <h1 className="font-heading text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">
               {project.name}
-            </span>
+            </h1>
+            <p className="max-w-2xl text-lg text-muted-foreground">
+              {project.tagline}
+            </p>
           </div>
+
+          {heroImage && (
+            <div className={framed ? "flex justify-center py-4" : undefined}>
+              {framed ? (
+                <DeviceFrame className="w-full max-w-64">
+                  <Image
+                    src={heroImage}
+                    alt={`${project.name} interface`}
+                    width={1080}
+                    height={1920}
+                    priority
+                    className="h-auto w-full"
+                  />
+                </DeviceFrame>
+              ) : (
+                <div className="relative aspect-16/10 w-full overflow-hidden rounded-lg border border-border">
+                  <Image
+                    src={heroImage}
+                    alt={`${project.name} interface`}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 960px"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {!heroImage && (
+            <div className="relative flex aspect-16/5 w-full items-center justify-center overflow-hidden rounded-lg border border-border bg-brand-weak">
+              <span
+                aria-hidden="true"
+                className="font-heading text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl"
+              >
+                {project.name}
+              </span>
+            </div>
+          )}
+
+          <ProjectCtas project={project} size="lg" />
+        </header>
+
+        <Section id="overview" eyebrow="Overview" title="Overview">
+          <p className="max-w-2xl">{project.description}</p>
+        </Section>
+
+        {project.problem && (
+          <Section id="problem" eyebrow="Context" title="Problem">
+            <p className="max-w-2xl">{project.problem}</p>
+          </Section>
         )}
 
-        <ProjectCtas project={project} size="lg" />
-      </header>
+        {project.solution && (
+          <Section id="solution" eyebrow="Approach" title="Solution">
+            <p className="max-w-2xl">{project.solution}</p>
+          </Section>
+        )}
 
-      {/* Overview */}
-      <Section title="Overview">
-        <p className="max-w-2xl">{project.description}</p>
-      </Section>
+        {project.features.length > 0 && (
+          <Section id="features" eyebrow="Scope" title="Key Features">
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {project.features.map((feature) => (
+                <li
+                  key={feature}
+                  className="rounded-lg border border-border bg-card p-4 text-sm transition-colors hover:border-brand"
+                >
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
 
-      {project.problem && (
-        <Section title="Problem">
-          <p className="max-w-2xl">{project.problem}</p>
-        </Section>
-      )}
+        {project.technologies.length > 0 && (
+          <Section id="stack" eyebrow="Built with" title="Tech Stack">
+            <TechStack technologies={project.technologies} />
+          </Section>
+        )}
 
-      {project.solution && (
-        <Section title="Solution">
-          <p className="max-w-2xl">{project.solution}</p>
-        </Section>
-      )}
+        {project.role && (
+          <Section id="role" eyebrow="Responsibility" title="My Role">
+            <p className="max-w-2xl">{project.role}</p>
+          </Section>
+        )}
 
-      {project.features.length > 0 && (
-        <Section title="Key Features">
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {project.features.map((feature) => (
-              <li
-                key={feature}
-                className="rounded-lg border border-border bg-card p-4 text-sm"
-              >
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
+        {project.architecture && (
+          <Section id="architecture" eyebrow="How it works" title="Architecture">
+            <ProjectArchitecture architecture={project.architecture} />
+          </Section>
+        )}
 
-      {project.technologies.length > 0 && (
-        <Section title="Tech Stack">
-          <TechStack technologies={project.technologies} />
-        </Section>
-      )}
+        {project.challenges && project.challenges.length > 0 && (
+          <Section id="challenges" eyebrow="Hard parts" title="Challenges">
+            <Bullets items={project.challenges} />
+          </Section>
+        )}
 
-      {project.role && (
-        <Section title="My Role">
-          <p className="max-w-2xl">{project.role}</p>
-        </Section>
-      )}
+        {project.results && project.results.length > 0 && (
+          <Section id="results" eyebrow="Outcome" title="Results">
+            <Bullets items={project.results} />
+          </Section>
+        )}
 
-      {project.architecture && (
-        <Section title="Architecture">
-          <ProjectArchitecture architecture={project.architecture} />
-        </Section>
-      )}
+        {project.screenshots.length > 0 && (
+          <Section id="gallery" eyebrow="Product" title="Gallery">
+            <ProjectGallery screenshots={project.screenshots} type={project.type} />
+          </Section>
+        )}
 
-      {project.challenges && project.challenges.length > 0 && (
-        <Section title="Challenges">
-          <ul className="flex max-w-2xl flex-col gap-3">
-            {project.challenges.map((challenge) => (
-              <li key={challenge} className="flex gap-3 text-sm">
-                <span aria-hidden="true" className="text-muted-foreground">
-                  —
-                </span>
-                <span>{challenge}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {project.results && project.results.length > 0 && (
-        <Section title="Results">
-          <ul className="flex max-w-2xl flex-col gap-3">
-            {project.results.map((result) => (
-              <li key={result} className="flex gap-3 text-sm">
-                <span aria-hidden="true" className="text-muted-foreground">
-                  —
-                </span>
-                <span>{result}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {project.screenshots.length > 0 && (
-        <Section title="Gallery">
-          <ProjectGallery
-            screenshots={project.screenshots}
-            type={project.type}
-          />
-        </Section>
-      )}
-
-      {related.length > 0 && (
-        <section className="border-t border-border pt-8">
-          <h2 className="font-heading text-xl font-semibold tracking-tight">
-            More Projects
-          </h2>
-          <ul className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {related.map((item) => (
-              <li key={item.slug} className="flex">
-                <ProjectCard project={item} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </article>
+        {related.length > 0 && (
+          <Reveal>
+            <section
+              id="more"
+              className="scroll-mt-24 border-t border-border pt-8"
+            >
+              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+                Keep going
+              </p>
+              <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
+                More Projects
+              </h2>
+              <ul className="mt-4 grid gap-6 sm:grid-cols-2">
+                {related.map((item) => (
+                  <li key={item.slug} className="flex">
+                    <ProjectCard project={item} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </Reveal>
+        )}
+      </article>
+    </div>
   );
 }
 
@@ -260,7 +301,7 @@ function TechStack({
     <dl className="grid gap-6 sm:grid-cols-2">
       {visible.map((group) => (
         <div key={group.category}>
-          <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
             {group.category}
           </dt>
           <dd className="mt-2">

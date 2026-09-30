@@ -21,7 +21,14 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+
+  /* Accent. Teal, used only in response states — hover, focus, active.
+     Verified: 6.04:1 on white, 4.97:1 on --brand-weak, 4.79:1 vs --border.
+     Do NOT use as a fill behind --primary-foreground, and never use
+     `ring-ring/50`, which composites to 2.15:1 and fails WCAG 1.4.11. */
+  --brand: oklch(0.47 0.125 180);
+  --brand-weak: oklch(0.93 0.03 180);
+  --ring: oklch(0.47 0.125 180);
 
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -58,7 +65,11 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+
+  /* Dark accent: 9.72:1 on --background, 8.80:1 on --card. */
+  --brand: oklch(0.76 0.12 180);
+  --brand-weak: oklch(0.19 0.045 180);
+  --ring: oklch(0.76 0.12 180);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -93,6 +104,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-weak: var(--brand-weak);
+
+  --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -120,11 +135,15 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans;
   }
 
   /* Respect reduced-motion: disable transitions, not content. */
@@ -137,8 +156,37 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    /* The block above collapses durations, but a transform still applies —
+       it just snaps. Neutralise it so reduced-motion users get static UI. */
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
   }
-  html {
-    @apply font-sans;
+}
+
+@layer components {
+  /* Hero backdrop: a faint dot grid with a single soft accent wash.
+     No gradient mesh, no glass, no 3D. */
+  .hero-grid {
+    background-image:
+      radial-gradient(
+        circle at 1px 1px,
+        color-mix(in oklch, var(--brand) 22%, transparent) 1px,
+        transparent 0
+      );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      #000 40%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      #000 40%,
+      transparent 100%
+    );
   }
 }

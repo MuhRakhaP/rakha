@@ -6,7 +6,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { projects } from "@/data/projects";
 import { certification, education, summary } from "@/lib/experience";
 import { skillGroups } from "@/lib/skills";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About",
