@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-
+import { buttonVariants } from "@/components/ui/button";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -62,6 +62,21 @@ export default function ContactPage() {
             </a>
           </li>
         ))}
+
+        {site.resumeUrl && (
+          <li>
+            <a
+              href={site.resumeUrl}
+              className={buttonVariants({
+                variant: "secondary",
+                size: "lg",
+                className: "w-full justify-center",
+              })}
+            >
+              Download Resume
+            </a>
+          </li>
+        )}
       </ul>
     </div>
   );
