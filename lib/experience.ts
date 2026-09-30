@@ -79,5 +79,4 @@ export const certification = {
 };
 
 /** Verbatim CV summary. */
-export const summary =
-  "Software Engineer with 3+ years of professional experience building and maintaining full-stack web applications, backend services, REST APIs, and business automation systems. Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, deployment, and maintenance.";
+export const summary = `Software Engineer with 3+ years of professional experience building and maintaining full - stack web applications, backend services, REST APIs, and business automation systems. Experienced with Laravel, Node.js, TypeScript, React.js, Next.js, PostgreSQL, and MySQL, with hands - on experience in API integrations, database design, system deployment, and production troubleshooting. Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, depl oyment, and maintenance.`;

@@ -17,8 +17,7 @@ export const metadata: Metadata = {
  * full `summary`. Nothing here is invented — it is the CV wording with the
  * second sentence shortened.
  */
-const heroSummary =
-  "Software Engineer with 3+ years of professional experience building and maintaining full-stack web applications, backend services, REST APIs, and business automation systems. Experienced from system design through deployment and maintenance.";
+const heroSummary = "Software Engineer with 3+ years of professional experience building and maintaining full-stack web applications, backend services, REST APIs, and business automation systems. Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, depl oyment, and maintenance.";
 
 /**
  * Skills shown in the hero panel, sliced out of `lib/skills.ts` so the panel

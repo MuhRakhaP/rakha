@@ -150,6 +150,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
             <p className="max-w-2xl text-lg text-muted-foreground">
               {project.tagline}
             </p>
+            {/* CV name subtitle - only shown for projects with old descriptive names */}
+            {project.cvName && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {project.cvName}
+              </p>
+            )}
           </div>
 
           {heroImage && (
