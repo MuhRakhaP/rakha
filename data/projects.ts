@@ -151,7 +151,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "ISP Billing & Network Management Platform",
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Backend", detail: "REST APIs, database workflows, business logic for customer management, subscription, billing, and network operations." },
       { area: "Integration", detail: "MikroTik PPPoE synchronization, Xendit payment gateway, WhatsApp notifications." },
@@ -159,9 +159,8 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "Docker multi-stage builds, CI/CD pipelines, production maintenance." },
     ],
     decisions: [
-      { title: "NestJS + BullMQ for async work", reason: "Job queue handles invoice generation, payment callbacks, and WhatsApp notifications outside the HTTP request cycle." },
-      { title: "PostgreSQL + Prisma", reason: "Relational schema for customers, subscriptions, invoices, PPPoE accounts; Prisma provides type-safe queries and migrations." },
-      { title: "Docker + CI/CD", reason: "Multi-stage Dockerfile builds standalone Next.js output; CI/CD pipeline deploys to container runtime." },
+      { title: "BullMQ job queue", reason: "Handles invoice generation, payment callbacks, and WhatsApp notifications outside the HTTP request cycle." },
+      { title: "Docker multi-stage build", reason: "Dockerfile uses node:22-alpine base, installs deps, builds standalone Next.js output, runs on port 3003 with dumb-init." },
     ],
     // TODO: add the public URL once the platform is reachable on a real domain
     liveDemo: null,
@@ -247,7 +246,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Mobile", detail: "Flutter app: cashier checkout, product/category/employee management, local SQLite cache, thermal printing." },
       { area: "Backend", detail: "Node.js + Express REST API, JWT auth, PostgreSQL schema." },
@@ -255,9 +254,8 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "Flutter for mobile", reason: "Single Dart codebase targets Android; pubspec includes fl_chart, sqflite, blue_thermal_printer." },
-      { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable." },
-      { title: "Express.js REST API", reason: "Node.js + Express serves JWT-authenticated endpoints for checkout, products, employees, reports." },
+      { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable, syncs on reconnect." },
+      { title: "Express.js REST API with JWT", reason: "Serves checkout, products, employees, reports endpoints; JWT auth on each request." },
     ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
@@ -340,7 +338,7 @@ export const projects: Project[] = [
     ],
     caseStudy: true,
     cvName: "Attendance & POS Android Systems",
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
       { area: "Backend", detail: "Node.js + Express REST API, TypeORM, JWT auth, PostgreSQL, scheduled jobs for reports." },
@@ -348,9 +346,8 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [
-      { title: "Riverpod for state", reason: "pubspec.yaml lists flutter_riverpod; state management for attendance capture flow." },
-      { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema." },
-      { title: "Node-cron scheduled jobs", reason: "package.json includes node-cron; backend runs daily report generation and notifications." },
+      { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema; backend syncs attendance records." },
+      { title: "Scheduled report jobs", reason: "node-cron runs daily report generation and supervisor notifications on the backend." },
     ],
     // TODO: add a public download URL for the release APK
     downloadApk: null,
@@ -418,7 +415,7 @@ export const projects: Project[] = [
     ],
     tags: ["operations"],
     caseStudy: false,
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
       { area: "Backend", detail: "Server Actions, Auth.js v5, JWT, Zod validation, role-based access (Owner/Staff)." },
@@ -483,7 +480,7 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "AI-Powered Helpdesk Assistant",
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Backend", detail: "Laravel + PHP core application: ticket management, assignment, categorization, resolution workflows." },
       { area: "AI", detail: "RAG assistant: retrieval-augmented knowledge lookup, contextual response generation." },
@@ -491,9 +488,9 @@ export const projects: Project[] = [
       { area: "Deployment", detail: "Testing, deployment, ongoing improvements." },
     ],
     decisions: [
-      { title: "Laravel + MySQL for core", reason: "Laravel controllers handle ticket CRUD, assignment, categorization; MySQL stores tickets, users, categories." },
-      { title: "RAG for knowledge retrieval", reason: "RAG pipeline retrieves relevant docs and generates contextual responses for agents." },
-      { title: "Rule-based ticket routing", reason: "Routing rules match ticket priority, category, topic to assignee; reduces manual assignment." },
+      { title: "Laravel + MySQL core", reason: "Laravel controllers handle ticket CRUD, assignment, categorization; MySQL stores tickets, users, categories." },
+      { title: "RAG knowledge retrieval", reason: "RAG pipeline retrieves relevant docs and generates contextual responses for agents." },
+      { title: "Rule-based ticket routing", reason: "Routing rules match ticket priority, category, topic to assignee." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
@@ -539,7 +536,7 @@ export const projects: Project[] = [
     ],
     caseStudy: false,
     cvName: "Outstanding Delivery Digitalization & Automation System",
-    sourcePrivate: false,
+    sourcePrivate: true,
     contribution: [
       { area: "Backend", detail: "Automated delivery data retrieval, processing, due-date updates, PO revisions/cancellations." },
       { area: "Automation", detail: "Supplier follow-ups, Auto In Portal for supplier data entry, EPS integration." },
