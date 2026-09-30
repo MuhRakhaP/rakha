@@ -418,14 +418,14 @@ caseStudy: true,
     sourcePrivate: false,
     contribution: [
       { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
-      { area: "Backend", detail: "Server Actions, Auth.js v5, JWT, Zod validation, role-based access (Owner/Staff)." },
+      { area: "Backend", detail: "Server Actions, Auth.js, JWT, Zod validation, role-based access (Owner/Staff)." },
       { area: "Database", detail: "PostgreSQL, Prisma ORM, stock movements, suppliers, production, costs, sales." },
       { area: "Infra", detail: "Docker Compose for local development." },
     ],
     decisions: [
       { title: "Server Actions for mutations", reason: "Next.js Server Actions handle purchase, supplier, production mutations with Zod validation." },
       { title: "Prisma with PostgreSQL", reason: "Prisma schema defines Supplier, Purchase, StockMovement, Production models with relations." },
-      { title: "Auth.js v5 role-based access", reason: "Credentials provider with JWT; session callback checks is_active and role (OWNER/STAFF)." },
+      { title: "Auth.js role-based access", reason: "Credentials provider with JWT; session callback checks is_active and role (OWNER/STAFF)." },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
@@ -589,4 +589,5 @@ export function getRelatedProjects(slug: string, limit = 3): Project[] {
 
   return [...sameType, ...rest].slice(0, limit);
 }
+
 
