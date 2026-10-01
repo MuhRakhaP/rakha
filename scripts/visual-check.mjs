@@ -16,7 +16,7 @@
  */
 
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { createServer } from "node:net";
 import path from "node:path";
@@ -56,6 +56,60 @@ const PAGES = [
   })),
 ];
 
+/** Harness ceiling for one referenced screenshot file. */
+const MAX_SCREENSHOT_BYTES = 500_000;
+
+/** Public dir, for checking that referenced screenshots exist on disk. */
+const PUBLIC_DIR = path.resolve("public");
+
+/**
+ * Screenshot and walkthrough metadata parsed straight out of the data module,
+ * so the harness checks what the site actually renders rather than a copy.
+ *
+ * Reads data/projects.ts as text and extracts src/alt/width/height triples.
+ * A parse failure is reported as a harness failure, never ignored.
+ */
+function readProjectMedia() {
+  const src = readFileSync(path.resolve("data/projects.ts"), "utf8");
+
+  const screenshots = [];
+  const thumbDims = [];
+
+  // screenshots: [ { src: "...", alt: "...", width: N, height: N }, ... ]
+  const shotsRe =
+    /\{\s*src:\s*"([^"]+)"\s*,\s*alt:\s*"([^"]*)"\s*,\s*width:\s*(\d+)\s*,\s*height:\s*(\d+)\s*\}/g;
+  for (const m of src.matchAll(shotsRe)) {
+    screenshots.push({
+      src: m[1],
+      alt: m[2],
+      width: Number(m[3]),
+      height: Number(m[4]),
+    });
+  }
+
+  const thumbRe =
+    /thumbnail:\s*"([^"]+)"[\s\S]{0,120}?thumbnailWidth:\s*(\d+)\s*,\s*thumbnailHeight:\s*(\d+)/g;
+  for (const m of src.matchAll(thumbRe)) {
+    thumbDims.push({ src: m[1], width: Number(m[2]), height: Number(m[3]) });
+  }
+
+  // Project type per slug, so the harness can confirm frames follow type.
+  const typeBySlug = new Map();
+  const typeRe = /slug:\s*"([^"]+)"[\s\S]{0,200}?type:\s*"(web|mobile|backend|ai)"/g;
+  for (const m of src.matchAll(typeRe)) {
+    typeBySlug.set(m[1], m[2]);
+  }
+
+  // Slugs that declare a walkthrough.
+  const walkthroughSlugs = new Set();
+  const wtRe = /slug:\s*"([^"]+)"([\s\S]*?)(?=\n  \{\n|\n\];)/g;
+  for (const m of src.matchAll(wtRe)) {
+    if (/\n\s+walkthrough:\s*\[/.test(m[2])) walkthroughSlugs.add(m[1]);
+  }
+
+  return { screenshots, thumbDims, typeBySlug, walkthroughSlugs };
+}
+
 const VIEWPORTS = [
   { name: "390", width: 390, height: 844 },
   { name: "768", width: 768, height: 1024 },
@@ -84,6 +138,13 @@ const SECTION_ORDER = [
   "More Projects",
 ];
 
+/**
+ * The caption every WalkthroughPanel must show. Kept as a literal here on
+ * purpose: the harness must fail if the rendered text ever drifts from the
+ * agreed wording, so it cannot import the value it is meant to police.
+ */
+const WALKTHROUGH_CAPTION = "Illustrative walkthrough. Not actual app screenshots.";
+
 const MOJIBAKE = [
   { label: "â€", pat: "â€" },
   { label: "Ã", pat: "Ã" },
@@ -92,6 +153,8 @@ const MOJIBAKE = [
 ];
 
 const isWindows = process.platform === "win32";
+/** Slugs whose data declares a walkthrough. Needed inside the page loop. */
+const walkthroughSlugs = new Set();
 const report = [];
 const rows = [];
 let failures = 0;
@@ -352,6 +415,11 @@ async function main() {
     await waitForServer();
     console.log("Server is up.\n");
 
+    // Slugs that must render a WalkthroughPanel.
+    for (const slug of readProjectMedia().walkthroughSlugs) {
+      walkthroughSlugs.add(slug);
+    }
+
     const browser = await chromium.launch();
 
     for (const viewport of VIEWPORTS) {
@@ -519,8 +587,64 @@ async function main() {
             );
           }
 
-          // (c) Section order.
-          const observed = m.headings.filter((h) => SECTION_ORDER.includes(h));
+        // WalkthroughPanel must always carry its permanent caption. Recorded on
+        // every route, including the ones with no panel, so a panel that
+        // silently disappears from a project that should have one is visible.
+        const wt = await page.evaluate(() => {
+          const panels = Array.from(
+            document.querySelectorAll('[data-testid="walkthrough-panel"]'),
+          );
+          return panels.map((p) => {
+            const caption = p.querySelector('[data-testid="walkthrough-caption"]');
+            return {
+              present: true,
+              hasCaption: !!caption,
+              captionRole: caption?.getAttribute("role") ?? null,
+              captionText: (caption?.textContent ?? "").trim(),
+            };
+          });
+        });
+
+        const expectWalkthrough = walkthroughSlugs.has(target.slug);
+
+        if (wt.length > 0) {
+          for (const panel of wt) {
+            const captionOk =
+              panel.hasCaption &&
+              panel.captionRole === "note" &&
+              panel.captionText === WALKTHROUGH_CAPTION;
+            record(
+              target.path,
+              viewport.name,
+              "walkthrough-caption",
+              captionOk,
+              captionOk
+                ? ""
+                : `role=${panel.captionRole} text=${JSON.stringify(panel.captionText)}`,
+            );
+          }
+        } else if (expectWalkthrough) {
+          // The data declares a walkthrough for this slug, so a missing panel is
+          // a real failure rather than an absence to shrug at.
+          record(
+            target.path,
+            viewport.name,
+            "walkthrough-present",
+            false,
+            "data declares walkthrough[] but no panel rendered",
+          );
+        } else {
+          record(
+            target.path,
+            viewport.name,
+            "walkthrough-caption",
+            true,
+            "no panel on this route",
+          );
+        }
+
+        // (c) Section order.
+        const observed = m.headings.filter((h) => SECTION_ORDER.includes(h));
           let orderOk = observed.length > 0;
           let cursor = -1;
           const seen = new Set();
@@ -627,6 +751,77 @@ async function main() {
     await stopServer();
   }
 
+  // ---- static media checks, against the real files on disk ---------------
+  const media = readProjectMedia();
+
+  // Any screenshot declared in data but wider or taller than 0 and not on disk
+  // is a broken reference. This is the check that would catch a committed
+  // data/projects.ts pointing at screenshots that were never captured.
+  if (media.screenshots.length === 0) {
+    record("data/projects.ts", "-", "screenshots-parsed", true, "none declared");
+  }
+
+  for (const shot of media.screenshots) {
+    const file = path.join(PUBLIC_DIR, shot.src.replace(/^\//, ""));
+
+    if (!existsSync(file)) {
+      record(shot.src, "-", "screenshot-exists", false, "file not found on disk");
+      continue;
+    }
+    record(shot.src, "-", "screenshot-exists", true);
+
+    const size = statSync(file).size;
+    record(
+      shot.src,
+      "-",
+      "screenshot-size",
+      size <= MAX_SCREENSHOT_BYTES,
+      `${size}B (limit ${MAX_SCREENSHOT_BYTES})`,
+    );
+
+    const altOk = shot.alt.trim().length > 0;
+    record(shot.src, "-", "screenshot-alt", altOk, altOk ? "" : "alt text is empty");
+
+    const dimsOk = shot.width > 0 && shot.height > 0;
+    record(shot.src, "-", "screenshot-dimensions", dimsOk, `${shot.width}x${shot.height}`);
+  }
+
+  for (const thumb of media.thumbDims) {
+    const file = path.join(PUBLIC_DIR, thumb.src.replace(/^\//, ""));
+    record(
+      thumb.src,
+      "-",
+      "thumbnail-exists",
+      existsSync(file),
+      existsSync(file) ? `${thumb.width}x${thumb.height}` : "file not found on disk",
+    );
+  }
+
+  // A walkthrough must not sit alongside real screenshots: the panel is hidden
+  // when a capture exists, so the data would be dead and misleading.
+  for (const shot of media.screenshots) {
+    const slug = shot.src.match(/^\/projects\/([^/]+)\//)?.[1];
+    if (slug && media.walkthroughSlugs.has(slug)) {
+      record(
+        shot.src,
+        "-",
+        "walkthrough-not-alongside-screenshots",
+        false,
+        `${slug} has both screenshots and a walkthrough`,
+      );
+    }
+  }
+
+  for (const slug of walkthroughSlugs) {
+    record(
+      `/projects/${slug}`,
+      "-",
+      "walkthrough-declared",
+      true,
+      `${slug} renders a walkthrough because it has no screenshot`,
+    );
+  }
+
   // Table output.
   const widths = [...new Set(rows.map((r) => r.width))];
   const routeCol = [...new Set(rows.map((r) => r.route))];
@@ -659,7 +854,11 @@ async function main() {
       r.check === "og-encoding" ||
       r.check.startsWith("no-mojibake") ||
       r.check === "no-overflow" ||
-      r.check === "head-charset-utf8"
+      r.check === "head-charset-utf8" ||
+      r.check.startsWith("screenshot-") ||
+      r.check.startsWith("thumbnail-") ||
+      r.check === "walkthrough-caption" ||
+      r.check.startsWith("walkthrough-")
     ) {
       report.push(
         `${r.ok ? "PASS" : "FAIL"} ${r.route} @${r.width} :: ${r.check} :: ${r.detail}`,

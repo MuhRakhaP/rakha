@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -8,8 +7,9 @@ import { ProjectArchitecture } from "@/components/projects/project-architecture"
 import { ProjectBadges } from "@/components/projects/project-badges";
 import { ProjectCard } from "@/components/projects/project-card";
 import { ProjectCtas } from "@/components/projects/project-ctas";
-import { DeviceFrame } from "@/components/projects/device-frame";
+import { ProjectFrame } from "@/components/projects/project-frame";
 import { ProjectGallery } from "@/components/projects/project-gallery";
+import { WalkthroughPanel } from "@/components/projects/walkthrough-panel";
 import {
   SectionNav,
   type SectionLink,
@@ -129,7 +129,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
   const related = getRelatedProjects(project.slug);
   const framed = project.type === "mobile";
-  const heroImage = project.thumbnail ?? project.screenshots[0]?.src ?? null;
 
   // Only sections that actually render appear in the page nav.
   const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
@@ -150,6 +149,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
   if (project.results?.length) sections.push({ id: "results", title: "Results" });
   if (project.screenshots.length > 0)
     sections.push({ id: "gallery", title: "Gallery" });
+  if (
+    project.screenshots.length === 0 &&
+    project.walkthrough &&
+    project.walkthrough.length > 0
+  )
+    sections.push({ id: "walkthrough", title: "Illustrative Walkthrough" });
   if (related.length > 0)
     sections.push({ id: "more", title: "More Projects" });
 
@@ -183,44 +188,14 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
         </div>
 
-        {heroImage && (
-          <div className={framed ? "flex justify-center py-4" : undefined}>
-            {framed ? (
-              <DeviceFrame className="w-full max-w-64">
-                <Image
-                  src={heroImage}
-                  alt={`${project.name} interface`}
-                  width={1080}
-                  height={1920}
-                  priority
-                  className="h-auto w-full"
-                />
-              </DeviceFrame>
-            ) : (
-              <div className="relative aspect-16/10 w-full overflow-hidden rounded-lg border border-border">
-                <Image
-                  src={heroImage}
-                  alt={`${project.name} interface`}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 960px"
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {!heroImage && (
-          <div className="relative flex aspect-16/5 w-full items-center justify-center overflow-hidden rounded-lg border border-border bg-brand-weak">
-            <span
-              aria-hidden="true"
-              className="font-heading text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl"
-            >
-              {project.name}
-            </span>
-          </div>
-        )}
+        {/* Real capture in a type-appropriate frame, or the walkthrough when
+            there is no capture. Never a mockup. */}
+        <ProjectFrame
+          project={project}
+          priority
+          sizes="(max-width: 1024px) 100vw, 960px"
+          className={framed ? "max-w-64" : undefined}
+        />
 
         <ProjectCtas project={project} size="lg" hideCaseStudy />
       </header>
@@ -319,11 +294,41 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
           {project.screenshots.length > 0 && (
             <Section id="gallery" eyebrow="Product" title="Gallery">
-              <ProjectGallery screenshots={project.screenshots} type={project.type} />
+              <ProjectGallery
+                screenshots={project.screenshots}
+                project={project}
+              />
             </Section>
           )}
+        </div>
       </div>
-    </div>
+
+      {/* Walkthrough only where there is no real screenshot. Full container
+          width and OUTSIDE the case study grid, so it never becomes a third
+          grid column that squeezes the reading column. */}
+      {project.screenshots.length === 0 &&
+        project.walkthrough &&
+        project.walkthrough.length > 0 && (
+          <Reveal>
+            <section
+              id="walkthrough"
+              className="scroll-mt-24 border-t border-border pt-8"
+            >
+              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+                How it works
+              </p>
+              <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
+                Illustrative Walkthrough
+              </h2>
+              <div className="mt-4 max-w-3xl">
+                <WalkthroughPanel
+                  projectName={project.name}
+                  steps={project.walkthrough}
+                />
+              </div>
+            </section>
+          </Reveal>
+        )}
 
       {related.length > 0 && (
         <Reveal>
@@ -332,6 +337,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
             data-testid="more-projects"
             className="scroll-mt-24 border-t border-border pt-8"
           >
+            {/* More Projects is full container width and sits OUTSIDE the
+                case study grid, like the ClosingCta below it. */}
             <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
               Keep going
             </p>
