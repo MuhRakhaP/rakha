@@ -11,7 +11,7 @@ export interface SectionLink {
 
 /**
  * Desktop-only in-page navigation for a case study. Highlights the section
- * currently in view. Hidden below `lg` where it would eat vertical space.
+ * currently in view. Hidden below `lg`, where it would eat horizontal space.
  */
 export function SectionNav({ sections }: { sections: SectionLink[] }) {
   const [active, setActive] = useState<string>(sections[0]?.id ?? "");
@@ -47,7 +47,8 @@ export function SectionNav({ sections }: { sections: SectionLink[] }) {
   return (
     <nav
       aria-label="Case study sections"
-      className="sticky top-8 hidden self-start lg:block"
+      data-testid="section-nav"
+      className="sticky top-8 hidden w-56 shrink-0 self-start lg:block"
     >
       <ul className="flex flex-col gap-1 border-l border-border pl-4">
         {sections.map((section) => {

@@ -8,7 +8,7 @@ import { site } from "@/lib/site";
  */
 export function ClosingCta() {
   return (
-    <section className="border-t border-border pt-10">
+    <section data-testid="closing-cta" className="border-t border-border pt-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-heading text-xl font-semibold tracking-tight">
