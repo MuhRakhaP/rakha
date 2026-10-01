@@ -27,6 +27,8 @@ type Params = Promise<{ slug: string }>;
  * would just repeat the tagline immediately above it.
  *
  * Accented characters are folded, so "Cafe" and "Café" compare equal.
+ * "&" becomes "and" before punctuation is dropped, so a tagline written
+ * out in words matches a CV title that uses the ampersand.
  */
 function isRedundantSubtitle(subtitle: string, tagline: string): boolean {
   const normalise = (value: string) =>
@@ -34,6 +36,7 @@ function isRedundantSubtitle(subtitle: string, tagline: string): boolean {
       .normalize("NFKD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
+      .replace(/&/g, " and ")
       .replace(/[^\p{L}\p{N}]+/gu, " ")
       .trim();
 

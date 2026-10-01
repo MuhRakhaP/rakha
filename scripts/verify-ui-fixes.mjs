@@ -98,9 +98,19 @@ function normalise(value) {
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .replace(/&/g, " and ")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
+
+/**
+ * Slugs whose subtitle must be absent entirely, with the reason. terahome is
+ * the regression guard for the "&" -> "and" fold: its CV title differs from the
+ * tagline only by the ampersand, so it must not render.
+ */
+const MUST_HIDE_SUBTITLE = {
+  terahome: "cvName differs from tagline only by '&' vs 'and'",
+};
 
 async function main() {
   if (!existsSync(BUILD_ID)) {
@@ -199,6 +209,18 @@ async function main() {
           ` subtitle=${JSON.stringify(subtitle)}` +
           (dupOk ? "" : "  <-- subtitle repeats tagline"),
       );
+
+      // 3. explicit guard: slugs known to render no subtitle at all.
+      const mustHide = MUST_HIDE_SUBTITLE[slug];
+      if (mustHide) {
+        const hiddenOk = subtitle === null;
+        if (!hiddenOk) failures++;
+        console.log(
+          `${hiddenOk ? "PASS" : "FAIL"} ${slug} :: subtitle-must-be-hidden` +
+            ` :: ${mustHide}` +
+            ` :: rendered=${JSON.stringify(subtitle)}`,
+        );
+      }
 
       console.log(
         `     hero links: ${JSON.stringify(found.heroHref)}` +

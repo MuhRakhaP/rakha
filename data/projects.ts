@@ -245,7 +245,8 @@ export const projects: Project[] = [
       "Migrated production applications, databases, and file storage from shared hosting to VPS infrastructure, improving deployment and server resource efficiency by approximately 30%.",
     ],
     caseStudy: true,
-    cvName: "Attendance & POS Android Systems",
+    // cvName omitted: the CV lists THINKPOS and CLOCKORA as one entry,
+    // "Attendance & POS Android Systems", so neither owns that name alone.
     sourcePrivate: false,
     contribution: [
       { area: "Mobile", detail: "Flutter app: cashier checkout, product/category/employee management, local SQLite cache, thermal printing." },
@@ -337,7 +338,7 @@ export const projects: Project[] = [
       "Migrated production applications, databases, and file storage from shared hosting to VPS infrastructure, improving deployment and server resource efficiency by approximately 30%.",
     ],
 caseStudy: true,
-      cvName: "Attendance & POS Android Systems",
+      // cvName omitted: shared with THINKPOS in the CV, see note above.
       sourcePrivate: false,
       contribution: [
         { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
