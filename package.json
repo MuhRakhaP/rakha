@@ -9,7 +9,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "visual-check": "node scripts/visual-check.mjs"
+    "visual-check": "node scripts/visual-check.mjs",
+    "encoding:scan": "python scripts/scan-encoding.py",
+    "encoding:fix": "python scripts/fix-encoding.py",
+    "encoding:verify": "python scripts/verify-encoding.py"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

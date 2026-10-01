@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProjectCard } from "@/components/projects/project-card";
@@ -34,7 +34,7 @@ const panelSkills = [
 
 /**
  * Projects grouped by type for "What I Build" section.
- * Derived from project `type` and `tags` â€” no hardcoded names.
+ * Derived from project `type` and `tags` — no hardcoded names.
  */
 function getProjectsByCategory() {
   const web = projects.filter((p) => p.type === "web");
@@ -65,7 +65,7 @@ export default function HomePage() {
         <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-14">
           <div className="flex flex-col gap-6">
             <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-              {site.role} Â· {site.secondaryRole}
+              {site.role} · {site.secondaryRole}
             </p>
 
             <h1 className="max-w-3xl font-heading text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
