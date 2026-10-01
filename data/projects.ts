@@ -16,6 +16,17 @@ export type ProjectType = "web" | "mobile" | "backend" | "ai";
 
 export type ProjectStatus = "production" | "in-development";
 
+/**
+ * One step of an illustrative walkthrough, used only when a project has no
+ * real screenshot. Content comes from the CV and repo-verified features —
+ * never invented numbers, names, customer data, or UI text.
+ */
+export interface Walkthrough {
+  title: string;
+  description: string;
+  steps?: string[];
+}
+
 export interface Project {
   slug: string;
   name: string;
@@ -25,7 +36,19 @@ export interface Project {
   shortDescription: string;
   description: string;
   thumbnail: string | null;
-  screenshots: { src: string; alt: string }[];
+  /**
+   * Real dimensions of the thumbnail, read from the file itself. Used so
+   * next/image reserves the right box and the frame keeps the true ratio.
+   */
+  thumbnailWidth?: number;
+  thumbnailHeight?: number;
+  /** Real screenshots only. `width`/`height` are the file's actual pixels. */
+  screenshots: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  }[];
   /** Grouped so the case study can render labelled columns. */
   technologies: { category: string; items: string[] }[];
   features: string[];
@@ -56,6 +79,12 @@ export interface Project {
   contribution?: { area: string; detail: string }[];
   /** Engineering decisions: title + reason. Max 5. Rendered after Architecture. */
   decisions?: { title: string; reason: string }[];
+  /**
+   * Illustrative walkthrough for projects with no capturable UI. Rendered only
+   * where no real screenshot exists, and never inside a device or browser
+   * frame, so it can never read as a screenshot.
+   */
+  walkthrough?: Walkthrough[];
 }
 
 export const PROJECT_TYPES: { value: ProjectType | "all"; label: string }[] = [
@@ -442,7 +471,9 @@ caseStudy: true,
       "A full-stack helpdesk with ticket workflows, rule-based routing, and a retrieval-augmented assistant.",
     description:
       "A full-stack enterprise application for customer support operations and service requests. It manages the ticket lifecycle — intake, assignment, categorization, and resolution — and layers on two pieces of automation: rule-based routing that sends a ticket to the right place based on its priority, category, and topic, and a retrieval-augmented assistant that pulls relevant knowledge and produces a contextual response so agents can stop hunting through documentation.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // No repository was available for this project, so there is no real UI to
+    // capture. No screenshot and no mockup: the walkthrough below is the
+    // honest fallback, and it is labelled as such wherever it appears.
     thumbnail: null,
     screenshots: [],
     technologies: [
@@ -493,6 +524,41 @@ caseStudy: true,
       { title: "RAG knowledge retrieval", reason: "RAG pipeline retrieves relevant docs and generates contextual responses for agents." },
       { title: "Rule-based ticket routing", reason: "Routing rules match ticket priority, category, topic to assignee." },
     ],
+    // Wording is taken from the CV entry and the repo-verified feature list
+    // above. No invented UI text, numbers, or ticket content.
+    walkthrough: [
+      {
+        title: "Ticket lifecycle",
+        description:
+          "A service request moves through intake, assignment, categorisation, and resolution inside the helpdesk.",
+        steps: [
+          "Intake: a support agent records the incoming request",
+          "Categorisation: the ticket is filed by category and topic",
+          "Assignment: routing rules send it to the right person",
+          "Resolution: the assigned agent works and closes the ticket",
+        ],
+      },
+      {
+        title: "Rule-based routing",
+        description:
+          "Assignment is derived from the ticket itself rather than read and guessed by hand.",
+        steps: [
+          "Priority, category, and topic are read from the ticket",
+          "Routing rules match those values against the configured assignments",
+          "The ticket is routed automatically once a rule matches",
+        ],
+      },
+      {
+        title: "Retrieval-augmented assistant",
+        description:
+          "An agent asks the system a question and gets a contextual answer grounded in the knowledge base.",
+        steps: [
+          "The agent asks a question from the ticket",
+          "Relevant knowledge is retrieved from the knowledge base",
+          "A contextual response is generated from that retrieved knowledge",
+        ],
+      },
+    ],
     // TODO: add only if a public repository actually exists
     github: null,
   },
@@ -507,7 +573,9 @@ caseStudy: true,
       "Automates outstanding-delivery follow-up, purchase order updates, and supplier communication.",
     description:
       "A software automation platform built to replace manual outstanding-delivery follow-up. It retrieves and processes delivery data automatically, keeps due dates and purchase orders current — including revisions and cancellations — and chases suppliers without someone doing it by hand. A companion Auto In Portal gives suppliers one place to enter their data, so the information arrives already in the shape the downstream processes need. Data is pulled from the Enterprise Planning System and fed into these automated flows.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // No repository was available for this project, so there is no real UI to
+    // capture. No screenshot and no mockup: the walkthrough below is the
+    // honest fallback, and it is labelled as such wherever it appears.
     thumbnail: null,
     screenshots: [],
     // TODO: the CV describes this project but does not name its technologies.
@@ -544,8 +612,52 @@ caseStudy: true,
       { area: "Integration", detail: "Enterprise Planning System (EPS) data ingestion, automated supplier communication." },
     ],
     decisions: [
-      { title: "Automated EPS data ingestion", reason: "EPS feeds delivery data into automated pipeline for due-date and PO updates." },
-      { title: "Auto In Portal for suppliers", reason: "Web portal where suppliers enter data; downstream processes consume standardized input." },
+      { title: "Automated EPS data ingestion", reason: "EPS feeds delivery data into the automated pipeline for due-date and purchase order updates." },
+      { title: "Auto In Portal for suppliers", reason: "Suppliers enter their data in one place, so downstream processes consume a standardised input." },
+    ],
+    // Wording is taken from the CV entry and the repo-verified feature list
+    // above. No invented UI text, numbers, or supplier data.
+    walkthrough: [
+      {
+        title: "Delivery data retrieval",
+        description:
+          "Delivery data is pulled from the Enterprise Planning System and processed without a person stepping in.",
+        steps: [
+          "The Enterprise Planning System (EPS) supplies the delivery data",
+          "The platform retrieves and processes that data automatically",
+          "The processed data feeds the downstream automation",
+        ],
+      },
+      {
+        title: "Purchase orders and due dates",
+        description:
+          "Due dates and purchase orders are kept current programmatically, including revisions and cancellations.",
+        steps: [
+          "Outstanding deliveries are identified from the incoming data",
+          "Due dates and purchase orders are updated automatically",
+          "Revisions and cancellations are applied to the purchase order state",
+        ],
+      },
+      {
+        title: "Supplier follow-up",
+        description:
+          "Suppliers are chased automatically, so the weekly manual loop is not needed.",
+        steps: [
+          "The platform determines which suppliers need following up",
+          "Follow-ups go out to those suppliers automatically",
+          "Supplier replies come back through the Auto In Portal",
+        ],
+      },
+      {
+        title: "Auto In Portal",
+        description:
+          "Suppliers enter their data in one place, so it arrives in the shape the downstream processes need.",
+        steps: [
+          "A supplier opens the Auto In Portal and enters what they have",
+          "The data is captured in a standardised shape",
+          "Downstream processes consume that input directly",
+        ],
+      },
     ],
     // TODO: add only if a public repository actually exists
     github: null,
