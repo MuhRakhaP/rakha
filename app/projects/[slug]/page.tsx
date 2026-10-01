@@ -21,6 +21,25 @@ import { ClosingCta } from "@/components/closing-cta";
 
 type Params = Promise<{ slug: string }>;
 
+/**
+ * True when two strings say the same thing once case, punctuation and
+ * whitespace are discounted. Used to drop the CV-name subtitle when it
+ * would just repeat the tagline immediately above it.
+ *
+ * Accented characters are folded, so "Cafe" and "Café" compare equal.
+ */
+function isRedundantSubtitle(subtitle: string, tagline: string): boolean {
+  const normalise = (value: string) =>
+    value
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+
+  return normalise(subtitle) === normalise(tagline);
+}
+
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));
 }
@@ -153,8 +172,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
           <p className="max-w-2xl text-lg text-muted-foreground">
             {project.tagline}
           </p>
-          {/* CV name subtitle - only shown for projects with old descriptive names */}
-          {project.cvName && (
+          {/* CV name subtitle. Hidden when it would only repeat the tagline. */}
+          {project.cvName && !isRedundantSubtitle(project.cvName, project.tagline) && (
             <p className="mt-2 text-sm text-muted-foreground">
               {project.cvName}
             </p>
@@ -200,7 +219,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </div>
         )}
 
-        <ProjectCtas project={project} size="lg" />
+        <ProjectCtas project={project} size="lg" hideCaseStudy />
       </header>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">

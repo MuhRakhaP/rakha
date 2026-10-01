@@ -12,21 +12,26 @@ type Size = "sm" | "default" | "lg";
  *
  * These are real links styled with the button variants rather than the Base UI
  * Button primitive, so they keep native link semantics and announce as links.
+ *
+ * `hideCaseStudy` suppresses the "View Case Study" link on the case study page
+ * itself, where the link would point at the page already being read.
  */
 export function ProjectCtas({
   project,
   size = "default",
   className,
+  hideCaseStudy = false,
 }: {
   project: Project;
   size?: Size;
   className?: string;
+  hideCaseStudy?: boolean;
 }) {
   const buttonClass = buttonVariants({ size });
 
   const links: { key: string; node: React.ReactNode }[] = [];
 
-  if (project.caseStudy) {
+  if (project.caseStudy && !hideCaseStudy) {
     links.push({
       key: "case-study",
       node: (
