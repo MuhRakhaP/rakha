@@ -128,6 +128,8 @@ export function ShowcaseFigure({
       aria-label={accessibleName}
       data-testid={isRecreation ? "recreation-figure" : undefined}
       data-screen-id={screen.id}
+      data-frame={isRecreation ? (web ? "browser" : "phone") : undefined}
+      data-logical-width={isRecreation ? logical.width : undefined}
       className="block w-full"
     >
       {framed}

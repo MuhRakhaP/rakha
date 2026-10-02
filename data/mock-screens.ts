@@ -152,6 +152,25 @@ export const TERAHOME_SCREENS: Record<string, MockScreenDef> = {
   },
 };
 
+/**
+ * Look up one screen definition by project slug and screen id.
+ *
+ * Returns undefined rather than a fallback. An earlier version fell through to
+ * the first registered screen when the requested id was missing, which quietly
+ * drew the wrong screen under the wrong label.
+ */
+export function getScreenDef(
+  slug: string,
+  id: string,
+): MockScreenDef | undefined {
+  const byProject: Record<string, Record<string, MockScreenDef>> = {
+    thinkpos: THINKPOS_SCREENS,
+    clockora: CLOCKORA_SCREENS,
+    terahome: TERAHOME_SCREENS,
+  };
+  return byProject[slug]?.[id];
+}
+
 /* ------------------------------------------------------------------ *
  * Home page device previews.
  *
@@ -164,7 +183,7 @@ export const TERAHOME_SCREENS: Record<string, MockScreenDef> = {
 export const HOME_HERO_SCREEN: Record<string, string> = {
   thinkpos: "cashier",
   clockora: "checkin",
-  terahome: "dashboard",
+  terahome: "invoice-detail",
 };
 
 /* ------------------------------------------------------------------ *

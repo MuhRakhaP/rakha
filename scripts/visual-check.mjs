@@ -937,13 +937,31 @@ async function main() {
                 ?.textContent ?? ""
             ).trim(),
             altTexts: figures.map((f) => f.getAttribute("aria-label") ?? ""),
+          // A recreation declares its own frame and authoring size. The drawn
+          // screen has to agree with it: a web screen authored at 1280 forced
+          // into a 360px phone frame is not scaled, it is crushed.
+          frames: figures.map((f) => {
+            const inner = f.querySelector('[data-testid="recreation-screen"]');
+            return {
+              frame: f.getAttribute("data-frame"),
+              id: f.getAttribute("data-screen-id"),
+              declared: Number(f.getAttribute("data-logical-width")),
+              actual: inner ? inner.offsetWidth : null,
+            };
+          }),
             dom,
             // offsetHeight, not the bounding rect: the centre card is painted
           // 5% larger on purpose, and that is a transform, not a layout
           // difference. What must match is the reserved height.
           frameHeights: Array.from(
             strip.querySelectorAll('[data-testid="recreation-frame"]'),
-          ).map((el) => el.offsetHeight),
+          ).map((el) => {
+            const owner = el.closest('[data-testid="recreation-figure"]');
+            return {
+              frame: owner?.getAttribute("data-frame") ?? "capture",
+              height: el.offsetHeight,
+            };
+          }),
           navShape: Array.from(strip.querySelectorAll("nav")).map((nav) => ({
             items: nav.querySelectorAll(":scope > span").length,
             scroller:
@@ -1057,6 +1075,24 @@ async function main() {
             ["recreation-no-ellipsis", "ellipsis"],
             ["recreation-in-bounds", "outside"],
           ];
+
+          // The frame must match the screen's declared authoring width, and the
+          // accessible name must name the screen that was actually drawn.
+          const frameBad = showcase.frames
+            .filter((f) => f.actual !== null && f.declared !== f.actual)
+            .map(
+              (f) =>
+                `${f.frame}/${f.id}: declared ${f.declared}, drew ${f.actual}`,
+            );
+          record(
+            target.path,
+            viewport.name,
+            "recreation-frame-matches",
+            frameBad.length === 0,
+            frameBad.length === 0 ? "" : frameBad.join("; "),
+          );
+
+
           for (const [check, key] of domRules) {
             const hits = showcase.dom[key];
             record(
@@ -1070,15 +1106,25 @@ async function main() {
 
           // Every drawn screen in a strip must land on the same height, or the
           // row looks accidental rather than composed.
-          const heights = [...new Set(showcase.frameHeights)];
+          // Phones must match phones and browsers must match browsers. Across
+          // kinds the numbers are not comparable at all: a 9:19.5 phone and a
+          // 16:10 capture are supposed to differ.
+          const byKind = new Map();
+          for (const entry of showcase.frameHeights) {
+            if (!byKind.has(entry.frame)) byKind.set(entry.frame, new Set());
+            byKind.get(entry.frame).add(entry.height);
+          }
+          const uneven = [...byKind.entries()].filter(([, s]) => s.size > 1);
           record(
             target.path,
             viewport.name,
             "strip-equal-heights",
-            heights.length <= 1,
-            heights.length <= 1
+            uneven.length === 0,
+            uneven.length === 0
               ? ""
-              : `frame heights differ: ${showcase.frameHeights.join(", ")}`,
+              : uneven
+                  .map(([k, s]) => `${k}: ${[...s].join(" vs ")}`)
+                  .join("; "),
           );
 
           // The bottom navigation is 3 to 5 destinations and must not scroll.
