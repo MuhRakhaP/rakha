@@ -155,7 +155,7 @@ const WALKTHROUGH_CAPTION = "Illustrative walkthrough. Not actual app screenshot
  * cannot import the value it is meant to police.
  */
 const RECREATION_CAPTION =
-  "UI recreation based on the app's design, not a live screenshot.";
+  "Concept UI inspired by the app, not a live screenshot.";
 
 const MOJIBAKE = [
   { label: "â€", pat: "â€" },
@@ -669,96 +669,230 @@ async function main() {
         //      agreed wording, and that wording is also in its alt text;
         //   2. no screen id appears as both a capture and a recreation;
         //   3. the strip itself does not overflow its container.
-        const showcase = await page.evaluate(() => {
+const showcase = await page.evaluate(() => {
           const strip = document.querySelector('[data-testid="project-showcase"]');
           if (!strip) return null;
 
           const cards = Array.from(strip.querySelectorAll('[data-testid="showcase-card"]'));
-          const seen = new Map();
-          const cardsOut = cards.map((card) => {
-            const id = card.getAttribute("data-screen-id");
-            const kind = card.getAttribute("data-screen-kind");
-            if (id && kind) {
-              const key = `${id}::${kind}`;
-              seen.set(key, (seen.get(key) ?? 0) + 1);
+          const figures = Array.from(
+            strip.querySelectorAll('[data-testid="recreation-figure"]'),
+          );
+
+          // ---- shared helpers, measured against the rendered DOM ----------
+
+          const srgb = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+          const luminance = ([r, g, b]) =>
+            0.2126 * srgb(r / 255) + 0.7152 * srgb(g / 255) + 0.0722 * srgb(b / 255);
+          const parse = (value) => {
+            const m = value.match(/[\d.]+/g);
+            return m ? m.map(Number) : null;
+          };
+          /** Nearest painted ancestor background, so text on a tinted chip is
+           * measured against the chip and not against the page. */
+          const bgOf = (el) => {
+            let node = el;
+            while (node && node !== document.documentElement) {
+              const c = parse(getComputedStyle(node).backgroundColor);
+              if (c && (c[3] === undefined || c[3] > 0)) return c;
+              node = node.parentElement;
+            }
+            return [255, 255, 255];
+          };
+          const contrast = (fg, bg) => {
+            const a = luminance(fg);
+            const b = luminance(bg);
+            return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+          };
+          const label = (el) => {
+            const t = (el.textContent || "").trim().slice(0, 28);
+            return `${el.tagName.toLowerCase()}.${(el.className || "")
+              .toString()
+              .split(" ")
+              .slice(0, 2)
+              .join(".")}${t ? ` "${t}"` : ""}`;
+          };
+          /** Elements holding their own text, ignoring pure containers. */
+          const textOwners = (root) =>
+            Array.from(root.querySelectorAll("*")).filter(
+              (el) =>
+                !el.firstElementChild &&
+                (el.textContent || "").trim().length > 0,
+            );
+
+          const dom = {
+            overflow: [],
+            tinyFont: [],
+            wrappedLabel: [],
+            smallTarget: [],
+            lowContrast: [],
+          };
+
+          for (const fig of figures) {
+            // 1. Nothing inside a recreation may scroll sideways, unless it is a
+            //    deliberate horizontal scroller such as the category chips.
+            for (const el of fig.querySelectorAll("*")) {
+              const cs = getComputedStyle(el);
+              const ox = cs.overflowX;
+              // A deliberate horizontal scroller, and a deliberate ellipsis,
+              // are both ways of handling narrow content on purpose. Neither is
+              // broken layout, so neither counts as overflow.
+              if (ox === "auto" || ox === "scroll") continue;
+              if (cs.textOverflow === "ellipsis") continue;
+              if (el.scrollWidth > el.clientWidth + 1) {
+                dom.overflow.push(`${label(el)} ${el.scrollWidth}>${el.clientWidth}`);
+              }
             }
 
-            const caption = card.querySelector('[data-testid="recreation-caption"]');
-            const figure = card.querySelector('[data-testid="recreation-figure"]');
-            return {
-              id,
-              kind,
-              captionCount: card.querySelectorAll('[data-testid="recreation-caption"]')
-                .length,
-              captionRole: caption?.getAttribute("role") ?? null,
-              captionText: (caption?.textContent ?? "").trim(),
-              figureLabel: figure?.getAttribute("aria-label") ?? null,
-              figureRole: figure?.getAttribute("role") ?? null,
-            };
-          });
+            // 2. No computed font-size under 11px.
+            // 5. Every text run clears 4.5:1 against its own background.
+            for (const el of textOwners(fig)) {
+              const cs = getComputedStyle(el);
+              const size = parseFloat(cs.fontSize);
+              if (size < 11) dom.tinyFont.push(`${label(el)} ${size}px`);
 
-          const stripRect = strip.getBoundingClientRect();
+              const fg = parse(cs.color);
+              if (fg) {
+                const ratio = contrast(fg, bgOf(el));
+                if (ratio < 4.5) {
+                  dom.lowContrast.push(`${label(el)} ${ratio.toFixed(2)}:1`);
+                }
+              }
+
+              // 3. A tile label that wrapped onto a second line. Measured with
+              //    a Range so the box the text actually occupies is compared
+              //    against the line box, not against the parent's height.
+              //
+              //    Scoped deliberately. A title or a sentence is allowed to
+              //    wrap; what must not wrap is a short label, because a wrapped
+              //    label is the tell that a tile is too narrow for its own
+              //    content. So: label-sized text, and short enough to be a
+              //    label rather than prose.
+              const isLabel =
+                cs.whiteSpace === "normal" &&
+                size >= 11 &&
+                size <= 14 &&
+                (el.textContent || "").trim().length <= 24;
+              if (isLabel) {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const rects = range.getClientRects();
+                const height = rects.length
+                  ? rects[rects.length - 1].bottom - rects[0].top
+                  : 0;
+                const line = parseFloat(cs.lineHeight) || size * 1.2;
+                if (height > line * 1.6) {
+                  dom.wrappedLabel.push(
+                    `${label(el)} ${Math.round(height)}px over ${Math.round(line)}px`,
+                  );
+                }
+              }
+            }
+
+            // 4. Interactive targets at least 44px on the shorter side.
+            for (const el of fig.querySelectorAll(
+              'button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])',
+            )) {
+              const r = el.getBoundingClientRect();
+              if (r.width === 0 && r.height === 0) continue;
+              if (Math.min(r.width, r.height) < 44) {
+                dom.smallTarget.push(
+                  `${label(el)} ${Math.round(r.width)}x${Math.round(r.height)}`,
+                );
+              }
+            }
+          }
+
           return {
-            cards: cardsOut,
+            cards: cards.map((card) => ({
+              id: card.getAttribute("data-screen-id"),
+              kind: card.getAttribute("data-screen-kind"),
+              figureLabel:
+                card
+                  .querySelector('[data-testid="recreation-figure"]')
+                  ?.getAttribute("aria-label") ?? null,
+              figureRole:
+                card
+                  .querySelector('[data-testid="recreation-figure"]')
+                  ?.getAttribute("role") ?? null,
+            })),
+            figureCount: figures.length,
+            captionCount: strip.querySelectorAll('[data-testid="recreation-caption"]')
+              .length,
+            captionRole:
+              strip
+                .querySelector('[data-testid="recreation-caption"]')
+                ?.getAttribute("role") ?? null,
+            captionText: (
+              strip.querySelector('[data-testid="recreation-caption"]')
+                ?.textContent ?? ""
+            ).trim(),
+            altTexts: figures.map((f) => f.getAttribute("aria-label") ?? ""),
+            dom,
             overflowPx: Math.round(strip.scrollWidth - strip.clientWidth),
-            stripRect: {
-              left: Math.round(stripRect.left),
-              right: Math.round(stripRect.right),
-            },
+            stripRect: (() => {
+              const r = strip.getBoundingClientRect();
+              return { left: Math.round(r.left), right: Math.round(r.right) };
+            })(),
             viewport: window.innerWidth,
           };
         });
 
         if (showcase) {
-          for (const card of showcase.cards) {
-            if (card.kind === "recreation") {
-              const captionOk =
-                card.captionCount === 1 &&
-                card.captionRole === "note" &&
-                card.captionText === RECREATION_CAPTION;
-              record(
-                target.path,
-                viewport.name,
-                "recreation-caption",
-                captionOk,
-                captionOk
-                  ? ""
-                  : `count=${card.captionCount} role=${card.captionRole} text=${JSON.stringify(card.captionText)}`,
-              );
+          const anyRecreation = showcase.figureCount > 0;
 
-              // The caption must also be in the alt text, which for a drawn
-              // screen is the accessible name of the role="img" wrapper.
-              const altOk =
-                card.figureRole === "img" &&
-                typeof card.figureLabel === "string" &&
-                card.figureLabel.includes(RECREATION_CAPTION);
-              record(
-                target.path,
-                viewport.name,
-                "recreation-alt",
-                altOk,
-                altOk ? "" : `role=${card.figureRole} label=${JSON.stringify(card.figureLabel)}`,
-              );
-            } else {
-              // A real capture must never be labelled a recreation.
-              const noCaption =
-                card.captionCount === 0 &&
-                card.figureLabel === null &&
-                card.figureRole === null;
-              record(
-                target.path,
-                viewport.name,
-                "capture-not-recreation",
-                noCaption,
-                noCaption
-                  ? ""
-                  : `captions=${card.captionCount} role=${card.figureRole}`,
-              );
-            }
+          // The caption appears once per strip, not once per card.
+          if (anyRecreation) {
+            const captionOk =
+              showcase.captionCount === 1 &&
+              showcase.captionRole === "note" &&
+              showcase.captionText === RECREATION_CAPTION;
+            record(
+              target.path,
+              viewport.name,
+              "recreation-caption",
+              captionOk,
+              captionOk
+                ? ""
+                : `count=${showcase.captionCount} role=${showcase.captionRole} text=${JSON.stringify(showcase.captionText)}`,
+            );
+          } else {
+            record(
+              target.path,
+              viewport.name,
+              "recreation-caption",
+              showcase.captionCount === 0,
+              `no recreations but ${showcase.captionCount} caption(s)`,
+            );
           }
 
-          // No screen id may appear twice, and never once as a capture and
-          // once as a recreation: the capture is supposed to replace it.
+          // The wording also travels with each screen, in its accessible name.
+          const badAlt = showcase.altTexts
+            .map((text, i) => (text.includes(RECREATION_CAPTION) ? null : i))
+            .filter((i) => i !== null);
+          record(
+            target.path,
+            viewport.name,
+            "recreation-alt",
+            badAlt.length === 0,
+            badAlt.length === 0
+              ? ""
+              : `figures missing the caption in their accessible name: ${badAlt.join(", ")}`,
+          );
+
+          // A real capture must never be dressed as a recreation.
+          const badCaptures = showcase.cards
+            .filter((c) => c.kind === "real" && (c.figureLabel || c.figureRole))
+            .map((c) => c.id);
+          record(
+            target.path,
+            viewport.name,
+            "capture-not-recreation",
+            badCaptures.length === 0,
+            badCaptures.length === 0 ? "" : `captures labelled as recreations: ${badCaptures.join(", ")}`,
+          );
+
+          // No screen id twice, and never once as a capture and once as a
+          // drawing: the capture is meant to replace it.
           const counts = new Map();
           for (const card of showcase.cards) {
             if (!card.id || !card.kind) continue;
@@ -766,13 +900,11 @@ async function main() {
             counts.set(key, (counts.get(key) ?? 0) + 1);
           }
           const duplicates = [...counts.entries()].filter(([, n]) => n > 1);
-          const ids = [...new Set(showcase.cards.map((c) => c.id))];
-          const bothKinds = ids.filter(
+          const bothKinds = [...new Set(showcase.cards.map((c) => c.id))].filter(
             (id) =>
               (counts.get(`${id}::real`) ?? 0) > 0 &&
               (counts.get(`${id}::recreation`) ?? 0) > 0,
           );
-
           record(
             target.path,
             viewport.name,
@@ -790,10 +922,29 @@ async function main() {
               : `both a capture and a recreation for: ${bothKinds.join(", ")}`,
           );
 
-          // On a phone the strip is a deliberate scroll-snap carousel, so it is
-          // allowed to scroll inside itself. What must never happen is the
-          // strip pushing the page sideways: assert it stays inside the
-          // viewport. From 768 up it is a grid, so it must fit outright.
+          // Measured layout rules. Every one of these is a real failure mode
+          // that a screenshot review would otherwise miss.
+          const domRules = [
+            ["recreation-no-h-overflow", "overflow"],
+            ["recreation-min-font", "tinyFont"],
+            ["recreation-no-wrapped-label", "wrappedLabel"],
+            ["recreation-touch-target", "smallTarget"],
+            ["recreation-contrast", "lowContrast"],
+          ];
+          for (const [check, key] of domRules) {
+            const hits = showcase.dom[key];
+            record(
+              target.path,
+              viewport.name,
+              check,
+              hits.length === 0,
+              hits.length === 0 ? "" : `${hits.length}: ${hits.slice(0, 4).join("; ")}`,
+            );
+          }
+
+          // On a phone the strip is a deliberate scroll-snap carousel, so it may
+          // scroll inside itself. What must never happen is the strip pushing
+          // the page sideways. From 768 up it is a grid, so it must fit outright.
           const rect = showcase.stripRect;
           const insideViewport =
             rect.left >= -1 && rect.right <= showcase.viewport + 1;
@@ -808,9 +959,7 @@ async function main() {
               ? ""
               : `left=${rect.left} right=${rect.right} viewport=${showcase.viewport} internal=${showcase.overflowPx}px`,
           );
-        }
-
-        // A project must show something real. If it has no capture but does have a
+        }        // A project must show something real. If it has no capture but does have a
         // recreation, the hero renders that recreation rather than the dashed
         // "Screenshot coming soon" box, which would claim a capture is pending.
         const heroText = await page.evaluate(() => document.body.innerText);

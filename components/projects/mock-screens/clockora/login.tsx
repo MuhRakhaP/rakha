@@ -1,48 +1,81 @@
-import { Button, Field, MicroLabel, PhoneScreen } from "../primitives";
+import { cn } from "cn";
+import { Fingerprint, Lock, LogIn, UserRound } from "lucide-react";
+
+import { Field, PhoneCanvas, PrimaryButton } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 /**
- * CLOCKORA sign-in screen.
+ * CLOCKORA sign-in.
  *
- * Layout read from `D:\clockora\lib\login_screen.dart`: a full-bleed page, no
- * card, holding in order a circular badge with the product glyph, the wordmark,
- * the tagline, a username field, a password field with a visibility toggle, a
- * full-width log in button, a forgot password link, and a version line.
+ * Layout read from `D:\clockora\lib\login_screen.dart`: a full-bleed page with
+ * no card, holding in order the fingerprint glyph, the wordmark, the tagline,
+ * a username field, a password field with a visibility affordance, a full-width
+ * log in button, and a forgot-password link.
  *
- * The glyph is drawn as a neutral rounded block rather than reproduced, and the
- * wordmark is the app's own product name.
+ * The wordmark is real text, as it is in the app. The version line the app
+ * prints in debug builds is left out: it carries build metadata, not design.
  */
 export function ClockoraLogin() {
+  const t = tokensFor("clockora");
+
   return (
-    <PhoneScreen>
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-5">
-        {/* Neutral stand-in for the fingerprint glyph. */}
-        <div
+    <PhoneCanvas>
+      <div
+        className="flex h-full flex-col items-center justify-center gap-6 px-6"
+        style={{ background: t.background, color: t.onSurface }}
+      >
+        <span
           aria-hidden="true"
-          className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-weak"
+          className="flex h-24 w-24 items-center justify-center rounded-full"
+          style={{ background: t.primaryContainer }}
         >
-          <span className="h-9 w-9 rounded-lg border-2 border-brand/40" />
-        </div>
+          <Fingerprint className="h-12 w-12" style={{ color: t.primary }} />
+        </span>
 
         <div className="text-center">
-          <h3 className="text-base font-bold tracking-tight">Clockora</h3>
-          <p className="mt-1 text-[0.5625rem] text-muted-foreground">
+          <h3 className={cn(TYPE.title, "font-bold tracking-tight")}>
+            Clockora
+          </h3>
+          <p
+            className={cn(TYPE.body, "mt-1")}
+            style={{ color: t.onSurfaceVariant }}
+          >
             Attendance management made simple
           </p>
         </div>
 
-        <div className="mt-2 flex w-full flex-col gap-3">
-          <Field label="Username" placeholder="Username" />
-          <Field label="Password" placeholder="Password" />
+        <div className="mt-2 flex w-full flex-col gap-4">
+          <Field
+            tokens={t}
+            label="Username"
+            placeholder="Username"
+            icon={<UserRound className="h-5 w-5" />}
+          />
+          <Field
+            tokens={t}
+            label="Password"
+            placeholder="Password"
+            icon={<Lock className="h-5 w-5" />}
+            trailing="show"
+          />
         </div>
 
-        <Button tone="brand">Log In</Button>
+        <div className="w-full">
+          <PrimaryButton
+            tokens={t}
+            icon={<LogIn className="h-5 w-5" />}
+          >
+            Log In
+          </PrimaryButton>
+        </div>
 
-        <span className="text-[0.5625rem] font-medium text-brand underline">
+        <span
+          className={cn(TYPE.body, "font-medium underline")}
+          style={{ color: t.primary }}
+        >
           Forgot Password?
         </span>
-
-        <MicroLabel>v0.0.0-example · Recreated layout</MicroLabel>
       </div>
-    </PhoneScreen>
+    </PhoneCanvas>
   );
 }

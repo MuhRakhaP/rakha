@@ -1,165 +1,121 @@
+import { cn } from "cn";
+import { Plus, Printer, Receipt, Wallet } from "lucide-react";
+
 import { DUMMY } from "@/data/mock-screens";
 
 import {
-  AppBar,
-  BarRow,
-  DataRows,
-  Field,
-  MicroLabel,
-  Panel,
-  PhoneScreen,
-  Pill,
-  StatTile,
+  Card,
+  Caption,
+  Chip,
+  MetricTile,
+  PhoneCanvas,
+  Screen,
+  SectionCard,
+  Sparkline,
   Stack,
 } from "../primitives";
-
-const nav = [
-  "Dashboard",
-  "Kasir",
-  "Shift",
-  "Produk & Inventori",
-  "Pelanggan & Poin",
-  "Karyawan & Capster",
-  "Laporan",
-  "Pengaturan",
-];
+import { TYPE, tokensFor } from "../tokens";
 
 /**
- * THINKPOS admin dashboard.
+ * THINKPOS owner dashboard.
  *
- * Layout read from `D:\thinkpos\lib\sections\dashboard_overview_section.dart`,
- * top to bottom: a conditional low-stock banner, a KPI grid of seven tiles,
- * then an analytics row of three cards (payment split, staff performance,
- * low-stock alerts), then the "Transaksi Hari Ini" table.
+ * The real screen (`lib/sections/dashboard_overview_section.dart`) opens with a
+ * seven-tile KPI grid, then a three-card analytics row, then the transactions
+ * table. Seven tiles at phone width would be a wall of truncated numbers, so
+ * this keeps the app's information hierarchy and its own strings while giving
+ * the top line the room it deserves: one hero metric with a sparkline, then the
+ * supporting tiles, then quick actions.
  *
- * The seven tile labels and the table's column headers are the app's own
- * strings. Values are invented.
+ * Tile labels and action names come from the source. Figures are invented and
+ * deliberately unremarkable.
  */
 export function ThinkPosDashboard() {
+  const t = tokensFor("thinkpos");
   const d = DUMMY.thinkpos;
 
-  const kpis = [
-    { label: "Shift: Aktif", value: "09:00", sub: "Mulai: 09:00", tint: "bg-emerald-500" },
-    { label: "Laci Kas", value: "Rp 1.620.000", tint: "bg-indigo-500" },
-    { label: "Omset", value: "Rp 4.320.000", tint: "bg-blue-500" },
-    { label: "Manajemen Pengeluaran", value: "Rp 640.000", tint: "bg-rose-500" },
-    { label: "Profit", value: "Rp 3.680.000", tint: "bg-emerald-600" },
-    { label: "Total Tip", value: "Rp 95.000", tint: "bg-orange-500" },
-    { label: "Pesanan", value: "38", tint: "bg-violet-500" },
+  const quickActions = [
+    { icon: <Plus className="h-5 w-5" />, label: "Tambah Nota" },
+    { icon: <Wallet className="h-5 w-5" />, label: "Input Kas" },
+    { icon: <Receipt className="h-5 w-5" />, label: "Daftar Nota" },
+    { icon: <Printer className="h-5 w-5" />, label: "Cetak Struk" },
   ];
 
   return (
-    <PhoneScreen>
-      <AppBar title="Dashboard" />
-
-      <div className="flex-1 overflow-hidden p-2">
+    <PhoneCanvas>
+      <Screen tokens={t} title="Dashboard" subtitle={d.store}>
         <Stack gap="md">
-          {/* Conditional low-stock banner, as in the source. */}
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1.5">
-            <div className="min-w-0">
-              <p className="text-[0.5625rem] font-semibold text-amber-800">
-                Peringatan Stok Tipis!
-              </p>
-              <p className="truncate text-[0.5rem] text-amber-900">
-                Ada 2 produk yang stoknya hampir habis (&lt;= 5).
-              </p>
+          {/* Hero metric with a sparkline. */}
+          <Card tokens={t}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Caption tokens={t}>Omset</Caption>
+                <p className={cn(TYPE.metric, "mt-2 truncate")}>Rp 4.320.000</p>
+                <p className={cn(TYPE.label, "mt-2 truncate")} style={{ color: t.onSurfaceVariant }}>
+                  14 hari terakhir
+                </p>
+              </div>
+              <Chip tokens={t} tone="primary">
+                Shift Aktif
+              </Chip>
             </div>
-            <Pill tone="warn">Detail</Pill>
-          </div>
+            <div className="mt-3">
+              <Sparkline tokens={t} points={d.revenueTrend} />
+            </div>
+          </Card>
 
-          {/* KPI grid: 2 columns on a phone, as the source sets <600px -> 2. */}
-          <div className="grid grid-cols-2 gap-1.5">
-            {kpis.map((kpi) => (
-              <StatTile
-                key={kpi.label}
-                label={kpi.label}
-                value={kpi.value}
-                sub={kpi.sub}
-                tint={kpi.tint}
+          {/* Supporting tiles. Labels are the app's own, kept short. */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Laci Kas", value: "Rp 1,6 jt" },
+              { label: "Profit", value: "Rp 3,6 jt" },
+              { label: "Total Tip", value: "Rp 95.000" },
+              { label: "Pesanan", value: "38" },
+            ].map((tile) => (
+              <MetricTile
+                key={tile.label}
+                tokens={t}
+                label={tile.label}
+                value={tile.value}
               />
             ))}
           </div>
 
-          {/* Analytics row, stacked on a phone. */}
-          <Panel
-            title="Payment Distribution"
-            subtitle="Perbandingan QRIS vs Tunai hari ini"
-          >
-            <BarRow
-              suffix="%"
-              items={[
-                { label: "Cash", value: d.paymentShare[0].pct },
-                { label: "QRIS", value: d.paymentShare[1].pct },
-                { label: "Transfer", value: d.paymentShare[2].pct },
-              ]}
-              max={100}
-            />
-          </Panel>
-
-          <Panel title="Performa Capster" subtitle="Jumlah Potong Hari Ini">
-            <ul className="flex flex-col gap-1.5">
-              {d.staff.map((person) => (
-                <li key={person.name} className="flex items-center gap-1.5">
-                  <span
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 rounded-full bg-muted"
-                  />
-                  <span className="flex-1 truncate text-[0.5625rem]">
-                    {person.name}
+          <SectionCard tokens={t} title="Quick Actions">
+            <ul className="grid grid-cols-2 gap-2">
+              {quickActions.map((action) => (
+                <li
+                  key={action.label}
+                  className="flex min-h-13 items-center gap-2 px-3"
+                  style={{ background: t.neutral, borderRadius: 12 }}
+                >
+                  <span aria-hidden="true" className="shrink-0" style={{ color: t.primary }}>
+                    {action.icon}
                   </span>
-                  <Pill tone="brand">{person.cuts}x</Pill>
+                  <span className={cn(TYPE.label, "truncate")}>{action.label}</span>
                 </li>
               ))}
             </ul>
-          </Panel>
+          </SectionCard>
 
-          <Panel
-            title="Peringatan Inventori"
-            subtitle="Item di bawah ambang batas (5)"
-          >
-            <ul className="flex flex-col gap-1.5">
-              {d.products
-                .filter((product) => product.stock <= 5)
-                .map((product) => (
-                  <li key={product.name} className="flex items-center gap-1.5">
-                    <span className="flex-1 truncate text-[0.5625rem]">
-                      {product.name}
-                    </span>
-                    <span className="text-[0.5rem] text-rose-700">
-                      Sisa: {product.stock}
-                    </span>
-                  </li>
-                ))}
+          <SectionCard tokens={t} title="Transaksi Hari Ini">
+            <ul className="flex flex-col gap-3">
+              {d.transactions.slice(0, 3).map((row) => (
+                <li key={row.bill} className="flex items-center gap-3">
+                  <span className={cn(TYPE.label, "min-w-0 flex-1 truncate tabular-nums")}>
+                    {row.bill}
+                  </span>
+                  <Chip tokens={t} tone={row.method === "Cash" ? "success" : "primary"}>
+                    {row.method}
+                  </Chip>
+                  <span className={cn(TYPE.label, "shrink-0 font-semibold tabular-nums")}>
+                    {row.total}
+                  </span>
+                </li>
+              ))}
             </ul>
-          </Panel>
-
-          <Panel
-            title="Transaksi Hari Ini"
-            subtitle="Daftar transaksi yang dilakukan hari ini"
-          >
-            <DataRows
-              head={["Nomor Nota", "Pelanggan", "Waktu", "Metode", "Total", "Tip"]}
-              rows={d.transactions.map((t) => [
-                t.bill,
-                t.customer,
-                t.time,
-                t.method,
-                t.total,
-                t.tip,
-              ])}
-            />
-          </Panel>
-
-          <Field label="Pencarian layar" placeholder="Cari produk atau pelanggan" />
+          </SectionCard>
         </Stack>
-      </div>
-
-      {/* The admin rail is a left navigation on wide layouts only; the phone
-          layout keeps the same items in a compact strip so the order is still
-          legible. */}
-      <div className="border-t border-border bg-card px-1.5 py-1">
-        <MicroLabel>{nav.join(" · ")}</MicroLabel>
-      </div>
-    </PhoneScreen>
+      </Screen>
+    </PhoneCanvas>
   );
 }

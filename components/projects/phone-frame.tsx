@@ -1,15 +1,15 @@
 import { cn } from "cn";
 
 /**
- * Pure CSS phone frame for a real screenshot.
+ * Phone chrome for a recreation.
  *
- * Frames an existing image only. It never draws or reconstructs app UI. The
- * notch and home indicator are aria-hidden decoration; the screenshot's own
- * alt text is what assistive technology announces.
+ * One slim dark bezel, one outer radius, a punch-hole camera, and nothing else:
+ * no notch bar, no second border, no inner frame. The screen fills the bezel
+ * edge to edge, which is what modern devices look like and what keeps the
+ * drawing from reading as a picture pasted into a case.
  *
- * The frame preserves whatever aspect ratio the capture has: the caller
- * supplies width/height from the real file, and the image is sized inside a
- * portrait-safe shell rather than being cropped to a fixed ratio.
+ * This frame never receives a real capture. `ProjectFrame` uses it for
+ * screenshots on mobile projects, so nothing here may reconstruct app UI.
  */
 export function PhoneFrame({
   children,
@@ -19,30 +19,24 @@ export function PhoneFrame({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "relative mx-auto w-full max-w-56 rounded-[1.75rem] border border-foreground/15 bg-foreground/5 p-1.5 shadow-[0_1px_3px_oklch(0_0_0/0.06)]",
-        className,
-      )}
-    >
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-foreground/10 bg-background">
-        {/* Notch. Decorative only. */}
-        <div
+    <div className={cn("relative w-full", className)}>
+      {/* 8px bezel, single 2rem radius. */}
+      <div
+        className="relative overflow-hidden bg-neutral-900 p-2 shadow-[0_2px_8px_rgba(16,24,40,0.12)]"
+        style={{ borderRadius: "2rem" }}
+      >
+        {/* Punch-hole camera, decorative only. */}
+        <span
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 z-10 flex h-5 items-center justify-center"
-        >
-          <span className="h-1 w-12 rounded-full bg-foreground/20" />
-        </div>
+          className="absolute top-2.5 left-1/2 z-10 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-neutral-700 ring-1 ring-neutral-600"
+        />
 
-        {/* The real capture. No cropping: h-auto keeps the source ratio. */}
-        <div className="pt-4">{children}</div>
-
-        {/* Home indicator. Decorative only. */}
+        {/* The screen. Clipped to the bezel's inner radius, no extra frame. */}
         <div
-          aria-hidden="true"
-          className="flex h-4 items-center justify-center"
+          className="overflow-hidden"
+          style={{ borderRadius: "calc(2rem - 8px)" }}
         >
-          <span className="h-1 w-14 rounded-full bg-foreground/20" />
+          {children}
         </div>
       </div>
     </div>

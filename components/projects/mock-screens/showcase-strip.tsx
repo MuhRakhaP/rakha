@@ -15,6 +15,7 @@ import type { Project } from "@/data/projects";
 import { getMockScreens } from "./registry";
 import { RecreationCaption } from "./recreation-caption";
 import { ScreenSwitcher, type ShowcaseItem } from "./screen-switcher";
+import { PHONE_ASPECT } from "./tokens";
 
 const DEFS: Record<string, Record<string, MockScreenDef>> = {
   thinkpos: THINKPOS_SCREENS,
@@ -54,13 +55,18 @@ export function resolveShowcaseScreens(project: Project): ShowcaseScreen[] {
 }
 
 /**
- * One framed screen: the device chrome, plus the caption and note when the
- * screen is a recreation.
+ * One framed screen: the device chrome, plus the note when the screen is a
+ * drawing rather than a capture.
+ *
+ * The visible caption is deliberately NOT here. It appears once per strip, in
+ * `ShowcaseStrip`, so it states the fact about the row rather than four times
+ * over. The wording still travels with each screen inside its accessible name,
+ * so a screen reader announces it per image.
  *
  * Exported because the hero needs it too. A project with no capture but with
- * recreations should show its first recreation at the top of the case study,
- * never the dashed "Screenshot coming soon" box, which would imply a capture
- * is coming rather than showing what is actually available.
+ * recreations shows its first drawing at the top of the case study, never the
+ * dashed "Screenshot coming soon" box, which would imply a capture is coming
+ * rather than showing what is actually available.
  */
 export function ShowcaseFigure({
   project,
@@ -87,7 +93,13 @@ export function ShowcaseFigure({
     );
   } else {
     const Component = getMockScreens(project.slug)[screen.id];
-    body = Component ? <Component /> : null;
+    // One shared phone ratio across every recreation, set here so each screen
+    // module does not have to remember it.
+    body = Component ? (
+      <div style={def?.frame === "browser" ? undefined : PHONE_ASPECT}>
+        <Component />
+      </div>
+    ) : null;
   }
 
   const framed =
@@ -98,8 +110,8 @@ export function ShowcaseFigure({
     );
 
   // `role="img"` with the caption folded into the accessible name is the alt
-  // text for a hand-drawn screen: there is no <img> element, so the accessible
-  // name is what a screen reader announces.
+  // text for a drawn screen: there is no <img> element, so the accessible name
+  // is what a screen reader announces.
   const accessibleName = isRecreation
     ? `${def?.alt ?? screen.label}. ${RECREATION_CAPTION}`
     : screen.shot?.alt;
@@ -115,9 +127,8 @@ export function ShowcaseFigure({
       >
         {framed}
       </span>
-      {isRecreation ? <RecreationCaption /> : null}
       {screen.note ? (
-        <span className="text-[0.625rem] leading-snug text-muted-foreground">
+        <span className="text-xs leading-snug text-muted-foreground">
           {screen.note}
         </span>
       ) : null}
@@ -126,8 +137,8 @@ export function ShowcaseFigure({
 }
 
 /**
- * The showcase strip: warm tinted cards, a short headline on each, the framed
- * screen below, and the recreation caption under every hand-drawn one.
+ * The showcase strip: framed screens, one per card, with a single caption above
+ * the row when any of them is a drawing.
  *
  * Real captures go through the same card, so a project holding a mix reads as
  * one deliberate row instead of two separate galleries. A capture never
@@ -142,17 +153,19 @@ export function ShowcaseStrip({
 }) {
   if (screens.length === 0) return null;
 
+  const hasRecreations = screens.some((s) => s.kind === "recreation");
+
   const items: ShowcaseItem[] = screens.map((screen) => ({
     id: screen.id,
     label: screen.label,
     kind: screen.kind,
-    content: (
-      <ShowcaseFigure project={project} screen={screen} />
-    ),
+    width: screen.def?.frame === "browser" ? "browser" : "phone",
+    content: <ShowcaseFigure project={project} screen={screen} />,
   }));
 
   return (
-    <div data-testid="project-showcase">
+    <div data-testid="project-showcase" className="flex flex-col gap-3">
+      {hasRecreations ? <RecreationCaption /> : null}
       <ScreenSwitcher items={items} label={`${project.name} screens`} />
     </div>
   );

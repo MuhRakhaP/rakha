@@ -1,159 +1,165 @@
+import { cn } from "cn";
+import { RefreshCcw, WifiOff } from "lucide-react";
+
 import {
-  BrowserScreen,
-  DataRows,
-  MicroLabel,
-  Pill,
+  Card,
+  Caption,
+  Chip,
+  Field,
+  SectionCard,
   Stack,
 } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 /**
  * TERAHOME WhatsApp notification centre — a screen with no capture.
  *
- * The capture environment blocks all outbound traffic, so a live capture of
- * this page would have shown a misleading provider error. The layout below is
- * read from
+ * The capture environment blocks all outbound traffic, so a live capture would
+ * have shown a misleading provider error. This layout is read from
  * `D:\terahome\apps\isp\app\(dashboard)\whatsapp\page.tsx` instead.
  *
  * Order preserved from the source: the "Notification Center" heading with a
- * refresh button and a connection pill, then a sender-credentials card, a
- * common-variables card, per-template cards, and finally the Message Logs table
- * whose columns are STATUS, RECIPIENT, MESSAGE CONTENT and SENT AT.
+ * refresh button and a connection pill, then sender credentials, the common
+ * variables, a template, and finally the Message Logs table whose columns are
+ * STATUS, RECIPIENT, MESSAGE CONTENT and SENT AT.
  *
- * The connection pill deliberately reads disconnected, and the log rows are
- * invented: no provider was ever contacted, so nothing here claims a message
- * was delivered.
+ * The pill reads disconnected and the log rows are invented, because no provider
+ * was contacted and nothing here should look like a real delivery record.
  */
 export function TerahomeWhatsApp() {
+  const t = tokensFor("terahome");
+
+  const variables = [
+    ["$_FULLNAME", "Customer full name"],
+    ["$_CUSTOMERID", "Customer ID/Code"],
+    ["$_PLAN", "Service package"],
+    ["$_INVOICE", "Invoice number"],
+    ["$_TOTALBILL", "Total bill (IDR)"],
+    ["$_DUEDATE", "Due date"],
+    ["$_PAYMENTLINK", "Payment link (masked)"],
+  ];
+
+  const logs = [
+    { status: "SENT", tone: "success" as const, recipient: "Kedai Contoh", at: "02 Oct 09:12" },
+    { status: "QUEUED", tone: "warning" as const, recipient: "Warung Contoh", at: "02 Oct 09:14" },
+    { status: "FAILED", tone: "error" as const, recipient: "Kafe Contoh", at: "02 Oct 09:15" },
+  ];
+
   return (
-    <BrowserScreen>
-      <div className="flex items-start justify-between gap-4 border-b border-border bg-muted/40 px-3 py-2.5">
-        <div>
-          <h3 className="text-sm font-bold tracking-tight">Notification Center</h3>
-          <p className="mt-0.5 text-[0.625rem] text-muted-foreground">
+    <div
+      className="flex h-full min-h-0 flex-col"
+      style={{ background: t.background, color: t.onSurface }}
+    >
+      <header
+        className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b px-4 py-3"
+        style={{ borderColor: t.outline, background: t.surface }}
+      >
+        <div className="min-w-0">
+          <h3 className={cn(TYPE.title, "font-semibold")}>Notification Center</h3>
+          <p className={cn(TYPE.body, "mt-1")} style={{ color: t.onSurfaceVariant }}>
             Manage automated WhatsApp alerts and track message delivery status.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <span className="rounded-md border border-border bg-card px-2 py-1 text-[0.5rem] font-bold tracking-[0.08em] uppercase">
-            Refresh Logs
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className="inline-flex min-h-11 items-center gap-2 border px-3"
+            style={{ borderColor: t.outline, borderRadius: 999 }}
+          >
+            <RefreshCcw className="h-5 w-5" style={{ color: t.onSurfaceVariant }} />
+            <span className={cn(TYPE.label, "font-medium")}>Refresh logs</span>
           </span>
-          <Pill tone="bad">WA API: Disconnected</Pill>
+          <Chip tokens={t} tone="error">
+            <WifiOff className="h-4 w-4" />
+            WA API disconnected
+          </Chip>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 overflow-hidden p-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {/* Sender credentials card. */}
-          <section className="rounded-lg border border-border bg-card p-2.5 sm:col-span-1">
-            <MicroLabel>Sender Number</MicroLabel>
-            <p className="mt-1 text-[0.5625rem] text-muted-foreground">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="mx-auto grid max-w-3xl gap-4">
+          <Card tokens={t}>
+            <Caption tokens={t}>Sender Number</Caption>
+            <p className={cn(TYPE.body, "mt-1")} style={{ color: t.onSurfaceVariant }}>
               Configure MPWA/Fonnte credentials here.
             </p>
-            <Stack gap="sm" className="mt-2">
-              <label className="flex flex-col gap-0.5">
-                <MicroLabel>API Endpoint URL</MicroLabel>
-                <span className="rounded border border-border bg-muted/50 px-1.5 py-1 text-[0.5625rem] text-muted-foreground">
-                  Not configured
-                </span>
-              </label>
-              <label className="flex flex-col gap-0.5">
-                <MicroLabel>API Token</MicroLabel>
-                <span className="rounded border border-border bg-muted/50 px-1.5 py-1 text-[0.5625rem] text-muted-foreground">
-                  Not configured
-                </span>
-              </label>
-              <label className="flex flex-col gap-0.5">
-                <MicroLabel>Sender Phone Number (MPWA)</MicroLabel>
-                <span className="rounded border border-border bg-muted/50 px-1.5 py-1 text-[0.5625rem] text-muted-foreground">
-                  Not configured
-                </span>
-              </label>
+            <Stack gap="sm" className="mt-3">
+              <Field tokens={t} label="API Endpoint URL" value="Not configured" />
+              <Field tokens={t} label="API Token" value="Not configured" />
+              <Field
+                tokens={t}
+                label="Sender Phone Number (MPWA)"
+                value="Not configured"
+              />
             </Stack>
-          </section>
+          </Card>
 
-          {/* Common variables card. */}
-          <section className="rounded-lg border border-border bg-card p-2.5 sm:col-span-1">
-            <MicroLabel>Common Variables</MicroLabel>
-            <ul className="mt-1.5 flex flex-col gap-1">
-              {[
-                ["$_FULLNAME", "Customer full name"],
-                ["$_CUSTOMERID", "Customer ID/Code"],
-                ["$_PLAN", "Service package subscribed"],
-                ["$_INVOICE", "Invoice number"],
-                ["$_TOTALBILL", "Total bill amount (IDR)"],
-                ["$_DUEDATE", "Due date"],
-                ["$_PAYMENTLINK", "Payment link (Masked)"],
-              ].map(([token, desc]) => (
-                <li key={token} className="flex items-baseline gap-1.5">
-                  <code className="rounded bg-muted px-1 py-px font-mono text-[0.5rem]">
+          <Card tokens={t}>
+            <Caption tokens={t}>Common Variables</Caption>
+            <ul className="mt-3 flex flex-col gap-2">
+              {variables.map(([token, description]) => (
+                <li key={token} className="flex min-w-0 items-baseline gap-2">
+                  <code
+                    className={cn(TYPE.label, "shrink-0 rounded px-1.5 py-0.5 font-mono")}
+                    style={{ background: t.neutral, color: t.onNeutral }}
+                  >
                     {token}
                   </code>
-                  <span className="truncate text-[0.5rem] text-muted-foreground">
-                    {desc}
+                  <span className={cn(TYPE.label, "truncate")} style={{ color: t.onSurfaceVariant }}>
+                    {description}
                   </span>
                 </li>
               ))}
             </ul>
-          </section>
+          </Card>
 
-          {/* Template card. */}
-          <section className="rounded-lg border border-border bg-card p-2.5 sm:col-span-1">
-            <MicroLabel>Payment Reminder</MicroLabel>
-            <p className="mt-1 rounded border border-border bg-muted/50 px-1.5 py-1.5 text-[0.5rem] leading-snug">
+          <Card tokens={t}>
+            <Caption tokens={t}>Payment Reminder</Caption>
+            <p className={cn(TYPE.body, "mt-3")}>
               Halo $_FULLNAME, tagihan $_INVOICE sebesar $_TOTALBILL jatuh tempo
               $_DUEDATE.
             </p>
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="rounded-md bg-brand px-2 py-1 text-[0.5rem] font-semibold tracking-[0.06em] text-background uppercase">
-                Save
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className="inline-flex min-h-11 items-center px-4 font-semibold"
+                style={{ background: t.primary, color: t.onPrimary, borderRadius: 999 }}
+              >
+                <span className={TYPE.label}>Save</span>
               </span>
-              <span className="rounded-md border border-border px-2 py-1 text-[0.5rem] font-semibold tracking-[0.06em] uppercase">
-                Cancel
+              <span
+                className="inline-flex min-h-11 items-center px-4 font-semibold"
+                style={{ border: `1px solid ${t.outline}`, borderRadius: 999 }}
+              >
+                <span className={TYPE.label}>Cancel</span>
               </span>
             </div>
-          </section>
+          </Card>
         </div>
 
-        {/* Message logs. */}
-        <section className="mt-3 rounded-lg border border-border bg-card p-2.5">
-          <MicroLabel>Message Logs</MicroLabel>
-          <div className="mt-1.5">
-            <DataRows
-              head={["STATUS", "RECIPIENT", "MESSAGE CONTENT", "SENT AT"]}
-              rows={[
-                [
-                  <Pill key="s1" tone="good">
-                    SENT
-                  </Pill>,
-                  "Kedai Contoh",
-                  "Payment Reminder",
-                  "02 Oct 09:12",
-                ],
-                [
-                  <Pill key="s2" tone="warn">
-                    QUEUED
-                  </Pill>,
-                  "Warung Contoh",
-                  "Payment Reminder",
-                  "02 Oct 09:14",
-                ],
-                [
-                  <Pill key="s3" tone="bad">
-                    FAILED
-                  </Pill>,
-                  "Kafe Contoh",
-                  "Payment Reminder",
-                  "02 Oct 09:15",
-                ],
-              ]}
-            />
-          </div>
-          <p className="mt-2 text-[0.5rem] text-muted-foreground">
-            Rows are illustrative. No provider was contacted, so nothing here is
-            a real delivery record.
+        <SectionCard tokens={t} title="Message Logs" className="mx-auto mt-4 max-w-3xl">
+          <ul className="flex flex-col gap-3">
+            {logs.map((row) => (
+              <li key={row.at} className="flex flex-wrap items-center gap-3">
+                <Chip tokens={t} tone={row.tone}>
+                  {row.status}
+                </Chip>
+                <span className={cn(TYPE.body, "min-w-0 flex-1 truncate")}>
+                  {row.recipient}
+                </span>
+                <span className={cn(TYPE.label, "shrink-0")} style={{ color: t.onSurfaceVariant }}>
+                  Payment Reminder
+                </span>
+                <span className={cn(TYPE.label, "shrink-0 tabular-nums")} style={{ color: t.onSurfaceVariant }}>
+                  {row.at}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className={cn(TYPE.label, "mt-3")} style={{ color: t.onSurfaceVariant }}>
+            Rows are illustrative. No provider was contacted, so nothing here is a
+            real delivery record.
           </p>
-        </section>
+        </SectionCard>
       </div>
-    </BrowserScreen>
+    </div>
   );
 }

@@ -1,26 +1,25 @@
+import { cn } from "cn";
+import { FileText, Printer } from "lucide-react";
+
 import { DUMMY } from "@/data/mock-screens";
 
-import {
-  BrowserScreen,
-  MicroLabel,
-  Pill,
-  Stack,
-} from "../primitives";
+import { Card, Caption, Chip, SectionCard, Stack } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 const inv = DUMMY.terahome.invoice;
 
 /**
  * TERAHOME invoice detail — the one screen that could not be captured.
  *
- * Every visit to `/billing/[id]` in the running app crashes with React error
+ * Every visit to `/billing/<id>` in the running app crashes with React error
  * #310: the page returns early while loading and again when the invoice is
  * missing, but calls `useState` after both returns, so the hook count changes
  * between renders. That is a real product bug, recorded rather than worked
  * around.
  *
- * The layout below is therefore read from
- * `D:\terahome\apps\isp\app\(dashboard)\billing\[id]\page.tsx` rather than from
- * a browser: a back link and a print receipt button, an invoice number with a
+ * The layout is therefore read from
+ * `D:\terahome\apps\isp\app\(dashboard)\billing\[id]\page.tsx` rather than from a
+ * browser: a back link and a print receipt button, an invoice number with a
  * status badge and the two dates, then billed-to and payment method, then the
  * service line items, then subtotal and total bill.
  *
@@ -28,109 +27,143 @@ const inv = DUMMY.terahome.invoice;
  * uses.
  */
 export function TerahomeInvoiceDetail() {
-  return (
-    <BrowserScreen>
-      <div className="flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2">
-        <span className="text-[0.5625rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-          ‹ Invoices
-        </span>
-        <span className="rounded-md border border-border bg-card px-2 py-1 text-[0.5rem] font-bold tracking-[0.08em] uppercase">
-          Print receipt
-        </span>
-      </div>
+  const t = tokensFor("terahome");
 
-      <div className="flex-1 overflow-hidden p-3">
-        <Stack gap="md" className="mx-auto max-w-[52rem]">
-          {/* Invoice number, status, and the two dates. */}
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="h-9 w-9 rounded-lg bg-brand-weak"
-              />
-              <div>
-                <MicroLabel>Invoice Number</MicroLabel>
-                <p className="text-sm font-bold tracking-tight">{inv.number}</p>
+  return (
+    <div
+      className="flex h-full min-h-0 flex-col"
+      style={{ background: t.background, color: t.onSurface }}
+    >
+      <header
+        className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3"
+        style={{ borderColor: t.outline, background: t.surface }}
+      >
+        <span className={cn(TYPE.body, "font-semibold")}>‹ Invoices</span>
+        <span
+          className="inline-flex min-h-11 items-center gap-2 border px-3"
+          style={{ borderColor: t.outline, borderRadius: 999 }}
+        >
+          <Printer className="h-5 w-5" style={{ color: t.onSurfaceVariant }} />
+          <span className={cn(TYPE.label, "font-medium")}>Print receipt</span>
+        </span>
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <Stack gap="md" className="mx-auto max-w-3xl">
+          <Card tokens={t}>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-12 w-12 items-center justify-center"
+                  style={{ background: t.primaryContainer, borderRadius: 14 }}
+                >
+                  <FileText className="h-6 w-6" style={{ color: t.primary }} />
+                </span>
+                <div className="min-w-0">
+                  <Caption tokens={t}>Invoice Number</Caption>
+                  <p className={cn(TYPE.section, "mt-1 font-semibold")}>
+                    {inv.number}
+                  </p>
+                </div>
               </div>
+              <Chip tokens={t} tone="warning">
+                {inv.status}
+              </Chip>
             </div>
-            <Pill tone={inv.status === "PAID" ? "good" : "warn"}>
-              {inv.status}
-            </Pill>
-            <div className="ml-auto grid grid-cols-2 gap-x-6">
-              <div>
-                <MicroLabel>Date</MicroLabel>
-                <p className="text-[0.6875rem] font-semibold">{inv.date}</p>
+
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="min-w-0">
+                <Caption tokens={t}>Date</Caption>
+                <p className={cn(TYPE.body, "mt-1")}>{inv.date}</p>
               </div>
-              <div>
-                <MicroLabel>Due Date</MicroLabel>
-                <p className="text-[0.6875rem] font-semibold text-rose-700">
+              <div className="min-w-0">
+                <Caption tokens={t}>Due Date</Caption>
+                <p className={cn(TYPE.body, "mt-1")} style={{ color: t.onError }}>
                   {inv.dueDate}
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Billed to, and the payment method. */}
-          <div className="grid grid-cols-1 gap-6 border-y border-border py-4 sm:grid-cols-2">
-            <div>
-              <MicroLabel>Billed To:</MicroLabel>
-              <p className="mt-1 text-sm font-bold">{inv.customerName}</p>
-              <p className="text-[0.6875rem] text-muted-foreground">
-                {inv.customerCode}
-              </p>
-              <p className="text-[0.6875rem] text-muted-foreground">
-                {inv.customerPhone}
-              </p>
+          <Card tokens={t}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="min-w-0">
+                <Caption tokens={t}>Billed To</Caption>
+                <p className={cn(TYPE.body, "mt-1 font-semibold")}>
+                  {inv.customerName}
+                </p>
+                <p className={cn(TYPE.label, "tabular-nums")} style={{ color: t.onSurfaceVariant }}>
+                  {inv.customerCode}
+                </p>
+                <p className={cn(TYPE.label, "tabular-nums")} style={{ color: t.onSurfaceVariant }}>
+                  {inv.customerPhone}
+                </p>
+              </div>
+              <div className="min-w-0 sm:text-right">
+                <Caption tokens={t}>Payment Method</Caption>
+                <p className={cn(TYPE.body, "mt-1 truncate font-semibold")}>
+                  Xendit Digital Payment
+                </p>
+                <p
+                  className={cn(TYPE.label, "truncate")}
+                  style={{ color: t.onSurfaceVariant }}
+                >
+                  Virtual Account, QRIS, E-Wallet
+                </p>
+              </div>
             </div>
-            <div className="sm:text-right">
-              <MicroLabel>Payment Method:</MicroLabel>
-              <p className="mt-1 text-[0.8125rem] font-semibold">
-                Xendit Digital Payment
-              </p>
-              <p className="text-[0.6875rem] text-muted-foreground italic">
-                Virtual Account, QRIS, E-Wallet
-              </p>
-            </div>
-          </div>
+          </Card>
 
-          {/* Service line items. */}
-          <div>
-            <MicroLabel>Service Details:</MicroLabel>
-            <ul className="mt-1.5 flex flex-col gap-1.5">
+          <SectionCard tokens={t} title="Service Details">
+            <ul className="flex flex-col gap-3">
               {inv.lineItems.map((item) => (
                 <li
                   key={item.description}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/40 px-3 py-2"
+                  className="flex items-center justify-between gap-3 px-3 py-2"
+                  style={{ background: t.surfaceHigh, borderRadius: 12 }}
                 >
-                  <div>
-                    <p className="text-[0.75rem] font-bold">{item.description}</p>
-                    <p className="text-[0.625rem] text-muted-foreground">
+                  <div className="min-w-0">
+                    <p className={cn(TYPE.body, "truncate font-medium")}>
+                      {item.description}
+                    </p>
+                    <p className={cn(TYPE.label, "tabular-nums")} style={{ color: t.onSurfaceVariant }}>
                       1 Unit x {item.unitPrice}
                     </p>
                   </div>
-                  <p className="text-[0.75rem] font-bold tabular-nums">
+                  <span className={cn(TYPE.body, "shrink-0 font-semibold tabular-nums")}>
                     {item.amount}
-                  </p>
+                  </span>
                 </li>
               ))}
             </ul>
-          </div>
+          </SectionCard>
 
-          {/* Totals. */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between px-2 text-[0.75rem] font-semibold text-muted-foreground">
-              <span>Subtotal</span>
-              <span className="tabular-nums">{inv.subtotal}</span>
+          <Card tokens={t}>
+            <div className="flex items-center justify-between">
+              <Caption tokens={t}>Subtotal</Caption>
+              <span className={cn(TYPE.body, "tabular-nums")}>{inv.subtotal}</span>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-brand-weak px-3 py-2.5 text-brand">
-              <span className="text-sm font-bold tracking-tight">Total Bill</span>
-              <span className="text-lg font-bold tracking-tight tabular-nums">
+            <div
+              className="mt-3 flex items-center justify-between px-3 py-3"
+              style={{ background: t.primaryContainer, borderRadius: 14 }}
+            >
+              <span
+                className={cn(TYPE.section, "font-semibold")}
+                style={{ color: t.onPrimaryContainer }}
+              >
+                Total Bill
+              </span>
+              <span
+                className={cn(TYPE.metric, "font-semibold")}
+                style={{ color: t.onPrimaryContainer }}
+              >
                 {inv.total}
               </span>
             </div>
-          </div>
+          </Card>
         </Stack>
       </div>
-    </BrowserScreen>
+    </div>
   );
 }

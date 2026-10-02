@@ -23,7 +23,7 @@
  * literal copy that the harness keeps to itself.
  */
 export const RECREATION_CAPTION =
-  "UI recreation based on the app's design, not a live screenshot.";
+  "Concept UI inspired by the app, not a live screenshot.";
 
 export type MockScreenId =
   | "login"
@@ -186,13 +186,13 @@ export const DUMMY = {
       { name: "Transfer", pct: 21 },
     ],
     weekdayBars: [
-      { day: "Mon", value: 3.4 },
-      { day: "Tue", value: 3.9 },
-      { day: "Wed", value: 3.2 },
-      { day: "Thu", value: 4.1 },
-      { day: "Fri", value: 4.4 },
-      { day: "Sat", value: 5.1 },
-      { day: "Sun", value: 2.2 },
+      { label: "Mon", value: 3.4 },
+      { label: "Tue", value: 3.9 },
+      { label: "Wed", value: 3.2 },
+      { label: "Thu", value: 4.1 },
+      { label: "Fri", value: 4.4 },
+      { label: "Sat", value: 5.1 },
+      { label: "Sun", value: 2.2 },
     ],
     auditLog: [
       { time: "02/10 09:14", type: "IN", desc: "Setoran kas awal", amount: "+Rp 500.000", balance: "Rp 500.000" },
@@ -221,13 +221,13 @@ export const DUMMY = {
     ],
     quickActions: ["Request Leave", "Overtime Form", "Field Attendance", "My KPI Tasks"],
     weeklyBars: [
-      { day: "Mon", value: 8 },
-      { day: "Tue", value: 7.5 },
-      { day: "Wed", value: 8.5 },
-      { day: "Thu", value: 6.5 },
-      { day: "Fri", value: 7 },
-      { day: "Sat", value: 4 },
-      { day: "Sun", value: 0 },
+      { label: "Mon", value: 8 },
+      { label: "Tue", value: 7.5 },
+      { label: "Wed", value: 8.5 },
+      { label: "Thu", value: 6.5 },
+      { label: "Fri", value: 7 },
+      { label: "Sat", value: 4 },
+      { label: "Sun", value: 0 },
     ],
     nav: ["Home", "Absen", "Performance", "KPI", "History"],
     departments: [

@@ -1,131 +1,173 @@
+import { cn } from "cn";
+import { Clock3, LogIn, LogOut, Timer } from "lucide-react";
+
 import { DUMMY } from "@/data/mock-screens";
 
 import {
-  AppBar,
-  BarRow,
-  MicroLabel,
-  Panel,
-  PhoneScreen,
-  Pill,
+  Avatar,
+  BarChart,
+  BottomNav,
+  Caption,
+  Card,
+  Chip,
+  MetricTile,
+  PhoneCanvas,
+  ProgressBar,
+  Screen,
+  SectionCard,
   Stack,
-  StatTile,
-  TabBar,
 } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 /**
  * CLOCKORA dashboard.
  *
- * Layout read from `D:\clockora\lib\dashboard_screen.dart`. The source splits
- * the body into an attendance card, a team pulse panel and a weekly chart on
- * one side, and a monthly summary grid plus quick actions on the other. On a
- * phone those collapse to a single column, so the recreation stacks them in the
- * source's mobile order: attendance, team pulse, summary tiles, quick actions,
- * then the chart.
+ * Structure read from `D:\clockora\lib\dashboard_screen.dart`: a greeting, a
+ * daily-attendance card, a team panel, a monthly summary grid, quick actions,
+ * and a weekly productivity chart. The source splits those across two columns
+ * on a wide layout; a phone gets one column, so this is the mobile ordering.
  *
- * Tab labels are the app's own, in order.
+ * The real app leads with an attendance card. Here that card is the hero: one
+ * panel carrying today's state, the check-in time, and the day's progress.
+ * Figures are invented and deliberately modest.
  */
 export function ClockoraHome() {
+  const t = tokensFor("clockora");
   const d = DUMMY.clockora;
 
+  const stats = [
+    { icon: <LogIn className="h-5 w-5" />, label: "Check In", value: "08:02" },
+    { icon: <Timer className="h-5 w-5" />, label: "Working", value: "05:12" },
+    { icon: <LogOut className="h-5 w-5" />, label: "Check Out", value: "--:--" },
+  ];
+
   return (
-    <PhoneScreen>
-      <AppBar title="Dashboard" tint="bg-[#4A148C] text-white" />
-
-      <div className="flex-1 overflow-hidden p-2">
+    <PhoneCanvas>
+      <Screen
+        tokens={t}
+        title="Good Morning, Angga"
+        subtitle="Thursday, 02 October 2026"
+        nav
+      >
         <Stack gap="md">
-          <div>
-            <p className="text-sm font-bold tracking-tight">
-              Good Morning, Angga
-            </p>
-            <p className="mt-0.5 text-[0.5625rem] text-muted-foreground">
-              Thursday, 02 October 2026
-            </p>
-          </div>
+          {/* Hero: today's state. */}
+          <Card tokens={t}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Caption tokens={t}>Daily Attendance</Caption>
+                <p className={cn(TYPE.section, "mt-1 font-semibold")}>
+                  On shift since 08:02
+                </p>
+              </div>
+              <Chip tokens={t} tone="success">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-emerald-600"
+                />
+                Active
+              </Chip>
+            </div>
 
-          <Panel title="Daily Attendance">
-            <div className="mb-2 flex items-center justify-end">
-              <Pill tone="good">ACTIVE</Pill>
-            </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              <StatTile label="Check In" value="08:02" tint="bg-blue-500" />
-              <StatTile
-                label="Working Time"
-                value="05:12"
-                tint="bg-[#4A148C]"
-              />
-              <StatTile label="Check Out" value="--:--" tint="bg-orange-500" />
-            </div>
-            <div className="mt-2 flex items-center justify-between">
-              <MicroLabel>Progress Today</MicroLabel>
-              <span className="text-[0.5rem] font-semibold text-brand">64%</span>
-            </div>
-            <span className="mt-1 block h-2 w-full overflow-hidden rounded-full bg-muted">
-              <span className="block h-full w-[64%] rounded-full bg-brand" />
-            </span>
-          </Panel>
-
-          <Panel title="Team Pulse">
-            <div className="mb-1.5 flex items-center justify-end">
-              <Pill tone="brand">ACTIVE</Pill>
-            </div>
-            <ul className="flex flex-col gap-1.5">
-              {d.staff.map((person) => (
-                <li key={person.name} className="flex items-center gap-1.5">
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {stats.map((stat) => (
+                <div key={stat.label} className="min-w-0">
                   <span
                     aria-hidden="true"
-                    className="h-4 w-4 rounded-full bg-muted"
-                  />
-                  <span className="flex-1 truncate text-[0.5625rem]">
+                    className="block"
+                    style={{ color: t.primary }}
+                  >
+                    {stat.icon}
+                  </span>
+                  <p
+                    className={cn(TYPE.label, "mt-1.5 truncate")}
+                    style={{ color: t.onSurfaceVariant }}
+                  >
+                    {stat.label}
+                  </p>
+                  <p className={cn(TYPE.metricSm, "mt-1 truncate")}>{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <Caption tokens={t}>Progress today</Caption>
+                <span className={cn(TYPE.label, "font-semibold tabular-nums")}>
+                  64%
+                </span>
+              </div>
+              <ProgressBar tokens={t} value={0.64} />
+            </div>
+          </Card>
+
+          {/* Team list with avatars and status chips. */}
+          <SectionCard tokens={t} title="Team Pulse" trailing={<Chip tokens={t} tone="primary">Active</Chip>}>
+            <ul className="flex flex-col gap-3">
+              {d.staff.map((person) => (
+                <li key={person.name} className="flex items-center gap-3">
+                  <Avatar tokens={t} name={person.name} />
+                  <span className={cn(TYPE.body, "min-w-0 flex-1 truncate")}>
                     {person.name}
                   </span>
-                  <Pill tone={person.state === "late" ? "warn" : "good"}>
-                    {person.state}
-                  </Pill>
+                  <Chip
+                    tokens={t}
+                    tone={person.state === "late" ? "warning" : "success"}
+                  >
+                    {person.state === "late" ? "Late" : "Present"}
+                  </Chip>
                 </li>
               ))}
             </ul>
-          </Panel>
+          </SectionCard>
 
-          {/* Monthly summary: a fixed two-column grid in the source. */}
-          <div className="grid grid-cols-2 gap-1.5">
+          {/* Monthly summary. Labels are short so a tile never wraps. */}
+          <div className="grid grid-cols-2 gap-3">
             {d.summary.map((tile) => (
-              <StatTile key={tile.label} label={tile.label} value={tile.value} />
+              <MetricTile
+                key={tile.label}
+                tokens={t}
+                label={tile.label}
+                value={tile.value}
+              />
             ))}
           </div>
 
-          <Panel title="Quick Actions">
-            <ul className="flex flex-col gap-1.5">
+          <SectionCard tokens={t} title="Quick Actions">
+            <ul className="flex flex-col gap-2">
               {d.quickActions.map((action) => (
                 <li
                   key={action}
-                  className="flex items-center justify-between rounded-md bg-brand-weak/60 px-2 py-1.5"
+                  className="flex min-h-13 items-center justify-between gap-3 px-3"
+                  style={{ background: t.neutral, borderRadius: 12 }}
                 >
-                  <span className="text-[0.5625rem] font-medium">{action}</span>
-                  <span aria-hidden="true" className="text-[0.5rem] text-brand">
+                  <span className={cn(TYPE.body, "truncate")}>{action}</span>
+                  <span aria-hidden="true" style={{ color: t.primary }}>
                     ›
                   </span>
                 </li>
               ))}
             </ul>
-          </Panel>
+          </SectionCard>
 
-          <Panel
+          <SectionCard
+            tokens={t}
             title="Weekly Productivity"
-            subtitle="Hours worked per day"
+            trailing={
+              <span
+                aria-hidden="true"
+                className="shrink-0"
+                style={{ color: t.onSurfaceVariant }}
+              >
+                <Clock3 className="h-5 w-5" />
+              </span>
+            }
           >
-            <BarRow
-              suffix="h"
-              items={d.weeklyBars.map((bar) => ({
-                label: bar.day,
-                value: bar.value,
-              }))}
-              max={12}
-            />
-          </Panel>
+            <BarChart tokens={t} items={d.weeklyBars} suffix="h" max={12} />
+          </SectionCard>
         </Stack>
-      </div>
+      </Screen>
 
-      <TabBar items={d.nav} active="Home" />
-    </PhoneScreen>
+      <BottomNav tokens={t} items={d.nav} active="Home" />
+    </PhoneCanvas>
   );
 }

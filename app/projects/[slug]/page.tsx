@@ -316,24 +316,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
             </Section>
           )}
 
-          {showcase.length > 0 && (
-            <Section
-              id="showcase"
-              eyebrow={hasRecreations ? "Design reference" : "Product"}
-              title="Screens"
-            >
-              {hasRecreations && (
-                <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
-                  Some of these are hand-built recreations of screens read from
-                  the app&apos;s own source, shown where no screenshot could be
-                  captured. Each one says so on the screen. Real captures are
-                  never labelled this way.
-                </p>
-              )}
-              <ShowcaseStrip project={project} screens={showcase} />
-            </Section>
-          )}
-
           {project.screenshots.length > 0 && (
             <Section id="gallery" eyebrow="Product" title="Gallery">
               <ProjectGallery
@@ -344,6 +326,36 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
         </div>
       </div>
+
+      {/* The screen showcase gets full container width and sits OUTSIDE the
+          case study grid, like the walkthrough below it. Four device frames do
+          not fit in the 768px reading column, and squeezing them is what turns
+          a clean drawing into clipped text. */}
+      {showcase.length > 0 && (
+        <Reveal>
+          <section
+            id="showcase"
+            className="scroll-mt-24 border-t border-border pt-8"
+          >
+            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+              {hasRecreations ? "Design reference" : "Product"}
+            </p>
+            <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
+              Screens
+            </h2>
+            {hasRecreations ? (
+              <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+                These are hand-built recreations of screens read from the
+                app&apos;s own source, shown where no screenshot could be
+                captured. Real captures are never labelled this way.
+              </p>
+            ) : null}
+            <div className="mt-4">
+              <ShowcaseStrip project={project} screens={showcase} />
+            </div>
+          </section>
+        </Reveal>
+      )}
 
       {/* Walkthrough only where there is no real screenshot. Full container
           width and OUTSIDE the case study grid, so it never becomes a third

@@ -1,150 +1,210 @@
+import { cn } from "cn";
+import { Minus, Plus, Printer, Search, Trash2 } from "lucide-react";
+
 import { DUMMY } from "@/data/mock-screens";
 
 import {
-  AppBar,
-  Button,
+  Card,
+  Caption,
+  Chip,
+  FilterChip,
   Field,
-  MicroLabel,
-  PhoneScreen,
-  Pill,
+  PhoneCanvas,
+  PrimaryButton,
+  Screen,
+  SectionCard,
   Stack,
   StaticDevicePanel,
 } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 /**
  * THINKPOS cashier checkout.
  *
- * Layout read from `D:\thinkpos\lib\sections\cashier_section.dart`. The source
- * splits into a product list on the left and a cart panel on the right at 600px
- * and above; below that it stacks the product list and adds a mobile cart
- * summary bar. A phone recreation therefore gets the stacked form, with the
- * cart promoted to its own panel because that is the screen's real subject.
+ * The real screen (`lib/sections/cashier_section.dart`) splits at 600px: a
+ * product list on the left and a fixed cart panel on the right. Below that it
+ * stacks the product list and adds a mobile cart summary bar that opens a sheet
+ * holding the cart. A phone recreation therefore gets the stacked form, and the
+ * sheet is what the source actually shows at this size.
  *
- * Order preserved from the source: header buttons, search, category chips,
- * product grid; then the cart's header, line items, and the totals block
- * (Subtotal, Diskon (%), Total Akhir) above the pay button.
+ * Order preserved: search, category chips, product grid; the cart sits behind
+ * the sheet, and the sticky bar carries the count and the total exactly as the
+ * mobile summary does.
  *
- * Thermal receipt printing cannot be shown, so it is a labelled static block.
+ * Thermal receipt printing needs a physical ESC/POS device, so it is a labelled
+ * static block rather than an invented print preview.
  */
 export function ThinkPosCashier() {
+  const t = tokensFor("thinkpos");
   const d = DUMMY.thinkpos;
 
-  const subtotal = d.cart.reduce((sum, line) => sum + line.qty * line.price, 0);
-  const rupiah = (value: number) =>
-    `Rp ${value.toLocaleString("id-ID")}`;
+  const rupiah = (value: number) => `Rp ${value.toLocaleString("id-ID")}`;
+  const total = d.cart.reduce((sum, line) => sum + line.qty * line.price, 0);
+  const count = d.cart.reduce((sum, line) => sum + line.qty, 0);
 
   return (
-    <PhoneScreen>
-      <AppBar title="Kasir" />
+    <PhoneCanvas>
+      <Screen
+        tokens={t}
+        title="Kasir"
+        subtitle="Bill #001"
+        action={<Chip tokens={t} tone="primary">Umum</Chip>}
+      >
+        <Stack gap="md">
+          <Field
+            tokens={t}
+            placeholder="Cari produk..."
+            icon={<Search className="h-5 w-5" />}
+          />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Product list: header row, search, category chips, grid. */}
-        <div className="flex flex-col gap-2 border-b border-border bg-muted/40 p-2">
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-[0.625rem] font-semibold">Bill #001</span>
-            <div className="flex items-center gap-1">
-              <Pill tone="good">Input Kas</Pill>
-              <Pill>Daftar Nota</Pill>
-              <Pill tone="brand">Tambah Nota</Pill>
-            </div>
-          </div>
-
-          <Field placeholder="Cari produk..." />
-
-          <div className="flex items-center gap-1">
-            {d.categories.map((category, i) => (
-              <Pill key={category} tone={i === 0 ? "brand" : "neutral"}>
+          <div className="flex gap-2 overflow-x-auto">
+            {d.categories.map((category, index) => (
+              <FilterChip
+                key={category}
+                tokens={t}
+                selected={index === 0}
+              >
                 {category}
-              </Pill>
+              </FilterChip>
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5">
+          {/* Product grid: name and price, as the real cards show. */}
+          <div className="grid grid-cols-2 gap-3">
             {d.products.slice(0, 6).map((product) => (
-              <div
-                key={product.name}
-                className="relative flex flex-col gap-0.5 rounded-lg border border-border bg-card p-1.5"
-              >
+              <Card key={product.name} tokens={t} className="relative p-3">
                 <span
                   aria-hidden="true"
-                  className="h-6 rounded bg-muted"
+                  className="mb-2 block h-14 w-full rounded-lg"
+                  style={{ background: t.surfaceHigh }}
                 />
-                <span className="truncate text-[0.5rem] font-semibold">
+                <p className={cn(TYPE.body, "truncate font-medium")}>
                   {product.name}
-                </span>
-                <span className="text-[0.5rem] font-semibold text-brand">
+                </p>
+                <p
+                  className={cn(TYPE.body, "mt-1.5 truncate font-semibold tabular-nums")}
+                  style={{ color: t.primary }}
+                >
                   {rupiah(product.price)}
-                </span>
-                <span className="text-[0.4375rem] text-muted-foreground">
-                  Sisa: {product.stock}
-                </span>
-                {product.stock <= 5 && (
-                  <span className="absolute top-1 right-1 rounded bg-rose-600 px-1 py-px text-[0.375rem] font-semibold text-white">
-                    Stok Tipis
+                </p>
+                <p className={cn(TYPE.label, "mt-1 tabular-nums")} style={{ color: t.onSurfaceVariant }}>
+                  Sisa {product.stock}
+                </p>
+                {product.stock <= 5 ? (
+                  <span className="absolute top-4 right-4">
+                    <Chip tokens={t} tone="error">
+                      Tipis
+                    </Chip>
                   </span>
-                )}
+                ) : null}
+              </Card>
+            ))}
+          </div>
+
+          {/* The cart sheet the mobile layout opens. */}
+          <SectionCard tokens={t} title="Keranjang Belanja" trailing={<Chip tokens={t}>{count} item</Chip>}>
+            <ul className="flex flex-col gap-3">
+              {d.cart.map((line) => (
+                <li
+                  key={line.name}
+                  className="flex flex-col gap-2 px-3 py-2"
+                  style={{ background: t.surfaceHigh, borderRadius: 12 }}
+                >
+                  {/* Name and line total on one row, controls beneath. A single
+                      row cannot hold a name, a three-part stepper, a delete
+                      affordance and a price at phone width. */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={cn(TYPE.body, "min-w-0 flex-1 truncate")}>
+                      {line.name}
+                    </span>
+                    <span
+                      className={cn(TYPE.label, "shrink-0 font-semibold tabular-nums")}
+                    >
+                      {rupiah(line.qty * line.price)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex shrink-0 items-center">
+                      <Stepper
+                        icon={<Minus className="h-4 w-4" />}
+                        label={`Kurangi ${line.name}`}
+                      />
+                      <span className={cn(TYPE.label, "w-4 text-center tabular-nums")}>
+                        {line.qty}
+                      </span>
+                      <Stepper
+                        icon={<Plus className="h-4 w-4" />}
+                        label={`Tambah ${line.name}`}
+                      />
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-11 w-11 items-center justify-center"
+                      style={{ color: t.onError }}
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <Caption tokens={t}>Subtotal</Caption>
+                <span className={cn(TYPE.body, "tabular-nums")}>{rupiah(total)}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Cart panel: header, line items, totals, pay button. */}
-        <div className="flex flex-1 flex-col gap-2 overflow-hidden p-2">
-          <div className="flex items-center justify-between gap-2 border-b border-border pb-1.5">
-            <span className="text-[0.6875rem] font-bold">Keranjang Belanja</span>
-            <span className="text-[0.5rem] text-muted-foreground">Bill #001</span>
-          </div>
-
-          <ul className="flex flex-col gap-1">
-            {d.cart.map((line) => (
-              <li
-                key={line.name}
-                className="flex items-center gap-1.5 rounded-md border border-border/60 bg-card px-1.5 py-1"
-              >
-                <span className="flex-1 truncate text-[0.5625rem]">
-                  {line.name}
-                </span>
-                <span className="text-[0.5rem] tabular-nums text-muted-foreground">
-                  − {line.qty} +
-                </span>
-                <span className="text-[0.5625rem] font-semibold tabular-nums text-brand">
-                  {rupiah(line.qty * line.price)}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <Stack gap="sm" className="mt-auto">
-            <div className="flex items-center justify-between text-[0.5625rem]">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">{rupiah(subtotal)}</span>
+              <div className="flex items-center justify-between">
+                <Caption tokens={t}>Diskon (%)</Caption>
+                <span className={cn(TYPE.body, "tabular-nums")}>{d.discountPct}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-[0.5625rem]">
-              <span className="text-muted-foreground">Diskon (%)</span>
-              <span className="tabular-nums">{d.discountPct}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-brand-weak px-2 py-1.5">
-              <span className="text-[0.625rem] font-bold">Total Akhir</span>
-              <span className="text-[0.8125rem] font-bold tabular-nums text-brand">
-                {rupiah(subtotal)}
-              </span>
-            </div>
-            <Button tone="brand">Proses Pembayaran</Button>
-          </Stack>
-        </div>
+          </SectionCard>
 
-        <div className="px-2 pb-2">
           <StaticDevicePanel
-            title="Thermal printer"
-            detail="Receipt output needs a physical ESC/POS printer, so it is not recreated."
+            tokens={t}
+            icon={<Printer className="h-10 w-10" style={{ color: t.onSurfaceVariant }} />}
+            title="Thermal printer not recreated"
+            detail="Receipt output needs a physical ESC/POS device, so there is nothing to draw here."
           />
-        </div>
-      </div>
+        </Stack>
+      </Screen>
 
-      <div className="flex items-center justify-between border-t border-border bg-card px-2 py-1">
-        <MicroLabel>Cashier</MicroLabel>
-        <MicroLabel>Dashboard · Kasir · Shift · Produk · Pelanggan</MicroLabel>
+      {/* Sticky cart bar: the mobile summary from the same source file. */}
+      <div
+        className="flex shrink-0 items-center gap-3 border-t px-4 py-3"
+        style={{ borderColor: t.outline, background: t.surface }}
+      >
+        <div className="min-w-0 flex-1">
+          <span className={cn(TYPE.label, "block truncate")} style={{ color: t.onSurfaceVariant }}>
+            {count} item di keranjang
+          </span>
+          <p className={cn(TYPE.metricSm, "mt-1 truncate")}>{rupiah(total)}</p>
+        </div>
+        <PrimaryButton tokens={t} full={false}>
+          Proses Pembayaran
+        </PrimaryButton>
       </div>
-    </PhoneScreen>
+    </PhoneCanvas>
+  );
+}
+
+function Stepper({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  const t = tokensFor("thinkpos");
+  return (
+    <span
+      aria-hidden="true"
+      title={label}
+      className="flex h-11 w-11 items-center justify-center border"
+      style={{ borderColor: t.outline, borderRadius: 999 }}
+    >
+      {icon}
+    </span>
   );
 }

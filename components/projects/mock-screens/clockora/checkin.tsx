@@ -1,78 +1,116 @@
+import { cn } from "cn";
+import { Camera, LogIn, LogOut, MapPin } from "lucide-react";
+
 import { DUMMY } from "@/data/mock-screens";
 
 import {
-  AppBar,
-  MicroLabel,
-  PhoneScreen,
+  BottomNav,
+  Card,
+  Caption,
+  PhoneCanvas,
+  PrimaryButton,
+  Screen,
   Stack,
   StaticDevicePanel,
-  TabBar,
 } from "../primitives";
+import { TYPE, tokensFor } from "../tokens";
 
 /**
- * CLOCKORA attendance / check-in screen.
+ * CLOCKORA attendance.
  *
- * Layout read from `D:\clockora\lib\sections\attendance_section.dart`: a
- * camera panel on one side and a control panel on the other, where the control
- * panel is a location line, a "Field Attendance" checkbox, an optional location
- * name field, and two large check-in and check-out buttons.
+ * Structure read from `D:\clockora\lib\sections\attendance_section.dart`: a
+ * camera panel, then a control panel holding the location line, a
+ * "Field Attendance" checkbox, an optional location-name field, and two large
+ * check-in and check-out actions.
  *
- * A phone recreation stacks those two panels. The camera feed, the GPS fix and
- * the rooted/jailbreak device check cannot be recreated, so the camera panel is
- * a labelled static block instead of an imitation of a live preview.
+ * The camera feed, the GPS fix and the rooted-device check cannot be drawn, so
+ * the camera area is an explicitly labelled static card rather than an
+ * imitation of a live preview. Saying so is the point of it.
  */
 export function ClockoraCheckIn() {
+  const t = tokensFor("clockora");
   const d = DUMMY.clockora;
 
   return (
-    <PhoneScreen>
-      <AppBar title="Attendance" tint="bg-[#4A148C] text-white" />
+    <PhoneCanvas>
+      <Screen tokens={t} title="Attendance" nav>
+        <Stack gap="md">
+          <StaticDevicePanel
+            tokens={t}
+            icon={<Camera className="h-10 w-10" style={{ color: t.primary }} />}
+            title="Camera and location are not recreated"
+            detail="A real capture needs a device with a front camera, geolocation and a secure-storage check. This is a static placeholder."
+          />
 
-      <div className="flex flex-1 flex-col gap-3 overflow-hidden p-2">
-        {/* Camera panel: static, because a real feed is not reproducible. */}
-        <StaticDevicePanel
-          title="Camera panel"
-          detail="Front-camera preview needs a device. Shown as a static placeholder."
-        />
-
-        {/* Control panel. */}
-        <Stack gap="sm" className="flex-1">
-          <p className="text-[0.5625rem] tabular-nums text-muted-foreground">
-            Location: -6.200000, 106.816666
-          </p>
-
-          <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5">
-            <span
-              aria-hidden="true"
-              className="h-3 w-3 rounded-[3px] border border-border bg-background"
-            />
-            <span className="text-[0.5625rem]">
-              Field Attendance (Outside Office)
-            </span>
-          </div>
-
-          <div className="mt-auto grid grid-cols-2 gap-2">
-            <div className="flex flex-col gap-1">
-              <span className="rounded-md bg-emerald-700 py-2.5 text-center text-[0.625rem] font-bold tracking-[0.06em] text-white uppercase">
-                Check In
+          <Card tokens={t}>
+            <div className="flex items-start gap-3">
+              <span aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: t.primary }}>
+                <MapPin className="h-5 w-5" />
               </span>
-              <MicroLabel>Records entry time</MicroLabel>
+              <div className="min-w-0">
+                <Caption tokens={t}>Location</Caption>
+                <p className={cn(TYPE.body, "mt-1 tabular-nums")}>
+                  -6.2000, 106.8167
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="rounded-md bg-rose-700 py-2.5 text-center text-[0.625rem] font-bold tracking-[0.06em] text-white uppercase">
+
+            <div
+              className="mt-4 flex min-h-13 items-center gap-3 border px-3"
+              style={{ borderColor: t.outline, borderRadius: 12 }}
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded"
+                style={{ background: t.primary }}
+              >
+                <CheckMark />
+              </span>
+              <span className={cn(TYPE.body, "truncate")}>
+                Field Attendance (Outside Office)
+              </span>
+            </div>
+          </Card>
+
+          <div className="mt-auto flex flex-col gap-3">
+            <PrimaryButton
+              tokens={t}
+              icon={<LogIn className="h-5 w-5" />}
+            >
+              Check In
+            </PrimaryButton>
+            <div
+              className="flex min-h-13 items-center justify-center px-4"
+              style={{
+                background: t.error,
+                color: t.onError,
+                borderRadius: 14,
+              }}
+            >
+              <span className={cn(TYPE.body, "inline-flex items-center gap-2 font-semibold")}>
+                <LogOut className="h-5 w-5" />
                 Check Out
               </span>
-              <MicroLabel>Records exit time</MicroLabel>
             </div>
           </div>
-
-          <MicroLabel>
-            Device security, geolocation and connectivity checks are not recreated.
-          </MicroLabel>
         </Stack>
-      </div>
+      </Screen>
 
-      <TabBar items={d.nav} active="Absen" />
-    </PhoneScreen>
+      <BottomNav tokens={t} items={d.nav} active="Absen" />
+    </PhoneCanvas>
+  );
+}
+
+function CheckMark() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true" fill="none">
+      <path
+        d="M2 6.5 4.8 9.2 10 3.6"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
