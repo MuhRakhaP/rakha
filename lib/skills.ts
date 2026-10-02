@@ -38,3 +38,27 @@ export const skillGroups: SkillGroup[] = [
     items: ["Git", "Docker", "CI/CD", "VPS", "PM2", "Caddy", "Coolify"],
   },
 ];
+
+/**
+ * Curated highlights for the home page: the CV's skills regrouped into four
+ * marketing categories, five items each, worded exactly as the CV words them.
+ * The full CV grouping stays in `skillGroups` for the about page.
+ */
+export const skillHighlights: SkillGroup[] = [
+  {
+    category: "Frontend",
+    items: ["React.js", "Next.js", "Vue.js", "TypeScript", "JavaScript"],
+  },
+  {
+    category: "Backend",
+    items: ["Node.js", "NestJS", "Express.js", "Laravel", "FastAPI"],
+  },
+  {
+    category: "Database",
+    items: ["PostgreSQL", "MySQL", "MongoDB", "Firebase", "SQL"],
+  },
+  {
+    category: "Tools",
+    items: ["Docker", "Git", "CI/CD", "REST API", "Webhooks"],
+  },
+];

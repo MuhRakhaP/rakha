@@ -5,8 +5,8 @@ import { HomeShowcase } from "@/components/projects/home/home-showcase";
 import { Reveal } from "@/components/reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
-import { getProjectsByTags, projects } from "@/data/projects";
-import { skillGroups } from "@/lib/skills";
+import { projects, type Project } from "@/data/projects";
+import { skillGroups, skillHighlights } from "@/lib/skills";
 import { site } from "@/lib/site";
 import { roles } from "@/lib/experience";
 
@@ -34,24 +34,34 @@ const panelSkills = [
 
 /**
  * Projects grouped by type for "What I Build" section.
- * Derived from project `type` and `tags` — no hardcoded names.
+ *
+ * Each project appears exactly once, under its own type, in the same order
+ * /projects uses (web, mobile, backend, ai). An earlier version also matched
+ * the "automation" tag, which put Outstanding Delivery Automation in both
+ * Backend Systems and AI & Automation — the duplication this section now
+ * avoids by grouping on `type` alone.
  */
 function getProjectsByCategory() {
-  const web = projects.filter((p) => p.type === "web");
-  const mobile = projects.filter((p) => p.type === "mobile");
-  const backend = projects.filter((p) => p.type === "backend");
-  const ai = projects.filter((p) => p.type === "ai" || p.tags?.includes("automation"));
+  const byType = new Map<Project["type"], Project[]>();
+  for (const project of projects) {
+    const list = byType.get(project.type) ?? [];
+    list.push(project);
+    byType.set(project.type, list);
+  }
 
-  return [
-    { label: "Web Applications", projects: web },
-    { label: "Backend Systems", projects: backend },
-    { label: "Mobile Applications", projects: mobile },
-    { label: "AI & Automation", projects: ai },
-  ].filter((c) => c.projects.length > 0);
+  const labels: Record<Project["type"], string> = {
+    web: "Web Applications",
+    mobile: "Mobile Applications",
+    backend: "Backend Systems",
+    ai: "AI & Automation",
+  };
+
+  return (Object.keys(labels) as Project["type"][])
+    .map((type) => ({ label: labels[type], projects: byType.get(type) ?? [] }))
+    .filter((category) => category.projects.length > 0);
 }
 
 export default function HomePage() {
-  const aiAndAutomation = getProjectsByTags(["ai", "automation"]);
   const categories = getProjectsByCategory();
   const latestRole = roles[0]; // latest role from experience.ts
 
@@ -172,34 +182,6 @@ export default function HomePage() {
         </Reveal>
       )}
 
-      {/* AI & Automation */}
-      {aiAndAutomation.length > 0 && (
-        <Reveal>
-          <section className="flex flex-col gap-6 border-t border-border pt-12">
-            <div className="flex flex-col gap-2">
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-                Automation
-              </p>
-              <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-                AI & Automation
-              </h2>
-              <p className="max-w-2xl text-muted-foreground">
-                Systems that replace manual work with automated workflows, and
-                assistants that ground their answers in real documentation.
-              </p>
-            </div>
-
-            <ul className="flex flex-col gap-6">
-              {aiAndAutomation.map((project) => (
-                <li key={project.slug} className="flex">
-                  <HomeShowcase projects={[project]} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        </Reveal>
-      )}
-
       {/* Experience Teaser */}
       <Reveal>
         <section className="flex flex-col gap-6 border-t border-border pt-12">
@@ -235,7 +217,7 @@ export default function HomePage() {
             </h2>
           </div>
           <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {skillGroups.map((group) => (
+            {skillHighlights.map((group) => (
               <div key={group.category}>
                 <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
                   {group.category}

@@ -115,6 +115,24 @@ export const PROJECT_TYPES: { value: ProjectType | "all"; label: string }[] = [
   { value: "ai", label: "AI" },
 ];
 
+/**
+ * Canonical display order for project types. The home page and /projects both
+ * sort by this, so the two pages never disagree about the order of categories.
+ */
+export const PROJECT_TYPE_ORDER: Record<ProjectType, number> = {
+  web: 0,
+  mobile: 1,
+  backend: 2,
+  ai: 3,
+};
+
+/** Projects sorted by the canonical type order, stable within a type. */
+export function sortProjectsByType(list: Project[]): Project[] {
+  return [...list].sort(
+    (a, b) => PROJECT_TYPE_ORDER[a.type] - PROJECT_TYPE_ORDER[b.type],
+  );
+}
+
 export const projects: Project[] = [
   {
     slug: "terahome",

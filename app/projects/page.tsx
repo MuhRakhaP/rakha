@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 
 import { ProjectFilter } from "@/components/projects/project-filter";
 import { ProjectGrid } from "@/components/projects/project-grid";
-import { projects, PROJECT_TYPES, type ProjectType } from "@/data/projects";
+import {
+  projects,
+  PROJECT_TYPES,
+  sortProjectsByType,
+  type ProjectType,
+} from "@/data/projects";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -22,10 +27,13 @@ export default async function ProjectsPage({
   const filter: ProjectType | "all" =
     type && VALID.has(type as ProjectType) ? (type as ProjectType) : "all";
 
-  const visible =
+  // Same category order as the home page: web, mobile, backend, ai. The
+  // filter views are single-type, so the sort only matters for "all".
+  const visible = sortProjectsByType(
     filter === "all"
       ? projects
-      : projects.filter((project) => project.type === filter);
+      : projects.filter((project) => project.type === filter),
+  );
 
   const counts = Object.fromEntries(
     PROJECT_TYPES.map((option) => [

@@ -109,10 +109,12 @@ export function ProjectCtas({
     links.push({
       key: "source-private",
       node: (
-        // A small muted badge rather than a line of body text, so the honest
-        // disclosure stays visible without competing with the buttons.
-        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">
-          Source code: Private
+        // A small muted badge on its own line below the buttons, so the
+        // honest disclosure stays visible without competing with them.
+        <span className="basis-full">
+          <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">
+            Source code: Private
+          </span>
         </span>
       ),
     });

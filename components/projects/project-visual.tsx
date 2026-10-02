@@ -1,13 +1,5 @@
 import Image from "next/image";
-import {
-  ArrowRight,
-  Bot,
-  Boxes,
-  Cpu,
-  Database,
-  Server,
-  Sparkles,
-} from "lucide-react";
+import { Bot, Boxes, Server } from "lucide-react";
 
 import { TYPE_LABEL } from "@/components/projects/project-badges";
 import type { Project } from "@/data/projects";
@@ -47,10 +39,10 @@ export function ProjectVisual({
 /**
  * Abstract stand-in for a project with no interface to photograph: an API or
  * an assistant has no screen, and pretending otherwise would be worse than
- * saying so. The composition is a warm card with the dot texture and a filled
- * illustration drawn from the project's own concepts — a chat exchange with a
- * RAG flow for an assistant, a monitoring dashboard for a backend — never a
- * placeholder box and never a fake screenshot.
+ * saying so. The composition is a warm card with the dot texture and one
+ * clear, filled illustration drawn from the project's own concepts — a
+ * support chat for an assistant, a monitoring dashboard for a backend —
+ * never a placeholder box and never a fake screenshot.
  */
 export function AbstractVisual({ project }: { project: Project }) {
   return (
@@ -71,74 +63,42 @@ export function AbstractVisual({ project }: { project: Project }) {
   );
 }
 
-/** Small labelled node used by the RAG flow. */
-function FlowNode({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <span className="flex min-w-0 flex-col items-center gap-1">
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border bg-brand-weak text-brand">
-        {icon}
-      </span>
-      <span className="max-w-full truncate text-[0.625rem] font-medium text-muted-foreground">
-        {label}
-      </span>
-    </span>
-  );
-}
-
 /**
  * An assistant has no screen to photograph, so the illustration shows what it
- * does instead: a support chat where the assistant answers from the knowledge
- * base, with the retrieval-augmented flow underneath. The wording is generic
- * and the whole thing is decorative, so it can never be mistaken for a real
- * capture.
+ * does instead: one clear support exchange where the assistant answers from
+ * the knowledge base. The wording is generic and the whole thing is
+ * decorative, so it can never be mistaken for a real capture. The retrieval
+ * details live on the case study, not on the card.
  */
 function AiVisual() {
   return (
-    <div className="relative flex h-full flex-col gap-3">
-      {/* Chat window: a user question, the assistant answering from the
-          knowledge base, and a typing indicator. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-xl border border-border bg-background/70 p-3">
-        <div className="flex items-center gap-2 border-b border-border pb-2">
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-brand-weak text-brand">
-            <Bot className="size-3.5" strokeWidth={2} />
-          </span>
-          <span className="text-[0.6875rem] font-medium text-muted-foreground">
-            Support assistant
-          </span>
-        </div>
+    <div className="relative flex h-full flex-col rounded-xl border border-border bg-background/70 p-4">
+      <div className="flex items-center gap-2 border-b border-border pb-3">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand-weak text-brand">
+          <Bot className="size-4" strokeWidth={2} />
+        </span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Support assistant
+        </span>
+      </div>
 
+      <div className="flex flex-1 flex-col justify-center gap-3 py-4">
         <div className="flex justify-end">
-          <span className="max-w-[85%] rounded-lg rounded-br-sm bg-foreground/90 px-2.5 py-1.5 text-[0.6875rem] leading-snug text-background">
+          <span className="max-w-[80%] rounded-xl rounded-br-sm bg-foreground/90 px-3.5 py-2 text-xs leading-relaxed text-background">
             How do I reset my password?
           </span>
         </div>
-
         <div className="flex justify-start">
-          <span className="max-w-[90%] rounded-lg rounded-bl-sm border border-border bg-card px-2.5 py-1.5 text-[0.6875rem] leading-snug text-foreground">
+          <span className="max-w-[85%] rounded-xl rounded-bl-sm border border-border bg-card px-3.5 py-2 text-xs leading-relaxed text-foreground">
             Based on the knowledge base, here&apos;s how…
           </span>
         </div>
-
-        <div className="mt-auto flex items-center gap-1 px-1">
-          <span className="size-1.5 rounded-full bg-border" />
-          <span className="size-1.5 rounded-full bg-border" />
-          <span className="size-1.5 rounded-full bg-border" />
-        </div>
       </div>
 
-      {/* RAG flow: Knowledge Base → LLM → Response. */}
-      <div className="flex shrink-0 items-center justify-between gap-1 rounded-xl border border-border bg-background/70 px-3 py-2">
-        <FlowNode icon={<Database className="size-3.5" strokeWidth={2} />} label="Knowledge Base" />
-        <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
-        <FlowNode icon={<Cpu className="size-3.5" strokeWidth={2} />} label="LLM" />
-        <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
-        <FlowNode icon={<Sparkles className="size-3.5" strokeWidth={2} />} label="Response" />
+      <div className="flex items-center gap-1.5 border-t border-border pt-3">
+        <span className="size-2 rounded-full bg-border" />
+        <span className="size-2 rounded-full bg-border" />
+        <span className="size-2 rounded-full bg-border" />
       </div>
     </div>
   );
@@ -146,53 +106,40 @@ function AiVisual() {
 
 /**
  * A backend has no screen either, so the illustration shows the pipeline it
- * automates: live sources, a processing chart, and the events it emits. The
- * labels are the project's own concepts, the bars are decorative, and nothing
- * here is a number or a claim.
+ * automates as a monitoring dashboard: a live header and a processing chart.
+ * The bars are decorative and nothing here is a number or a claim; the
+ * detailed flow lives on the case study.
  */
 function BackendVisual() {
-  const sources = ["EPS", "Auto In Portal", "Follow-ups"];
-  const events = [
-    "Delivery data retrieved",
-    "Due date updated",
-    "Supplier notified",
-  ];
-
   return (
-    <div className="relative flex h-full flex-col gap-3">
-      {/* Live sources, drawn from the project's own concepts. */}
-      <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-        {sources.map((label) => (
-          <span
-            key={label}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2 py-0.5 text-[0.6875rem] text-muted-foreground"
-          >
-            <span className="size-1.5 rounded-full bg-success" />
-            {label}
-          </span>
-        ))}
+    <div className="relative flex h-full flex-col rounded-xl border border-border bg-background/70 p-4">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <span className="text-xs font-medium text-muted-foreground">
+          Delivery automation
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-[0.6875rem] text-muted-foreground">
+          <span className="size-1.5 rounded-full bg-success" />
+          Live
+        </span>
       </div>
 
-      {/* Processing chart. Decorative bars, no numbers. */}
-      <div className="flex min-h-0 flex-1 items-end gap-1.5 rounded-xl border border-border bg-background/70 p-3">
+      <div className="flex flex-1 items-end gap-2 py-4">
         {[45, 70, 35, 85, 55, 75, 40].map((h, i) => (
           <span
             key={i}
             style={{ height: `${h}%` }}
-            className="flex-1 rounded-t-sm bg-brand/25"
+            className="flex-1 rounded-t-md bg-brand/25"
           />
         ))}
       </div>
 
-      {/* Events the pipeline emits. */}
-      <div className="flex shrink-0 flex-col gap-1 rounded-xl border border-border bg-background/70 px-3 py-2">
-        {events.map((line) => (
+      <div className="flex gap-2 border-t border-border pt-3">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
           <span
-            key={line}
-            className="flex items-center gap-1.5 text-[0.6875rem] text-muted-foreground"
+            key={day}
+            className="flex-1 text-center text-[0.625rem] text-muted-foreground"
           >
-            <span className="size-1 shrink-0 rounded-full bg-brand/50" />
-            {line}
+            {day}
           </span>
         ))}
       </div>

@@ -53,23 +53,24 @@ const THINKPOS: ScreenTokens = {
   onPrimaryContainer: "#0B3EA8",
   // Warm beige card, a step deeper than CLOCKORA's cream so the two mobile
   // cards read as two shades of the same warm family rather than one flat
-  // colour.
+  // colour. The screen surfaces are warmed to match, so the phone reads warm
+  // end to end instead of cool with a beige frame.
   accentWash: "#F3EBDD",
   cardWash: "#E8DCC8",
-  background: "#F6F8FC",
+  background: "#F7F2EA",
   surface: "#FFFFFF",
-  surfaceHigh: "#EDF1F8",
+  surfaceHigh: "#F0EAE0",
   onSurface: "#111827",
   onSurfaceVariant: "#4B5563",
-  outline: "#DCE3EE",
+  outline: "#E4DDD0",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EAEFF7",
-  onNeutral: "#404A5C",
+  neutral: "#EFE9DF",
+  onNeutral: "#4A4438",
 };
 
 const CLOCKORA: ScreenTokens = {
@@ -77,23 +78,24 @@ const CLOCKORA: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#EADDFF",
   onPrimaryContainer: "#31005C",
-  // Warm cream, lighter than THINKPOS's beige.
+  // Warm cream, lighter than THINKPOS's beige. Screen surfaces warmed to
+  // match, so the card reads warm rather than cool with a cream frame.
   accentWash: "#FBF7F1",
   cardWash: "#F1E9DB",
-  background: "#F8F7FC",
+  background: "#FAF6F0",
   surface: "#FFFFFF",
-  surfaceHigh: "#F0EDF6",
+  surfaceHigh: "#F3EEE6",
   onSurface: "#1A1A1A",
   onSurfaceVariant: "#4A4553",
-  outline: "#E1DDEC",
+  outline: "#E8E1D4",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EFECF5",
-  onNeutral: "#413C4C",
+  neutral: "#F2EDE5",
+  onNeutral: "#4A4438",
 };
 
 const TERAHOME: ScreenTokens = {
