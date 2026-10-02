@@ -8,128 +8,243 @@ import type { Project } from "@/data/projects";
 
 import { getMockScreens } from "@/components/projects/mock-screens/registry";
 import { ScaledCanvas } from "@/components/projects/mock-screens/scaled-canvas";
-import { LOGICAL } from "@/components/projects/mock-screens/tokens";
+import { LOGICAL, tokensFor } from "@/components/projects/mock-screens/tokens";
 
 /**
- * Aspect of the media box every card uses, and how much of that height a device
- * is allowed to take.
- *
- * The fit is derived rather than hard-coded. A device of logical aspect `d`
- * scaled so its height is `fill` of the box height needs a width of
- * `d * fill / boxAspect`, as a fraction of the box width. Solving it here means
- * a phone (360x780) and a browser screen (1280x800) both land inside the same
- * box without either being cropped, and changing either ratio does not
- * silently break the other.
+ * Shape of the media box on every card. One ratio for all four projects, which
+ * is what makes the text below every device start on the same line: if mobile
+ * and web cards used different boxes, their titles would not line up across a
+ * row. A 5:4 box is wide enough for an angled pair of browser frames and tall
+ * enough for a phone at a believable size.
  */
-const MEDIA_ASPECT = 4 / 3;
-const MEDIA_FILL = 0.92;
+const MEDIA_ASPECT = 5 / 4;
 
-function fitWidthPercent(logical: { width: number; height: number }): number {
-  const deviceAspect = logical.width / logical.height;
-  const pct = (deviceAspect * MEDIA_FILL / MEDIA_ASPECT) * 100;
-  return Math.min(100, Math.round(pct * 100) / 100);
+/**
+ * Device widths as a fraction of the box, and how far each one is tucked under
+ * its neighbour.
+ *
+ * Every device in a composition gets the same width. Unequal widths would give
+ * the frames unequal heights, and the strip rule is that phones match phones
+ * and browsers match browsers: the row reads as composed only when the devices
+ * line up. Depth comes from the rotation, the overlap and the shadow, not from
+ * resizing the devices against each other.
+ *
+ * Angling a device grows its bounding box, so a device sized to fill the box
+ * upright no longer fits once rotated. These numbers are chosen so the rotated
+ * bounding box still clears the box edges, which the visual-check harness
+ * measures directly rather than taking on trust.
+ */
+const COMPOSITION: Record<
+  "phone" | "browser",
+  { width: number; rotate: number; marginLeft: number; z: number }[]
+> = {
+  phone: [
+    { width: 30, rotate: -18, marginLeft: 0, z: 0 },
+    { width: 30, rotate: 14, marginLeft: -12, z: 0 },
+    { width: 30, rotate: -3, marginLeft: -14, z: 10 },
+  ],
+  browser: [
+    { width: 52, rotate: -9, marginLeft: 0, z: 0 },
+    { width: 52, rotate: 5, marginLeft: -20, z: 10 },
+  ],
+};
+
+/** One thing to draw inside the box: either a real capture or a recreation. */
+interface Slot {
+  kind: "capture" | "recreation";
+  screenId: string;
+  /** Present when kind is "capture". */
+  shot?: Project["screenshots"][number];
 }
 
 /**
- * The device on a project card.
+ * Pick what to show, in priority order.
  *
- * Priority order:
- *  1. a real capture, drawn in the frame that matches the project type;
- *  2. the labeled recreation named by `screenId`;
- *  3. nothing.
+ * A project with real captures shows them: two for a browser so the pair reads
+ * as one focused view and one detail view, rather than two of the same page.
+ * A project with none shows its recreations, with the sign-in screen left out:
+ * it is the least informative screen it owns, and the box only has room for two
+ * or three.
+ */
+function pickSlots(project: Project, limit: number): Slot[] {
+  if (project.screenshots.length > 0) {
+    const shots = project.screenshots.slice(0, limit);
+    return shots.map((shot) => ({
+      kind: "capture",
+      screenId: shot.id ?? "capture",
+      shot,
+    }));
+  }
+
+  const registered = getMockScreens(project.slug);
+  const ids = (project.mockScreens ?? []).filter(
+    (id) => Boolean(registered[id]) && getScreenDef(project.slug, id),
+  );
+  const withoutLogin = ids.filter((id) => id !== "login");
+  const chosen = (withoutLogin.length >= 2 ? withoutLogin : ids).slice(0, limit);
+
+  return chosen.map((id) => ({ kind: "recreation", screenId: id }));
+}
+
+/** The device in one slot, framed and scaled to the width it is given. */
+function SlotDevice({
+  project,
+  slot,
+  widthPct,
+}: {
+  project: Project;
+  slot: Slot;
+  widthPct: number;
+}) {
+  if (slot.kind === "capture" && slot.shot) {
+    const shot = slot.shot;
+    const image = (
+      <Image
+        src={shot.src}
+        alt={shot.alt}
+        width={shot.width}
+        height={shot.height}
+        // Contained, never covered: a 16:10 capture in a 5:4 box must not lose
+        // its edges, and a phone mockup must not be cropped to fit.
+        className="h-auto w-full"
+        sizes="(max-width: 768px) 60vw, 20vw"
+      />
+    );
+    return (
+      <span className="block w-full" style={{ width: `${widthPct}%` }}>
+        {project.type === "mobile" ? (
+          <PhoneFrame>{image}</PhoneFrame>
+        ) : (
+          <BrowserFrame>{image}</BrowserFrame>
+        )}
+      </span>
+    );
+  }
+
+  const Component = getMockScreens(project.slug)[slot.screenId];
+  const def = getScreenDef(project.slug, slot.screenId);
+  if (!Component || !def) return null;
+
+  const logical = def.logical === "web" ? LOGICAL.web : LOGICAL.phone;
+  const name = slot.screenId.replace(/-/g, " ");
+
+  return (
+    <span
+      role="img"
+      aria-label={`Concept screen for ${project.name}: ${name}. ${RECREATION_CAPTION}`}
+      data-testid="recreation-figure"
+      data-screen-id={slot.screenId}
+      data-frame={def.frame}
+      data-logical-width={logical.width}
+      className="block"
+      style={{ width: `${widthPct}%` }}
+    >
+      {def.frame === "browser" ? (
+        <BrowserFrame>
+          <ScaledCanvas logicalWidth={logical.width} logicalHeight={logical.height}>
+            <Component />
+          </ScaledCanvas>
+        </BrowserFrame>
+      ) : (
+        <PhoneFrame>
+          <ScaledCanvas logicalWidth={logical.width} logicalHeight={logical.height}>
+            <Component />
+          </ScaledCanvas>
+        </PhoneFrame>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The angled device cluster at the top of a project card.
  *
- * Case 3 is a real possibility and stays empty. An earlier version fell back to
- * whichever screen happened to be registered first, so asking for a screen that
- * did not exist drew the wrong screen under a label claiming it was the right
- * one.
+ * Devices are rotated and overlapped rather than stood up flat, because a row
+ * of upright rectangles reads as a screenshot dump. The front device carries the
+ * project's primary action; the ones behind show other parts of the same app.
  *
- * Everything sits inside one fixed-ratio box, which is what makes the cards line
- * up: two devices of very different shapes still occupy the same space.
- *
- * A capture never receives the caption. A recreation always does, on screen and
- * in its accessible name.
+ * A recreation always carries its caption in its accessible name. A capture
+ * never does, because there is nothing to disclose.
  */
 export function DevicePreview({
   project,
   screenId,
 }: {
   project: Project;
-  /** Which recreated screen to draw. Ignored when a real capture exists. */
+  /** Preferred screen for a single-device project. */
   screenId: string;
 }) {
-  // A capture for this exact screen wins. A web project with any capture at all
-  // falls back to its first one, because a browser shot beats a drawing.
-  const exact = project.screenshots.find((s) => s.id === screenId);
-  const shot =
-    exact ?? (project.type === "mobile" ? undefined : project.screenshots[0]);
+  const tokens = tokensFor(project.slug);
+  const isPhone = project.type === "mobile";
+  const layout = COMPOSITION[isPhone ? "phone" : "browser"];
+
+  // Honour the preferred screen first, then fill the remaining slots.
+  const slots = pickSlots(project, layout.length);
+  if (slots.length === 0) return null;
+
+  // The preferred screen only overrides when everything on show is drawn. If
+  // any slot holds a real capture, swapping one out for a drawing would replace
+  // evidence of the actual product with a concept, so the captures stand and
+  // the preference is ignored.
+  if (slots.every((s) => s.kind === "recreation") && !slots.some((s) => s.screenId === screenId)) {
+    if (screenId && getScreenDef(project.slug, screenId)) {
+      slots[0] = { kind: "recreation", screenId };
+    }
+  }
+  const arranged = slots.slice(0, layout.length);
 
   return (
     <div
       data-testid="device-media"
-      className="relative w-full shrink-0 overflow-hidden border-b border-border bg-muted/40"
-      style={{ aspectRatio: `${MEDIA_ASPECT}` }}
+      className="relative w-full shrink-0 overflow-hidden border-b border-border"
+      style={{
+        aspectRatio: `${MEDIA_ASPECT}`,
+        backgroundImage: `radial-gradient(120% 90% at 50% 0%, ${tokens.primaryContainer} 0%, ${tokens.accentWash} 55%, ${tokens.background} 100%)`,
+      }}
     >
-      <div className="absolute inset-0 flex items-center justify-center p-3">
-        {shot ? (
-          <Image
-            src={shot.src}
-            alt={shot.alt}
-            width={shot.width}
-            height={shot.height}
-            // Contained, never covered: a 16:10 capture in a 4:3 box must not
-            // lose its edges, and a phone mockup must not be cropped to fit.
-            className="max-h-full max-w-full object-contain"
-            sizes="(max-width: 768px) 90vw, 40vw"
-          />
-        ) : (
-          <Recreation project={project} screenId={screenId} />
-        )}
+      {/* Dot texture, borrowed from the hero so the two do not disagree. */}
+      <span aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 opacity-60" />
+
+      <div
+        className="absolute inset-0 flex items-center justify-center p-4"
+        style={{ perspective: "1400px" }}
+      >
+        {arranged.map((slot, index) => {
+          const spec = layout[index];
+          return (
+            <div
+              key={`${slot.kind}-${slot.screenId}-${index}`}
+              className="relative shrink-0 [transform-style:preserve-3d]"
+              style={{
+                width: `${spec.width}%`,
+                marginLeft: index === 0 ? 0 : `${spec.marginLeft}%`,
+                zIndex: spec.z,
+                transform: `rotate(${spec.rotate}deg)`,
+              }}
+            >
+              {/* A large soft shadow plus a thin light rim, so the device lifts
+                  off the wash instead of sitting flat on it. */}
+              <div
+                className="rounded-[1.75rem] shadow-[0_22px_44px_-14px_rgba(35,28,24,0.38)] ring-1 ring-white/45"
+              >
+                <SlotDevice project={project} slot={slot} widthPct={100} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-/** A drawn screen, framed and scaled to the width the box allows it. */
-function Recreation({
-  project,
-  screenId,
-}: {
-  project: Project;
-  screenId: string;
-}) {
-  const Component = getMockScreens(project.slug)[screenId];
-  const def = getScreenDef(project.slug, screenId);
-  if (!Component || !def) return null;
-
-  const logical = def.logical === "web" ? LOGICAL.web : LOGICAL.phone;
-  const name = screenId.replace(/-/g, " ");
-  const alt = `Concept screen for ${project.name}: ${name}. ${RECREATION_CAPTION}`;
-
-  const canvas = (
-    <ScaledCanvas logicalWidth={logical.width} logicalHeight={logical.height}>
-      <Component />
-    </ScaledCanvas>
-  );
-
-  return (
-    <div style={{ width: `${fitWidthPercent(logical)}%` }} className="min-w-0">
-      <span
-        role="img"
-        aria-label={alt}
-        data-testid="recreation-figure"
-        data-screen-id={screenId}
-        data-frame={def.frame}
-        data-logical-width={logical.width}
-        className="block w-full"
-      >
-        {def.frame === "browser" ? (
-          <BrowserFrame>{canvas}</BrowserFrame>
-        ) : (
-          <PhoneFrame>{canvas}</PhoneFrame>
-        )}
-      </span>
-    </div>
-  );
+/**
+ * Whether this project has anything to put in the media box.
+ *
+ * A project with no capture and no recreation gets a text stand-in instead, so
+ * the card still occupies the same space and the row still lines up.
+ */
+export function hasDevice(project: Project): boolean {
+  return pickSlots(project, 1).length > 0;
 }
 
 /**
@@ -139,7 +254,20 @@ function Recreation({
  * as having a recreation that will not be drawn.
  */
 export function isRecreated(project: Project, screenId: string): boolean {
-  if (project.screenshots.some((s) => s.id === screenId)) return false;
-  if (project.type === "mobile" && project.screenshots.length > 0) return false;
+  if (project.screenshots.length > 0) return false;
   return Boolean(getMockScreens(project.slug)[screenId]);
+}
+
+/**
+ * Whether this card draws at least one screen rather than showing captures.
+ *
+ * This is the question the caption has to answer, so it asks the same picker
+ * the card does. Deciding it from `project.screenshots` instead gets it wrong
+ * in the case that matters most: a project holding both a recreation registry
+ * and a capture list can end up drawing one and showing the other.
+ */
+export function drawsScreens(project: Project): boolean {
+  return pickSlots(project, COMPOSITION[project.type === "mobile" ? "phone" : "browser"].length).some(
+    (slot) => slot.kind === "recreation",
+  );
 }

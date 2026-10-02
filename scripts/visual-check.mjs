@@ -706,10 +706,16 @@ async function main() {
         //      agreed wording, and that wording is also in its alt text;
         //   2. no screen id appears as both a capture and a recreation;
         //   3. the strip itself does not overflow its container.
-        const showcase = await page.evaluate(() => {
-  const strip = document.querySelector('[data-testid="project-showcase"]');
-  if (!strip) return null;
+        const showcases = await page.evaluate(() => {
+  // Every strip is measured, not just the first. The home page renders one per
+  // category, and a recreation shown in the second group needs its caption and
+  // its layout rules exactly as much as one in the first. Reading only the
+  // first strip let the later groups through unmeasured.
+  const strips = Array.from(
+    document.querySelectorAll('[data-testid="project-showcase"]'),
+  );
 
+  return strips.map((strip) => {
   // Recreations are painted with a CSS transform, so a box measured on screen
   // reports its scaled size while its scroll width still reports the authored
   // size. Measuring in that mixed state produces nonsense: a 360px screen
@@ -733,6 +739,7 @@ async function main() {
       el.style.transform = saved[i];
     });
   }
+  });
 
   function measureStrip(strip) {
 
@@ -883,17 +890,37 @@ async function main() {
                 size <= 14 &&
                 (el.textContent || "").trim().length <= 24;
               if (isLabel) {
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                const rects = range.getClientRects();
-                const height = rects.length
-                  ? rects[rects.length - 1].bottom - rects[0].top
-                  : 0;
-                const line = parseFloat(cs.lineHeight) || size * 1.2;
-                if (height > line * 1.6) {
-                  dom.wrappedLabel.push(
-                    `${label(el)} ${Math.round(height)}px over ${Math.round(line)}px`,
-                  );
+                // Rotation is a paint transform, not layout: it inflates the
+                // client rects this rule measures without changing where the
+                // text sits in the authored layout. A one-line label on a
+                // tilted device would otherwise be reported as wrapped, so the
+                // tilt is lifted for the duration of the measurement and put
+                // back immediately after.
+                const rotated = [];
+                let node = el.parentElement;
+                while (node && node !== strip) {
+                  const tr = node.style && node.style.transform;
+                  if (tr && tr.includes("rotate")) {
+                    rotated.push([node, tr]);
+                    node.style.transform = tr.replace(/rotate\([^)]*\)/g, "");
+                  }
+                  node = node.parentElement;
+                }
+                try {
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  const rects = range.getClientRects();
+                  const height = rects.length
+                    ? rects[rects.length - 1].bottom - rects[0].top
+                    : 0;
+                  const line = parseFloat(cs.lineHeight) || size * 1.2;
+                  if (height > line * 1.6) {
+                    dom.wrappedLabel.push(
+                      `${label(el)} ${Math.round(height)}px over ${Math.round(line)}px`,
+                    );
+                  }
+                } finally {
+                  for (const [node, tr] of rotated) node.style.transform = tr;
                 }
               }
             }
@@ -1011,7 +1038,7 @@ async function main() {
         }
         });
 
-        if (showcase) {
+        for (const showcase of showcases) {
           const anyRecreation = showcase.figureCount > 0;
 
           // The caption appears once per strip, not once per card.
@@ -1204,7 +1231,9 @@ async function main() {
               ? ""
               : `left=${rect.left} right=${rect.right} viewport=${showcase.viewport} internal=${showcase.overflowPx}px`,
           );
-        }        // A project must show something real. If it has no capture but does have a
+        }
+
+        // A project must show something real. If it has no capture but does have a
         // recreation, the hero renders that recreation rather than the dashed
         // "Screenshot coming soon" box, which would claim a capture is pending.
         const heroText = await page.evaluate(() => document.body.innerText);

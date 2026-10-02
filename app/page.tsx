@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { HomeShowcase } from "@/components/projects/home/home-showcase";
-import { ProjectCard } from "@/components/projects/project-card";
 import { Reveal } from "@/components/reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
-import { getFeaturedProjects, getProjectsByTags, projects } from "@/data/projects";
+import { getProjectsByTags, projects } from "@/data/projects";
 import { skillGroups } from "@/lib/skills";
 import { site } from "@/lib/site";
 import { roles } from "@/lib/experience";
@@ -52,8 +51,6 @@ function getProjectsByCategory() {
 }
 
 export default function HomePage() {
-  const featured = getFeaturedProjects(4);
-  const rest = projects.filter((p) => !featured.some((f) => f.slug === p.slug));
   const aiAndAutomation = getProjectsByTags(["ai", "automation"]);
   const categories = getProjectsByCategory();
   const latestRole = roles[0]; // latest role from experience.ts
@@ -146,43 +143,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Selected Projects */}
-      <Reveal>
-        <section className="flex flex-col gap-6 border-t border-border pt-12">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="flex flex-col gap-2">
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-                Work
-              </p>
-              <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-                Selected Projects
-              </h2>
-            </div>
-            <Link
-              href="/projects"
-              className="text-sm text-brand underline-offset-4 transition-colors hover:decoration-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            >
-              All projects
-            </Link>
-          </div>
-
-          {/* The strip: one card per featured project, each showing a real
-              capture where one exists and a labeled recreation where it does
-              not. Nothing here is an empty frame. */}
-          <HomeShowcase projects={featured} />
-
-          {/* The rest of the catalogue, as the denser grid. */}
-          <ul className="grid gap-6 sm:grid-cols-2">
-            {rest.map((project) => (
-              <li key={project.slug} className="flex">
-                <ProjectCard project={project} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      </Reveal>
-
-      {/* What I Build */}
+      {/* What I Build. The only place project cards live on this page: each
+          category is an even two column grid, and each card shows the devices
+          itself rather than a placeholder. */}
       {categories.length > 0 && (
         <Reveal>
           <section className="flex flex-col gap-6 border-t border-border pt-12">
@@ -195,19 +158,13 @@ export default function HomePage() {
               </h2>
             </div>
 
-            <ul className="flex flex-col gap-6">
+            <ul className="flex flex-col gap-10">
               {categories.map((category) => (
                 <li key={category.label}>
-                  <h3 className="font-heading text-lg font-semibold tracking-tight mb-4">
+                  <h3 className="font-heading mb-4 text-lg font-semibold tracking-tight">
                     {category.label}
                   </h3>
-                  <ul className="grid gap-6 sm:grid-cols-2">
-                    {category.projects.map((project) => (
-                      <li key={project.slug} className="flex">
-                        <ProjectCard project={project} />
-                      </li>
-                    ))}
-                  </ul>
+                  <HomeShowcase projects={category.projects} />
                 </li>
               ))}
             </ul>
@@ -234,8 +191,8 @@ export default function HomePage() {
 
             <ul className="flex flex-col gap-6">
               {aiAndAutomation.map((project) => (
-                <li key={project.slug}>
-                  <ProjectCard project={project} />
+                <li key={project.slug} className="flex">
+                  <HomeShowcase projects={[project]} />
                 </li>
               ))}
             </ul>
