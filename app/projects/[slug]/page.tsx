@@ -343,13 +343,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
             <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
               Screens
             </h2>
-            {hasRecreations ? (
+            {hasRecreations ? null : (
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                These are hand-built recreations of screens read from the
-                app&apos;s own source, shown where no screenshot could be
-                captured. Real captures are never labelled this way.
+                Captured from a local demo build.
               </p>
-            ) : null}
+            )}
             <div className="mt-4">
               <ShowcaseStrip project={project} screens={showcase} />
             </div>

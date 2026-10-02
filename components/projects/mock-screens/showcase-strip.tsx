@@ -14,8 +14,9 @@ import type { Project } from "@/data/projects";
 
 import { getMockScreens } from "./registry";
 import { RecreationCaption } from "./recreation-caption";
+import { ScaledCanvas } from "./scaled-canvas";
 import { ScreenSwitcher, type ShowcaseItem } from "./screen-switcher";
-import { PHONE_ASPECT } from "./tokens";
+import { LOGICAL, tokensFor } from "./tokens";
 
 const DEFS: Record<string, Record<string, MockScreenDef>> = {
   thinkpos: THINKPOS_SCREENS,
@@ -26,12 +27,11 @@ const DEFS: Record<string, Record<string, MockScreenDef>> = {
 export interface ShowcaseScreen {
   id: string;
   kind: "real" | "recreation";
-  label: string;
-  /** Set only when a real capture exists for this screen. */
+  /** Real captures have no definition, so the headline falls back to the alt. */
+  headline: string;
+  subline: string;
   shot?: Project["screenshots"][number];
-  /** Set only for a recreation. */
   def?: MockScreenDef;
-  /** Optional note explaining a recreation that stands in for something. */
   note?: string;
 }
 
@@ -47,26 +47,33 @@ export interface ShowcaseScreen {
 export function resolveShowcaseScreens(project: Project): ShowcaseScreen[] {
   return (project.mockScreens ?? []).map((id) => {
     const shot = project.screenshots.find((s) => s.id === id);
-    if (shot) return { id, kind: "real", label: shot.alt, shot };
-
+    if (shot) {
+      return {
+        id,
+        kind: "real",
+        headline: shot.alt,
+        subline: "Captured from a local demo build.",
+        shot,
+      };
+    }
     const def = DEFS[project.slug]?.[id];
-    return { id, kind: "recreation", label: def?.label ?? id, def, note: def?.note };
+    return {
+      id,
+      kind: "recreation",
+      headline: def?.headline ?? id,
+      subline: def?.subline ?? "",
+      def,
+      note: def?.note,
+    };
   });
 }
 
 /**
- * One framed screen: the device chrome, plus the note when the screen is a
- * drawing rather than a capture.
+ * One framed screen at its fixed logical size.
  *
- * The visible caption is deliberately NOT here. It appears once per strip, in
- * `ShowcaseStrip`, so it states the fact about the row rather than four times
- * over. The wording still travels with each screen inside its accessible name,
- * so a screen reader announces it per image.
- *
- * Exported because the hero needs it too. A project with no capture but with
- * recreations shows its first drawing at the top of the case study, never the
- * dashed "Screenshot coming soon" box, which would imply a capture is coming
- * rather than showing what is actually available.
+ * The caption lives in the strip, once, not here. The wording still travels
+ * with each screen inside its accessible name, so a screen reader announces it
+ * per image.
  */
 export function ShowcaseFigure({
   project,
@@ -77,72 +84,63 @@ export function ShowcaseFigure({
 }) {
   const isRecreation = screen.kind === "recreation";
   const def = screen.def;
+  const web = def?.frame === "browser";
+  const logical = def?.logical === "web" ? LOGICAL.web : LOGICAL.phone;
 
-  let body: React.ReactNode;
-  if (!isRecreation && screen.shot) {
-    const shot = screen.shot;
-    body = (
+  const body =
+    !isRecreation && screen.shot ? (
       <Image
-        src={shot.src}
-        alt={shot.alt}
-        width={shot.width}
-        height={shot.height}
+        src={screen.shot.src}
+        alt={screen.shot.alt}
+        width={screen.shot.width}
+        height={screen.shot.height}
         className="h-auto w-full"
         sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 30vw"
       />
-    );
-  } else {
-    const Component = getMockScreens(project.slug)[screen.id];
-    // One shared phone ratio across every recreation, set here so each screen
-    // module does not have to remember it.
-    body = Component ? (
-      <div style={def?.frame === "browser" ? undefined : PHONE_ASPECT}>
-        <Component />
-      </div>
-    ) : null;
-  }
+    ) : (() => {
+        const Component = getMockScreens(project.slug)[screen.id];
+        return Component ? <Component /> : null;
+      })();
 
-  const framed =
-    def?.frame === "browser" ? (
-      <BrowserFrame>{body}</BrowserFrame>
-    ) : (
-      <PhoneFrame>{body}</PhoneFrame>
-    );
+  // A drawn screen is scaled from a fixed logical size; a capture is an image
+  // at its own pixel size and is left alone.
+  const content = isRecreation ? (
+    <ScaledCanvas logicalWidth={logical.width} logicalHeight={logical.height}>
+      {body}
+    </ScaledCanvas>
+  ) : (
+    body
+  );
 
-  // `role="img"` with the caption folded into the accessible name is the alt
-  // text for a drawn screen: there is no <img> element, so the accessible name
-  // is what a screen reader announces.
+  const framed = web ? (
+    <BrowserFrame>{content}</BrowserFrame>
+  ) : (
+    <PhoneFrame>{content}</PhoneFrame>
+  );
+
   const accessibleName = isRecreation
-    ? `${def?.alt ?? screen.label}. ${RECREATION_CAPTION}`
+    ? `${def?.alt ?? screen.headline}. ${RECREATION_CAPTION}`
     : screen.shot?.alt;
 
   return (
-    <span className="flex w-full flex-col gap-2">
-      <span
-        role={isRecreation ? "img" : undefined}
-        aria-label={accessibleName}
-        data-testid={isRecreation ? "recreation-figure" : undefined}
-        data-screen-id={screen.id}
-        className="block w-full"
-      >
-        {framed}
-      </span>
-      {screen.note ? (
-        <span className="text-xs leading-snug text-muted-foreground">
-          {screen.note}
-        </span>
-      ) : null}
+    <span
+      role={isRecreation ? "img" : undefined}
+      aria-label={accessibleName}
+      data-testid={isRecreation ? "recreation-figure" : undefined}
+      data-screen-id={screen.id}
+      className="block w-full"
+    >
+      {framed}
     </span>
   );
 }
 
 /**
- * The showcase strip: framed screens, one per card, with a single caption above
- * the row when any of them is a drawing.
+ * The strip: one tinted card per screen, each a short headline and subline
+ * above the device, plus a single caption under the whole row.
  *
  * Real captures go through the same card, so a project holding a mix reads as
- * one deliberate row instead of two separate galleries. A capture never
- * receives the caption; that is the entire point of it.
+ * one deliberate row. A capture never receives the caption.
  */
 export function ShowcaseStrip({
   project,
@@ -157,16 +155,25 @@ export function ShowcaseStrip({
 
   const items: ShowcaseItem[] = screens.map((screen) => ({
     id: screen.id,
-    label: screen.label,
     kind: screen.kind,
     width: screen.def?.frame === "browser" ? "browser" : "phone",
+    headline: screen.headline,
+    subline: screen.subline,
     content: <ShowcaseFigure project={project} screen={screen} />,
   }));
 
   return (
-    <div data-testid="project-showcase" className="flex flex-col gap-3">
-      {hasRecreations ? <RecreationCaption /> : null}
-      <ScreenSwitcher items={items} label={`${project.name} screens`} />
+    <div data-testid="project-showcase" className="flex flex-col gap-4">
+      <ScreenSwitcher
+        items={items}
+        label={`${project.name} screens`}
+        accent={tokensFor(project.slug).accentWash}
+      />
+      {hasRecreations ? (
+        <div className="max-w-md">
+          <RecreationCaption />
+        </div>
+      ) : null}
     </div>
   );
 }

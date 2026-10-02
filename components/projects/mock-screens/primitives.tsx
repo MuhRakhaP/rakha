@@ -1,30 +1,24 @@
 import { Eye } from "lucide-react";
 import { cn } from "cn";
 
-import {
-  NAV_HEIGHT,
-  RADIUS,
-  SPACE,
-  TYPE,
-  type ScreenTokens,
-} from "./tokens";
+import { NAV_HEIGHT, RADIUS, SPACE, TYPE, type ScreenTokens } from "./tokens";
 
 /**
  * Shared building blocks for the labeled UI recreations.
  *
- * Every value a recreation renders comes from `tokens.ts` or from the dummy data
- * in `data/mock-screens.ts`. These components hold no state and run no effects,
- * so a recreation is a static picture that happens to be HTML.
- *
- * Two rules are enforced across the whole set, and the visual-check harness
- * measures them in the rendered DOM:
- *   - no computed font-size below 11px;
- *   - no text whose contrast against its own background falls under 4.5:1.
+ * Two rules hold across the whole set, and the harness measures both in the
+ * rendered DOM:
+ *   - nothing scrolls. No `overflow: auto` or `overflow: scroll` appears inside
+ *     a recreation, because a screen that scrolls inside a picture reads as a
+ *     broken embed. Screens are composed to fit their height instead, which is
+ *     why most of them carry less content than the real app.
+ *   - nothing truncates. No `text-overflow: ellipsis` anywhere. A label that
+ *     would not fit gets shortened at the source, not clipped at the edge.
  */
 
-/* -------------------------------------------------------------------------- */
-/* Layout                                                                      */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Layout                                                              */
+/* ------------------------------------------------------------------ */
 
 export function Stack({
   gap = "sm",
@@ -41,49 +35,12 @@ export function Stack({
 }
 
 /**
- * The scrollable body of a screen.
+ * A screen: background, a large title, and the body.
  *
- * `padBottom` reserves room for the bottom navigation plus a fade, so the last
- * row is never clipped behind the nav. Without it a real app shows the same
- * problem and it looks like a rendering fault rather than a design.
+ * No scroll container anywhere. The body is a plain flex child that shrinks to
+ * the space left after the header and the navigation, so its content is laid
+ * out against a known height from the first paint.
  */
-export function ScrollBody({
-  tokens,
-  nav = false,
-  className,
-  children,
-}: {
-  tokens: ScreenTokens;
-  /** True when a bottom nav sits below this area. */
-  nav?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className={cn("min-h-0 flex-1 overflow-y-auto px-3.5", className)}
-      style={
-        nav
-          ? { paddingBottom: NAV_HEIGHT + 32, scrollPaddingBottom: NAV_HEIGHT }
-          : undefined
-      }
-    >
-      {/* Fade above the nav so content dissolves instead of being cut off. */}
-      {nav ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none sticky bottom-0 -mt-10 h-10"
-          style={{
-            background: `linear-gradient(to top, ${tokens.background}, transparent)`,
-          }}
-        />
-      ) : null}
-      {children}
-    </div>
-  );
-}
-
-/** Page shell: background, large title row, and the body. */
 export function Screen({
   tokens,
   title,
@@ -105,31 +62,33 @@ export function Screen({
       style={{ background: tokens.background, color: tokens.onSurface }}
     >
       {title ? (
-        <header className="flex shrink-0 items-start justify-between gap-3 px-3.5 pt-5 pb-3">
-          <div className="min-w-0">
-            <h3 className={cn(TYPE.title, "font-semibold")}>{title}</h3>
+        <header className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5 pb-4">
+          <div>
             {subtitle ? (
               <p
-                className={cn(TYPE.body, "mt-1")}
+                className={cn(TYPE.label, "mb-1")}
                 style={{ color: tokens.onSurfaceVariant }}
               >
                 {subtitle}
               </p>
             ) : null}
+            <h3 className={TYPE.title}>{title}</h3>
           </div>
           {action}
         </header>
       ) : null}
-      <ScrollBody tokens={tokens} nav={nav} className="px-4">
+      <div
+        className={cn("flex min-h-0 flex-1 flex-col gap-4 px-5", !nav && "pb-5")}
+      >
         {children}
-      </ScrollBody>
+      </div>
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Surfaces                                                                    */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Surfaces                                                            */
+/* ------------------------------------------------------------------ */
 
 export function Card({
   tokens,
@@ -138,29 +97,27 @@ export function Card({
   children,
 }: {
   tokens: ScreenTokens;
-  tone?: "surface" | "high";
+  tone?: "surface" | "high" | "primary";
   className?: string;
   children: React.ReactNode;
 }) {
+  const bg =
+    tone === "high" ? tokens.surfaceHigh : tone === "primary" ? tokens.primaryContainer : tokens.surface;
   return (
     <div
       className={cn(
         RADIUS.card,
         "border p-4",
-        tone === "high" ? "shadow-none" : "shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+        tone === "surface" ? "shadow-[0_1px_2px_rgba(16,24,40,0.04)]" : "shadow-none",
         className,
       )}
-      style={{
-        background: tone === "high" ? tokens.surfaceHigh : tokens.surface,
-        borderColor: tokens.outline,
-      }}
+      style={{ background: bg, borderColor: tokens.outline }}
     >
       {children}
     </div>
   );
 }
 
-/** A card with a heading row. */
 export function SectionCard({
   tokens,
   title,
@@ -177,7 +134,7 @@ export function SectionCard({
   return (
     <Card tokens={tokens} className={className}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h4 className={cn(TYPE.section, "font-semibold")}>{title}</h4>
+        <h4 className={TYPE.section}>{title}</h4>
         {trailing}
       </div>
       {children}
@@ -185,20 +142,10 @@ export function SectionCard({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Type                                                                        */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Type                                                                */
+/* ------------------------------------------------------------------ */
 
-/** Secondary text. Never all-caps, never below the 12px floor. */
-export function Body({ tokens, children }: { tokens: ScreenTokens; children: React.ReactNode }) {
-  return (
-    <p className={TYPE.body} style={{ color: tokens.onSurfaceVariant }}>
-      {children}
-    </p>
-  );
-}
-
-/** Small caption inside a card. */
 export function Caption({
   tokens,
   children,
@@ -207,16 +154,13 @@ export function Caption({
   children: React.ReactNode;
 }) {
   return (
-    <p
-      className={cn(TYPE.label, "truncate")}
-      style={{ color: tokens.onSurfaceVariant }}
-    >
+    <p className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
       {children}
     </p>
   );
 }
 
-/** Filled-tonal chip. Tones are container + on-container pairs. */
+/** Filled-tonal status chip. */
 export function Chip({
   tokens,
   children,
@@ -238,7 +182,7 @@ export function Chip({
     <span
       className={cn(
         RADIUS.chip,
-        "inline-flex items-center gap-1 px-2.5 py-1 font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 font-medium whitespace-nowrap",
         TYPE.chip,
       )}
       style={{ background: bg, color: fg }}
@@ -248,7 +192,7 @@ export function Chip({
   );
 }
 
-/** Selectable filter chip: All-caps is allowed here, they are short. */
+/** Selectable filter chip: all-caps is allowed, these are short. */
 export function FilterChip({
   tokens,
   children,
@@ -272,102 +216,36 @@ export function FilterChip({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Metrics, avatars, actions                                                   */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Metrics, avatars, actions                                           */
+/* ------------------------------------------------------------------ */
 
 /**
- * A metric tile. The label is one line only and the number is tabular, so a
- * tile never reflows when the value changes width.
+ * A metric tile. One line for the label, tabular figures, no clamping: the
+ * caller shortens a value rather than letting it spill.
  */
 export function MetricTile({
   tokens,
   label,
   value,
-  hint,
   flex,
 }: {
   tokens: ScreenTokens;
   label: string;
   value: string;
-  hint?: string;
   flex?: string;
 }) {
   return (
     <Card tokens={tokens} className={cn("p-3", flex)}>
-      <p
-        className={cn(TYPE.label, "truncate")}
-        style={{ color: tokens.onSurfaceVariant }}
-      >
+      <p className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
         {label}
       </p>
-      <p className={cn(TYPE.metricSm, "mt-1.5 truncate")}>{value}</p>
-      {hint ? (
-        <p className={cn(TYPE.label, "mt-1 truncate")} style={{ color: tokens.onSuccess }}>
-          {hint}
-        </p>
-      ) : null}
+      <p className={cn(TYPE.metricSm, "mt-1.5")}>{value}</p>
     </Card>
   );
 }
 
-/**
- * Text field look-alike: a label, then a bordered box with a leading glyph and
- * an optional trailing affordance, exactly as the real login screens compose
- * them. 52px tall, so the touch target clears 44px.
- */
-export function Field({
-  tokens,
-  label,
-  value,
-  placeholder,
-  icon,
-  trailing,
-}: {
-  tokens: ScreenTokens;
-  /** Optional: the cashier search field is placeholder-only, as in the app. */
-  label?: string;
-  value?: string;
-  placeholder?: string;
-  icon?: React.ReactNode;
-  /** `show` draws the password visibility toggle the app has. */
-  trailing?: "show";
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      {label ? (
-        <span className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
-          {label}
-        </span>
-      ) : null}
-      <span
-        className="flex min-h-13 items-center gap-2 border px-2.5 py-2"
-        style={{
-          background: tokens.surface,
-          borderColor: tokens.outline,
-          borderRadius: 12,
-        }}
-      >
-        {icon ? (
-          <span aria-hidden="true" className="shrink-0" style={{ color: tokens.onSurfaceVariant }}>
-            {icon}
-          </span>
-        ) : null}
-        <span
-          className={cn(TYPE.body, "min-w-0 flex-1 truncate")}
-          style={{ color: value ? tokens.onSurface : tokens.onSurfaceVariant }}
-        >
-          {value ?? placeholder}
-        </span>
-        {trailing === "show" ? (
-          <Eye aria-hidden="true" className="h-5 w-5 shrink-0" style={{ color: tokens.onSurfaceVariant }} />
-        ) : null}
-      </span>
-    </label>
-  );
-}
-
-/** Circular avatar showing a person's initials. */
+/** Circular avatar showing initials. */
 export function Avatar({
   tokens,
   name,
@@ -398,11 +276,37 @@ export function Avatar({
   );
 }
 
-/**
- * Primary action button. 48px tall, comfortably past the 44px touch minimum the
- * harness enforces.
- */
+/** Primary action. 48px tall, past the 44px touch minimum. */
 export function PrimaryButton({
+  tokens,
+  children,
+  icon,
+  full = true,
+  large = false,
+}: {
+  tokens: ScreenTokens;
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  full?: boolean;
+  large?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center gap-2 font-semibold",
+        large ? "min-h-14 px-6 text-base" : "min-h-12 px-5 text-sm",
+        full && "w-full",
+      )}
+      style={{ background: tokens.primary, color: tokens.onPrimary, borderRadius: 14 }}
+    >
+      {icon}
+      {children}
+    </span>
+  );
+}
+
+/** Secondary tonal action, same height as the primary. */
+export function TonalButton({
   tokens,
   children,
   icon,
@@ -416,32 +320,8 @@ export function PrimaryButton({
   return (
     <span
       className={cn(
-        "inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3 font-semibold",
+        "inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-semibold",
         full && "w-full",
-      )}
-      style={{ background: tokens.primary, color: tokens.onPrimary, borderRadius: 14 }}
-    >
-      {icon}
-      <span className={TYPE.body}>{children}</span>
-    </span>
-  );
-}
-
-/** Secondary / tonal button. */
-export function TonalButton({
-  tokens,
-  children,
-  icon,
-}: {
-  tokens: ScreenTokens;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 font-semibold",
-        TYPE.body,
       )}
       style={{ background: tokens.neutral, color: tokens.onNeutral, borderRadius: 14 }}
     >
@@ -451,47 +331,236 @@ export function TonalButton({
   );
 }
 
-/** Progress track. `value` is 0..1. */
+/** Progress track, `value` in 0..1. */
 export function ProgressBar({
   tokens,
   value,
-  height = 8,
 }: {
   tokens: ScreenTokens;
   value: number;
-  height?: number;
 }) {
   const pct = Math.max(0, Math.min(1, value));
   return (
     <span
       aria-hidden="true"
-      className="block w-full overflow-hidden"
-      style={{ height, background: tokens.neutral, borderRadius: height }}
+      className="block h-2 w-full overflow-hidden"
+      style={{ background: tokens.neutral, borderRadius: 999 }}
     >
       <span
         className="block h-full"
-        style={{
-          width: `${pct * 100}%`,
-          background: tokens.primary,
-          borderRadius: height,
-        }}
+        style={{ width: `${pct * 100}%`, background: tokens.primary, borderRadius: 999 }}
       />
     </span>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Charts                                                                      */
-/* -------------------------------------------------------------------------- */
+/**
+ * Progress ring, drawn as SVG so it is a real chart rather than two nested
+ * divs. Used where the day's progress is the headline.
+ */
+export function ProgressRing({
+  tokens,
+  value,
+  size = 116,
+  children,
+}: {
+  tokens: ScreenTokens;
+  value: number;
+  size?: number;
+  children?: React.ReactNode;
+}) {
+  const stroke = 10;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, value));
+  return (
+    <span className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={tokens.neutral}
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={tokens.primary}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${c * pct} ${c}`}
+        />
+      </svg>
+      <span className="absolute inset-0 flex flex-col items-center justify-center">
+        {children}
+      </span>
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Charts, as real SVG                                                 */
+/* ------------------------------------------------------------------ */
 
 /**
- * Sparkline. A small trend read at a glance, drawn as an inline SVG so nothing
- * animates and no chart library is pulled in for a static picture.
+ * Vertical column chart with a labelled axis.
+ *
+ * Real SVG rather than styled divs, and drawn in logical pixels: the viewBox
+ * matches the size the chart actually occupies, so a font size of 11 means 11px
+ * instead of 11 squeezed into a 100-unit box. The harness measures text inside
+ * a recreation, so a chart that quietly used 5px type would fail it.
  */
+export function ColumnChart({
+  tokens,
+  items,
+  suffix = "",
+  width = 312,
+  height = 140,
+}: {
+  tokens: ScreenTokens;
+  items: readonly { label: string; value: number }[];
+  suffix?: string;
+  width?: number;
+  height?: number;
+}) {
+  const max = Math.max(...items.map((i) => i.value), 1);
+  const slot = width / items.length;
+  const bar = Math.min(22, slot * 0.52);
+  const plotBottom = height - 34;
+  const plotTop = 10;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width={width}
+      height={height}
+      className="w-full"
+      role="img"
+      aria-hidden="true"
+    >
+      {items.map((item, i) => {
+        const h = ((item.value / max) * (plotBottom - plotTop));
+        const cx = i * slot + slot / 2;
+        return (
+          <g key={item.label}>
+            <text
+              x={cx}
+              y={plotBottom + 14}
+              textAnchor="middle"
+              fontSize="11"
+              fill={tokens.onSurfaceVariant}
+            >
+              {item.label}
+            </text>
+            <text
+              x={cx}
+              y={plotBottom + 30}
+              textAnchor="middle"
+              fontSize="11"
+              fontWeight="600"
+              fill={tokens.onSurface}
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {item.value}
+              {suffix}
+            </text>
+            <rect
+              x={cx - bar / 2}
+              y={plotBottom - h}
+              width={bar}
+              height={h}
+              rx={4}
+              fill={tokens.primary}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
+ * Horizontal bars, also SVG, for series whose labels are words. The label sits
+ * above its own bar so a long department name has the full width available.
+ */
+export function BarRows({
+  tokens,
+  items,
+  suffix = "",
+  width = 312,
+}: {
+  tokens: ScreenTokens;
+  items: readonly { label: string; value: number }[];
+  suffix?: string;
+  width?: number;
+}) {
+  const max = Math.max(...items.map((i) => i.value), 1);
+  const rowH = 34;
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${items.length * rowH}`}
+      width={width}
+      height={items.length * rowH}
+      className="w-full"
+      role="img"
+      aria-hidden="true"
+    >
+      {items.map((item, i) => {
+        const top = i * rowH;
+        return (
+          <g key={item.label}>
+            <text
+              x={0}
+              y={top + 11}
+              fontSize="11"
+              fill={tokens.onSurfaceVariant}
+            >
+              {item.label}
+            </text>
+            <text
+              x={width}
+              y={top + 11}
+              fontSize="11"
+              fontWeight="600"
+              textAnchor="end"
+              fill={tokens.onSurface}
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {item.value}
+              {suffix}
+            </text>
+            <rect
+              x={0}
+              y={top + 17}
+              width={width}
+              height={8}
+              rx={4}
+              fill={tokens.neutral}
+            />
+            <rect
+              x={0}
+              y={top + 17}
+              width={Math.max(4, (item.value / max) * width)}
+              height={8}
+              rx={4}
+              fill={tokens.primary}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** Sparkline for a hero metric. */
 export function Sparkline({
   tokens,
   points,
-  height = 44,
+  height = 40,
 }: {
   tokens: ScreenTokens;
   points: readonly number[];
@@ -503,15 +572,15 @@ export function Sparkline({
   const step = 100 / Math.max(points.length - 1, 1);
   const coords = points.map((p, i) => {
     const x = i * step;
-    const y = 30 - ((p - min) / span) * 26;
+    const y = 30 - ((p - min) / span) * 26 - 2;
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
-
   return (
     <svg
       viewBox="0 0 100 30"
       preserveAspectRatio="none"
-      style={{ height, width: "100%", color: tokens.primary }}
+      className="w-full"
+      style={{ height, color: tokens.primary }}
       aria-hidden="true"
     >
       <polyline
@@ -527,67 +596,16 @@ export function Sparkline({
   );
 }
 
-/**
- * Bar chart with a labelled axis. Values print beside each bar rather than
- * inside it, which is what keeps every label on one line.
- */
-export function BarChart({
-  tokens,
-  items,
-  suffix = "",
-  max: ceiling,
-}: {
-  tokens: ScreenTokens;
-  items: readonly { label: string; value: number }[];
-  suffix?: string;
-  max?: number;
-}) {
-  const top = ceiling ?? Math.max(...items.map((i) => i.value), 1);
-  return (
-    <ul className="flex flex-col gap-2.5">
-      {items.map((item) => (
-        <li key={item.label} className="flex items-center gap-3">
-          <span
-            className={cn(TYPE.label, "w-16 shrink-0 truncate")}
-            style={{ color: tokens.onSurfaceVariant }}
-          >
-            {item.label}
-          </span>
-          <span
-            className="h-2.5 min-w-0 flex-1 overflow-hidden"
-            style={{ background: tokens.neutral, borderRadius: 999 }}
-          >
-            <span
-              className="block h-full"
-              style={{
-                width: `${Math.max(3, (item.value / top) * 100)}%`,
-                background: tokens.primary,
-                borderRadius: 999,
-              }}
-            />
-          </span>
-          <span
-            className={cn(TYPE.label, "w-14 shrink-0 text-right tabular-nums")}
-            style={{ color: tokens.onSurface }}
-          >
-            {item.value}
-            {suffix}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Bottom navigation                                                           */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Bottom navigation                                                   */
+/* ------------------------------------------------------------------ */
 
 /**
- * Bottom navigation with a pill behind the active destination.
+ * Bottom navigation: 3 to 5 destinations, labels always visible, a pill
+ * indicator behind the active one, equal widths so nothing shifts.
  *
- * Rows are 64px tall, past the 44px touch minimum. The labels are the app's own
- * navigation names, taken from its source.
+ * The Material 3 Expressive guidance is to keep this bar short and give the
+ * space to content, which is why the row is 64px rather than the older 80px.
  */
 export function BottomNav({
   tokens,
@@ -601,73 +619,114 @@ export function BottomNav({
   return (
     <nav
       aria-label="Primary"
-      className="shrink-0 overflow-x-auto border-t px-2 pb-2"
-      style={{ borderColor: tokens.outline, background: tokens.surface }}
+      className="flex shrink-0 items-center border-t px-3"
+      style={{
+        height: NAV_HEIGHT,
+        borderColor: tokens.outline,
+        background: tokens.surface,
+      }}
     >
-      <ul className="flex min-w-max items-stretch justify-between">
-        {items.map((item) => {
-          const on = item === active;
-          return (
-            <li key={item} className="flex-1">
+      {items.map((item) => {
+        const on = item === active;
+        return (
+          <span
+            key={item}
+            className="flex flex-1 items-center justify-center"
+          >
+            <span
+              className={cn(
+                "flex w-full items-center justify-center gap-1.5 px-1 py-2",
+                RADIUS.chip,
+              )}
+              style={{
+                background: on ? tokens.primaryContainer : "transparent",
+                color: on ? tokens.onPrimaryContainer : tokens.onNeutral,
+              }}
+            >
+              {/* Filled glyph when active, outlined when not: the Material 3
+                  navigation-bar rule, and it needs no icon assets to hold. */}
               <span
-                className="flex min-h-14 flex-col items-center justify-center gap-1 px-1"
+                aria-hidden="true"
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{
-                  background: on ? tokens.primaryContainer : "transparent",
-                  color: on ? tokens.onPrimaryContainer : tokens.onNeutral,
-                  borderRadius: 999,
+                  background: on ? tokens.primary : "transparent",
+                  border: on ? "none" : `1.5px solid ${tokens.onNeutral}`,
                 }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: on ? tokens.primary : tokens.outline }}
-                />
-                <span className={cn(TYPE.chip, "truncate")}>{item}</span>
+              />
+              <span className={cn(TYPE.chip, "normal-case tracking-normal")}>
+                {item}
               </span>
-            </li>
-          );
-        })}
-      </ul>
+            </span>
+          </span>
+        );
+      })}
     </nav>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Static placeholders for hardware                                            */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+/* Form field                                                          */
+/* ------------------------------------------------------------------ */
 
 /**
- * Placeholder for something a recreation cannot show, such as a camera feed or
- * a thermal printer. Drawn as a neutral block and labelled, never imitated, so
- * it cannot read as working hardware.
+ * Text field. 52px tall, so the touch target clears 44px. The label sits above
+ * the box, matching how the real login screens compose them.
  */
-export function StaticDevicePanel({
+export function Field({
   tokens,
+  label,
+  value,
+  placeholder,
   icon,
-  title,
-  detail,
+  trailing,
 }: {
   tokens: ScreenTokens;
+  label?: string;
+  value?: string;
+  placeholder?: string;
   icon?: React.ReactNode;
-  title: string;
-  detail: string;
+  trailing?: "show";
 }) {
   return (
-    <div
-      aria-hidden="true"
-      className="flex flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed px-4 py-6 text-center"
-      style={{ borderColor: tokens.outline, background: tokens.surfaceHigh }}
-    >
-      {icon}
-      <p className={cn(TYPE.body, "font-semibold")}>{title}</p>
-      <p className={cn(TYPE.label)} style={{ color: tokens.onSurfaceVariant }}>
-        {detail}
-      </p>
-    </div>
+    <label className="flex flex-col gap-1.5">
+      {label ? (
+        <span className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
+          {label}
+        </span>
+      ) : null}
+      <span
+        className="flex min-h-13 items-center gap-2.5 border px-3"
+        style={{
+          background: tokens.surface,
+          borderColor: tokens.outline,
+          borderRadius: 12,
+        }}
+      >
+        {icon ? (
+          <span
+            aria-hidden="true"
+            className="shrink-0"
+            style={{ color: tokens.onSurfaceVariant }}
+          >
+            {icon}
+          </span>
+        ) : null}
+        <span
+          className={cn(TYPE.body, "min-w-0 flex-1")}
+          style={{
+            color: value ? tokens.onSurface : tokens.onSurfaceVariant,
+          }}
+        >
+          {value ?? placeholder}
+        </span>
+        {trailing === "show" ? (
+          <Eye
+            aria-hidden="true"
+            className="h-5 w-5 shrink-0"
+            style={{ color: tokens.onSurfaceVariant }}
+          />
+        ) : null}
+      </span>
+    </label>
   );
-}
-
-/** Device shell used by every phone recreation, so they all share a ratio. */
-export function PhoneCanvas({ children }: { children: React.ReactNode }) {
-  return <div className="flex h-full min-h-0 flex-col overflow-hidden">{children}</div>;
 }

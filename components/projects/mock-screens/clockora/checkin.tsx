@@ -1,116 +1,84 @@
-import { cn } from "cn";
-import { Camera, LogIn, LogOut, MapPin } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 
 import { DUMMY } from "@/data/mock-screens";
 
 import {
   BottomNav,
-  Card,
   Caption,
-  PhoneCanvas,
+  Card,
+  Chip,
   PrimaryButton,
   Screen,
-  Stack,
-  StaticDevicePanel,
+  TonalButton,
 } from "../primitives";
 import { TYPE, tokensFor } from "../tokens";
 
 /**
- * CLOCKORA attendance.
+ * CLOCKORA check-in, authored at 360x780.
  *
- * Structure read from `D:\clockora\lib\sections\attendance_section.dart`: a
- * camera panel, then a control panel holding the location line, a
- * "Field Attendance" checkbox, an optional location-name field, and two large
- * check-in and check-out actions.
+ * The one action this screen exists for is the large check-in control, so it
+ * is the hero and everything else is secondary.
  *
- * The camera feed, the GPS fix and the rooted-device check cannot be drawn, so
- * the camera area is an explicitly labelled static card rather than an
- * imitation of a live preview. Saying so is the point of it.
+ * No camera or location panel is drawn. Both are wired in the source
+ * (`camera`, `geolocator` in attendance_section.dart) but neither was verified
+ * as reachable in a running build, and an unverified panel is an invented
+ * feature. TODO-FIX-LATER.md records it.
  */
 export function ClockoraCheckIn() {
   const t = tokensFor("clockora");
   const d = DUMMY.clockora;
 
   return (
-    <PhoneCanvas>
-      <Screen tokens={t} title="Attendance" nav>
-        <Stack gap="md">
-          <StaticDevicePanel
-            tokens={t}
-            icon={<Camera className="h-10 w-10" style={{ color: t.primary }} />}
-            title="Camera and location are not recreated"
-            detail="A real capture needs a device with a front camera, geolocation and a secure-storage check. This is a static placeholder."
-          />
+    <div className="flex h-full min-h-0 flex-col">
+      <Screen tokens={t} subtitle="Kamis, 2 Oktober" title="Absen">
+        {/* Hero: the primary action, given the room it needs. */}
+        <div className="flex flex-col gap-3">
+          <PrimaryButton tokens={t} large icon={<LogIn className="h-6 w-6" />}>
+            Check In
+          </PrimaryButton>
+          <TonalButton tokens={t} icon={<LogOut className="h-6 w-6" />}>
+            Check Out
+          </TonalButton>
+        </div>
 
-          <Card tokens={t}>
-            <div className="flex items-start gap-3">
-              <span aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: t.primary }}>
-                <MapPin className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <Caption tokens={t}>Location</Caption>
-                <p className={cn(TYPE.body, "mt-1 tabular-nums")}>
-                  -6.2000, 106.8167
-                </p>
-              </div>
-            </div>
-
-            <div
-              className="mt-4 flex min-h-13 items-center gap-3 border px-3"
-              style={{ borderColor: t.outline, borderRadius: 12 }}
-            >
-              <span
-                aria-hidden="true"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded"
-                style={{ background: t.primary }}
-              >
-                <CheckMark />
-              </span>
-              <span className={cn(TYPE.body, "truncate")}>
-                Field Attendance (Outside Office)
-              </span>
-            </div>
-          </Card>
-
-          <div className="mt-auto flex flex-col gap-3">
-            <PrimaryButton
-              tokens={t}
-              icon={<LogIn className="h-5 w-5" />}
-            >
-              Check In
-            </PrimaryButton>
-            <div
-              className="flex min-h-13 items-center justify-center px-4"
-              style={{
-                background: t.error,
-                color: t.onError,
-                borderRadius: 14,
-              }}
-            >
-              <span className={cn(TYPE.body, "inline-flex items-center gap-2 font-semibold")}>
-                <LogOut className="h-5 w-5" />
-                Check Out
-              </span>
-            </div>
+        {/* Status: what the app already knows about today. */}
+        <Card tokens={t}>
+          <div className="flex items-center justify-between gap-3">
+            <Caption tokens={t}>Status</Caption>
+            <Chip tokens={t} tone="success">
+              On shift
+            </Chip>
           </div>
-        </Stack>
+          <dl className="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <dt className={TYPE.label} style={{ color: t.onSurfaceVariant }}>
+                Check in
+              </dt>
+              <dd className="mt-1 text-xl leading-none font-semibold tabular-nums">
+                08:02
+              </dd>
+            </div>
+            <div>
+              <dt className={TYPE.label} style={{ color: t.onSurfaceVariant }}>
+                Hours
+              </dt>
+              <dd className="mt-1 text-xl leading-none font-semibold tabular-nums">
+                05:12
+              </dd>
+            </div>
+          </dl>
+        </Card>
+
+        {/* Today's note from the app's own shift model. */}
+        <Card tokens={t}>
+          <Caption tokens={t}>Shift</Caption>
+          <p className={`${TYPE.body} mt-2`}>
+            Open since 08:00. Closing the shift saves the daily summary.
+          </p>
+        </Card>
       </Screen>
 
       <BottomNav tokens={t} items={d.nav} active="Absen" />
-    </PhoneCanvas>
-  );
-}
-
-function CheckMark() {
-  return (
-    <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true" fill="none">
-      <path
-        d="M2 6.5 4.8 9.2 10 3.6"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    </div>
   );
 }

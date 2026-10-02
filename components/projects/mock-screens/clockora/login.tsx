@@ -1,81 +1,67 @@
-import { cn } from "cn";
 import { Fingerprint, Lock, LogIn, UserRound } from "lucide-react";
 
-import { Field, PhoneCanvas, PrimaryButton } from "../primitives";
+import { Field, PrimaryButton } from "../primitives";
 import { TYPE, tokensFor } from "../tokens";
 
 /**
- * CLOCKORA sign-in.
+ * CLOCKORA sign-in, authored at 360x780.
  *
- * Layout read from `D:\clockora\lib\login_screen.dart`: a full-bleed page with
- * no card, holding in order the fingerprint glyph, the wordmark, the tagline,
- * a username field, a password field with a visibility affordance, a full-width
- * log in button, and a forgot-password link.
+ * Layout read from `D:\clockora\lib\login_screen.dart`: a full-bleed page, no
+ * card, holding in order the fingerprint glyph, the wordmark, the tagline, a
+ * username field, a password field, a full-width log in button, and a
+ * forgot-password link.
  *
- * The wordmark is real text, as it is in the app. The version line the app
- * prints in debug builds is left out: it carries build metadata, not design.
+ * The wordmark is the app's own text. The version line the app prints in debug
+ * builds is build metadata rather than design, so it is left out.
  */
 export function ClockoraLogin() {
   const t = tokensFor("clockora");
 
   return (
-    <PhoneCanvas>
-      <div
-        className="flex h-full flex-col items-center justify-center gap-6 px-6"
-        style={{ background: t.background, color: t.onSurface }}
+    <div
+      className="flex h-full flex-col items-center justify-center gap-7 px-7"
+      style={{ background: t.background, color: t.onSurface }}
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-24 w-24 items-center justify-center rounded-full"
+        style={{ background: t.primaryContainer }}
       >
-        <span
-          aria-hidden="true"
-          className="flex h-24 w-24 items-center justify-center rounded-full"
-          style={{ background: t.primaryContainer }}
-        >
-          <Fingerprint className="h-12 w-12" style={{ color: t.primary }} />
-        </span>
+        <Fingerprint className="h-12 w-12" style={{ color: t.primary }} />
+      </span>
 
-        <div className="text-center">
-          <h3 className={cn(TYPE.title, "font-bold tracking-tight")}>
-            Clockora
-          </h3>
-          <p
-            className={cn(TYPE.body, "mt-1")}
-            style={{ color: t.onSurfaceVariant }}
-          >
-            Attendance management made simple
-          </p>
-        </div>
-
-        <div className="mt-2 flex w-full flex-col gap-4">
-          <Field
-            tokens={t}
-            label="Username"
-            placeholder="Username"
-            icon={<UserRound className="h-5 w-5" />}
-          />
-          <Field
-            tokens={t}
-            label="Password"
-            placeholder="Password"
-            icon={<Lock className="h-5 w-5" />}
-            trailing="show"
-          />
-        </div>
-
-        <div className="w-full">
-          <PrimaryButton
-            tokens={t}
-            icon={<LogIn className="h-5 w-5" />}
-          >
-            Log In
-          </PrimaryButton>
-        </div>
-
-        <span
-          className={cn(TYPE.body, "font-medium underline")}
-          style={{ color: t.primary }}
-        >
-          Forgot Password?
-        </span>
+      <div className="text-center">
+        <h3 className={`${TYPE.title} font-bold`}>Clockora</h3>
+        <p className={`${TYPE.body} mt-1`} style={{ color: t.onSurfaceVariant }}>
+          Attendance management made simple
+        </p>
       </div>
-    </PhoneCanvas>
+
+      <div className="flex w-full flex-col gap-4">
+        <Field
+          tokens={t}
+          label="Username"
+          placeholder="Masukkan username"
+          icon={<UserRound className="h-5 w-5" />}
+        />
+        <Field
+          tokens={t}
+          label="Password"
+          placeholder="Masukkan password"
+          icon={<Lock className="h-5 w-5" />}
+          trailing="show"
+        />
+      </div>
+
+      <div className="w-full">
+        <PrimaryButton tokens={t} icon={<LogIn className="h-5 w-5" />}>
+          Log In
+        </PrimaryButton>
+      </div>
+
+      <span className={`${TYPE.body} font-medium`} style={{ color: t.primary }}>
+        Forgot Password?
+      </span>
+    </div>
   );
 }

@@ -669,9 +669,35 @@ async function main() {
         //      agreed wording, and that wording is also in its alt text;
         //   2. no screen id appears as both a capture and a recreation;
         //   3. the strip itself does not overflow its container.
-const showcase = await page.evaluate(() => {
-          const strip = document.querySelector('[data-testid="project-showcase"]');
-          if (!strip) return null;
+        const showcase = await page.evaluate(() => {
+  const strip = document.querySelector('[data-testid="project-showcase"]');
+  if (!strip) return null;
+
+  // Recreations are painted with a CSS transform, so a box measured on screen
+  // reports its scaled size while its scroll width still reports the authored
+  // size. Measuring in that mixed state produces nonsense: a 360px screen
+  // reported as 258px wide and flagged as overflowing by 102px.
+  //
+  // So the scale is lifted for the duration of the measurement. Every number
+  // below is then in the units the screen was authored in, which is also the
+  // unit the rules are written in: 11px type and a 44px target are authoring
+  // sizes, not post-transform sizes.
+  const screens = Array.from(
+    strip.querySelectorAll('[data-testid="recreation-screen"]'),
+  );
+  const saved = screens.map((el) => el.style.transform);
+  screens.forEach((el) => {
+    el.style.transform = "none";
+  });
+  try {
+    return measureStrip(strip);
+  } finally {
+    screens.forEach((el, i) => {
+      el.style.transform = saved[i];
+    });
+  }
+
+  function measureStrip(strip) {
 
           const cards = Array.from(strip.querySelectorAll('[data-testid="showcase-card"]'));
           const figures = Array.from(
@@ -725,13 +751,60 @@ const showcase = await page.evaluate(() => {
             wrappedLabel: [],
             smallTarget: [],
             lowContrast: [],
+            scrolls: [],
+            ellipsis: [],
+            outside: [],
           };
 
           for (const fig of figures) {
+            // Measure inside the logical screen box. The frame around it is
+            // deliberately wider than what it paints, so including it would
+            // report the frame as overflowing itself.
+            const screenBox = fig.querySelector('[data-testid="recreation-screen"]');
+            const scope = screenBox ?? fig;
+          // 8. Nothing inside a recreation may scroll. A screen that scrolls
+          //    inside a picture reads as a broken embed rather than as an app.
+          for (const el of scope.querySelectorAll("*")) {
+            const cs = getComputedStyle(el);
+            if (cs.overflowX === "auto" || cs.overflowX === "scroll" ||
+                cs.overflowY === "auto" || cs.overflowY === "scroll") {
+              dom.scrolls.push(label(el));
+            }
+            // 9. Nothing may truncate. A label that would not fit is shortened
+            //    in the data, never clipped at the edge.
+            if (cs.textOverflow === "ellipsis") dom.ellipsis.push(label(el));
+          }
+
+          // 10. Nothing may stick out of the screen box, the navigation bar
+          //     excepted: it is meant to sit inside the frame.
+          if (screenBox) {
+            const box = screenBox.getBoundingClientRect();
+            const tol = 1;
+            for (const el of scope.querySelectorAll("*")) {
+              if (el.closest("nav")) continue;
+              if (el === screenBox) continue;
+              const r = el.getBoundingClientRect();
+              if (r.width === 0 && r.height === 0) continue;
+              if (
+                r.left < box.left - tol || r.right > box.right + tol ||
+                r.top < box.top - tol || r.bottom > box.bottom + tol
+              ) {
+                dom.outside.push(
+                  `${label(el)} ${Math.round(r.left - box.left)}/${Math.round(r.right - box.left)} of ${Math.round(box.width)}`,
+                );
+              }
+            }
+          }
+
+
             // 1. Nothing inside a recreation may scroll sideways, unless it is a
             //    deliberate horizontal scroller such as the category chips.
-            for (const el of fig.querySelectorAll("*")) {
+            for (const el of scope.querySelectorAll("*")) {
               const cs = getComputedStyle(el);
+              // SVG has its own layout model and defines neither scrollWidth nor
+              // clientWidth in a way that means anything here, so the overflow
+              // rule skips it. Type size and contrast still apply below.
+              if (el.namespaceURI === "http://www.w3.org/2000/svg") continue;
               const ox = cs.overflowX;
               // A deliberate horizontal scroller, and a deliberate ellipsis,
               // are both ways of handling narrow content on purpose. Neither is
@@ -745,7 +818,7 @@ const showcase = await page.evaluate(() => {
 
             // 2. No computed font-size under 11px.
             // 5. Every text run clears 4.5:1 against its own background.
-            for (const el of textOwners(fig)) {
+            for (const el of textOwners(scope)) {
               const cs = getComputedStyle(el);
               const size = parseFloat(cs.fontSize);
               if (size < 11) dom.tinyFont.push(`${label(el)} ${size}px`);
@@ -789,7 +862,7 @@ const showcase = await page.evaluate(() => {
             }
 
             // 4. Interactive targets at least 44px on the shorter side.
-            for (const el of fig.querySelectorAll(
+            for (const el of scope.querySelectorAll(
               'button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])',
             )) {
               const r = el.getBoundingClientRect();
@@ -828,13 +901,26 @@ const showcase = await page.evaluate(() => {
             ).trim(),
             altTexts: figures.map((f) => f.getAttribute("aria-label") ?? ""),
             dom,
-            overflowPx: Math.round(strip.scrollWidth - strip.clientWidth),
+            // offsetHeight, not the bounding rect: the centre card is painted
+          // 5% larger on purpose, and that is a transform, not a layout
+          // difference. What must match is the reserved height.
+          frameHeights: Array.from(
+            strip.querySelectorAll('[data-testid="recreation-frame"]'),
+          ).map((el) => el.offsetHeight),
+          navShape: Array.from(strip.querySelectorAll("nav")).map((nav) => ({
+            items: nav.querySelectorAll(":scope > span").length,
+            scroller:
+              getComputedStyle(nav).overflowX === "auto" ||
+              getComputedStyle(nav).overflowX === "scroll",
+          })),
+          overflowPx: Math.round(strip.scrollWidth - strip.clientWidth),
             stripRect: (() => {
               const r = strip.getBoundingClientRect();
               return { left: Math.round(r.left), right: Math.round(r.right) };
             })(),
             viewport: window.innerWidth,
           };
+        }
         });
 
         if (showcase) {
@@ -930,6 +1016,9 @@ const showcase = await page.evaluate(() => {
             ["recreation-no-wrapped-label", "wrappedLabel"],
             ["recreation-touch-target", "smallTarget"],
             ["recreation-contrast", "lowContrast"],
+            ["recreation-no-scroll", "scrolls"],
+            ["recreation-no-ellipsis", "ellipsis"],
+            ["recreation-in-bounds", "outside"],
           ];
           for (const [check, key] of domRules) {
             const hits = showcase.dom[key];
@@ -941,6 +1030,33 @@ const showcase = await page.evaluate(() => {
               hits.length === 0 ? "" : `${hits.length}: ${hits.slice(0, 4).join("; ")}`,
             );
           }
+
+          // Every drawn screen in a strip must land on the same height, or the
+          // row looks accidental rather than composed.
+          const heights = [...new Set(showcase.frameHeights)];
+          record(
+            target.path,
+            viewport.name,
+            "strip-equal-heights",
+            heights.length <= 1,
+            heights.length <= 1
+              ? ""
+              : `frame heights differ: ${showcase.frameHeights.join(", ")}`,
+          );
+
+          // The bottom navigation is 3 to 5 destinations and must not scroll.
+          const navBad = showcase.navShape.filter(
+            (n) => n.items < 3 || n.items > 5 || n.scroller,
+          );
+          record(
+            target.path,
+            viewport.name,
+            "nav-shape",
+            navBad.length === 0,
+            navBad.length === 0
+              ? ""
+              : `bottom nav out of spec: ${JSON.stringify(navBad)}`,
+          );
 
           // On a phone the strip is a deliberate scroll-snap carousel, so it may
           // scroll inside itself. What must never happen is the strip pushing
