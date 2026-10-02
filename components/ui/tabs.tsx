@@ -40,8 +40,13 @@ function TabsTrigger({
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-        "data-selected:bg-brand-weak data-selected:text-brand",
+        "inline-flex items-center justify-center rounded-t-md border-b-2 border-transparent px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        // The active tab gets a thick brand underline that sits exactly on
+        // the list's bottom border (-mb-2 against the list's pb-2), plus a
+        // soft wash, so the selected step is obvious at a glance. Base UI
+        // marks the active tab with data-composite-item-active, not
+        // data-selected.
+        "-mb-2 data-composite-item-active:border-brand data-composite-item-active:bg-brand-weak data-composite-item-active:text-brand",
         "disabled:pointer-events-none disabled:opacity-50",
         className
       )}
