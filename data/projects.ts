@@ -44,6 +44,12 @@ export interface Project {
   thumbnailHeight?: number;
   /** Real screenshots only. `width`/`height` are the file's actual pixels. */
   screenshots: {
+    /**
+     * Stable screen identifier, matching a `mockScreens` entry when there is
+     * one. With it, a real capture automatically replaces the recreation of
+     * the same screen instead of both being shown.
+     */
+    id?: string;
     src: string;
     alt: string;
     width: number;
@@ -85,6 +91,20 @@ export interface Project {
    * frame, so it can never read as a screenshot.
    */
   walkthrough?: Walkthrough[];
+  /**
+   * Screen ids rendered as labeled UI recreations, in display order.
+   *
+   * Used where a real screenshot could not be captured: mobile apps whose UI
+   * source was read but never run, and individual screens blocked in a running
+   * app. Definitions live in `data/mock-screens.ts` and the component that
+   * draws each id is resolved through a slug-keyed registry, so no component
+   * ever branches on a project name.
+   *
+   * A real screenshot carrying the same `id` always wins: see
+   * `resolveShowcaseScreens`. Every recreation is labelled on screen, so this
+   * is never a way to imply a capture that does not exist.
+   */
+  mockScreens?: string[];
 }
 
 export const PROJECT_TYPES: { value: ProjectType | "all"; label: string }[] = [
@@ -106,9 +126,13 @@ export const projects: Project[] = [
       "Customer records, subscriptions, invoices, PPPoE accounts, and payments for an ISP, in one platform.",
     description:
       "An end-to-end platform for internet service providers. It covers the whole operational loop: customer and subscription records, recurring billing and invoice generation, synchronization of network accounts on MikroKit routers over PPPoE, online payment collection, WhatsApp notifications to customers, and operational dashboards for revenue, PPPoE status, traffic, and router health. I worked on it end to end, from backend services and REST APIs through database design and third-party integrations to deployment and production maintenance.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // No real captures are committed here: the screenshot values are
+    // held back deliberately and stay out of version control.
     thumbnail: null,
     screenshots: [],
+    // Only the invoice detail screen gets a recreation: it is blocked in the
+    // running app by a hooks-order bug, so it could not be captured at all.
+    mockScreens: ["invoice-detail"],
     technologies: [
       {
         category: "Frontend",
@@ -209,9 +233,11 @@ export const projects: Project[] = [
       "A Flutter point of sale for barbershops, with cashier checkout, Excel reports, and thermal receipt printing.",
     description:
       "A Flutter point of sale built for barbershops, paired with a Node.js and Express API over PostgreSQL. It covers the daily counter workflow — cashier checkout, products and categories, employee records — and the reporting a shop actually needs: sales over time, staff activity, and exports the owner can open in Excel. Receipts print on ESC/POS thermal printers, and the app keeps a local SQLite cache so the counter keeps working through a flaky connection. Distributed as an APK.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // No real capture: the APK needs an emulator, so these four screens are
+    // labeled UI recreations drawn from the Flutter source instead.
     thumbnail: null,
     screenshots: [],
+    mockScreens: ["login", "dashboard", "cashier", "reports"],
     technologies: [
       {
         category: "Mobile",
@@ -303,9 +329,11 @@ export const projects: Project[] = [
       "A Flutter attendance app with QR check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
     description:
       "An attendance and workforce management app for Flutter, backed by a Node.js and Express API over PostgreSQL. Attendance is captured where the person actually is: a QR code is scanned, the device records its location, and a photo is taken as evidence. The backend handles authentication, attendance records, and synchronization, with scheduled jobs for the reports and notifications that a supervisor needs each day. Distributed as an APK.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // No real capture: the APK needs an emulator, so these four screens are
+    // labeled UI recreations drawn from the Flutter source instead.
     thumbnail: null,
     screenshots: [],
+    mockScreens: ["login", "home", "checkin", "reports"],
     technologies: [
       {
         category: "Mobile",
@@ -395,7 +423,7 @@ caseStudy: true,
       "Purchasing, warehouse stock, suppliers, production, sales, and costs for a coffee business.",
     description:
       "A web application for running a coffee business: purchase orders and warehouse stock movements, supplier records, production, cost tracking, sales, customers, and reporting. It is built on the Next.js App Router with Server Actions doing the writes, PostgreSQL through Prisma, and role-based access where an owner manages users and staff work within the modules they are allowed to touch. Several modules are still being finished.",
-    // TODO: add real screenshots captured with dummy data — see SCREENSHOTS.md
+    // TODO: add real screenshots captured with dummy data
     thumbnail: null,
     screenshots: [],
     technologies: [

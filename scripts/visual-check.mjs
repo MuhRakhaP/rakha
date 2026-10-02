@@ -145,6 +145,15 @@ const SECTION_ORDER = [
  */
 const WALKTHROUGH_CAPTION = "Illustrative walkthrough. Not actual app screenshots.";
 
+/**
+ * The caption every labeled UI recreation must show. Held as a literal here on
+ * purpose, for the same reason as WALKTHROUGH_CAPTION: the harness must be
+ * able to fail if the rendered wording ever drifts from the agreed text, so it
+ * cannot import the value it is meant to police.
+ */
+const RECREATION_CAPTION =
+  "UI recreation based on the app's design, not a live screenshot.";
+
 const MOJIBAKE = [
   { label: "â€", pat: "â€" },
   { label: "Ã", pat: "Ã" },
@@ -640,6 +649,152 @@ async function main() {
             "walkthrough-caption",
             true,
             "no panel on this route",
+          );
+        }
+
+        // Labeled UI recreations. Three things must hold for every strip:
+        //   1. each recreation carries its caption, with role="note" and the
+        //      agreed wording, and that wording is also in its alt text;
+        //   2. no screen id appears as both a capture and a recreation;
+        //   3. the strip itself does not overflow its container.
+        const showcase = await page.evaluate(() => {
+          const strip = document.querySelector('[data-testid="project-showcase"]');
+          if (!strip) return null;
+
+          const cards = Array.from(strip.querySelectorAll('[data-testid="showcase-card"]'));
+          const seen = new Map();
+          const cardsOut = cards.map((card) => {
+            const id = card.getAttribute("data-screen-id");
+            const kind = card.getAttribute("data-screen-kind");
+            if (id && kind) {
+              const key = `${id}::${kind}`;
+              seen.set(key, (seen.get(key) ?? 0) + 1);
+            }
+
+            const caption = card.querySelector('[data-testid="recreation-caption"]');
+            const figure = card.querySelector('[data-testid="recreation-figure"]');
+            return {
+              id,
+              kind,
+              captionCount: card.querySelectorAll('[data-testid="recreation-caption"]')
+                .length,
+              captionRole: caption?.getAttribute("role") ?? null,
+              captionText: (caption?.textContent ?? "").trim(),
+              figureLabel: figure?.getAttribute("aria-label") ?? null,
+              figureRole: figure?.getAttribute("role") ?? null,
+            };
+          });
+
+          const stripRect = strip.getBoundingClientRect();
+          return {
+            cards: cardsOut,
+            overflowPx: Math.round(strip.scrollWidth - strip.clientWidth),
+            stripRect: {
+              left: Math.round(stripRect.left),
+              right: Math.round(stripRect.right),
+            },
+            viewport: window.innerWidth,
+          };
+        });
+
+        if (showcase) {
+          for (const card of showcase.cards) {
+            if (card.kind === "recreation") {
+              const captionOk =
+                card.captionCount === 1 &&
+                card.captionRole === "note" &&
+                card.captionText === RECREATION_CAPTION;
+              record(
+                target.path,
+                viewport.name,
+                "recreation-caption",
+                captionOk,
+                captionOk
+                  ? ""
+                  : `count=${card.captionCount} role=${card.captionRole} text=${JSON.stringify(card.captionText)}`,
+              );
+
+              // The caption must also be in the alt text, which for a drawn
+              // screen is the accessible name of the role="img" wrapper.
+              const altOk =
+                card.figureRole === "img" &&
+                typeof card.figureLabel === "string" &&
+                card.figureLabel.includes(RECREATION_CAPTION);
+              record(
+                target.path,
+                viewport.name,
+                "recreation-alt",
+                altOk,
+                altOk ? "" : `role=${card.figureRole} label=${JSON.stringify(card.figureLabel)}`,
+              );
+            } else {
+              // A real capture must never be labelled a recreation.
+              const noCaption =
+                card.captionCount === 0 &&
+                card.figureLabel === null &&
+                card.figureRole === null;
+              record(
+                target.path,
+                viewport.name,
+                "capture-not-recreation",
+                noCaption,
+                noCaption
+                  ? ""
+                  : `captions=${card.captionCount} role=${card.figureRole}`,
+              );
+            }
+          }
+
+          // No screen id may appear twice, and never once as a capture and
+          // once as a recreation: the capture is supposed to replace it.
+          const counts = new Map();
+          for (const card of showcase.cards) {
+            if (!card.id || !card.kind) continue;
+            const key = `${card.id}::${card.kind}`;
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+          }
+          const duplicates = [...counts.entries()].filter(([, n]) => n > 1);
+          const ids = [...new Set(showcase.cards.map((c) => c.id))];
+          const bothKinds = ids.filter(
+            (id) =>
+              (counts.get(`${id}::real`) ?? 0) > 0 &&
+              (counts.get(`${id}::recreation`) ?? 0) > 0,
+          );
+
+          record(
+            target.path,
+            viewport.name,
+            "recreation-no-duplicates",
+            duplicates.length === 0,
+            duplicates.length === 0 ? "" : `repeated: ${duplicates.map(([k]) => k).join(", ")}`,
+          );
+          record(
+            target.path,
+            viewport.name,
+            "capture-replaces-recreation",
+            bothKinds.length === 0,
+            bothKinds.length === 0
+              ? ""
+              : `both a capture and a recreation for: ${bothKinds.join(", ")}`,
+          );
+
+          // On a phone the strip is a deliberate scroll-snap carousel, so it is
+          // allowed to scroll inside itself. What must never happen is the
+          // strip pushing the page sideways: assert it stays inside the
+          // viewport. From 768 up it is a grid, so it must fit outright.
+          const rect = showcase.stripRect;
+          const insideViewport =
+            rect.left >= -1 && rect.right <= showcase.viewport + 1;
+          const gridFits = showcase.viewport < 768 || showcase.overflowPx <= 1;
+          const overflowOk = insideViewport && gridFits;
+          record(
+            target.path,
+            viewport.name,
+            "showcase-overflow",
+            overflowOk,
+            overflowOk
+              ? ""
+              : `left=${rect.left} right=${rect.right} viewport=${showcase.viewport} internal=${showcase.overflowPx}px`,
           );
         }
 

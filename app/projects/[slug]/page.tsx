@@ -9,6 +9,10 @@ import { ProjectCard } from "@/components/projects/project-card";
 import { ProjectCtas } from "@/components/projects/project-ctas";
 import { ProjectFrame } from "@/components/projects/project-frame";
 import { ProjectGallery } from "@/components/projects/project-gallery";
+import {
+  ShowcaseStrip,
+  resolveShowcaseScreens,
+} from "@/components/projects/mock-screens/showcase-strip";
 import { WalkthroughPanel } from "@/components/projects/walkthrough-panel";
 import {
   SectionNav,
@@ -129,6 +133,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
   const related = getRelatedProjects(project.slug);
   const framed = project.type === "mobile";
+  // A real capture for a given screen always beats a recreation of it, so this
+  // is resolved before anything renders. It is also what stops a screen being
+  // shown twice once a capture lands.
+  const showcase = resolveShowcaseScreens(project);
+  const hasRecreations = showcase.some((s) => s.kind === "recreation");
 
   // Only sections that actually render appear in the page nav.
   const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
@@ -147,6 +156,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
   if (project.challenges?.length)
     sections.push({ id: "challenges", title: "Challenges" });
   if (project.results?.length) sections.push({ id: "results", title: "Results" });
+  if (showcase.length > 0) sections.push({ id: "showcase", title: "Screens" });
   if (project.screenshots.length > 0)
     sections.push({ id: "gallery", title: "Gallery" });
   if (
@@ -289,6 +299,24 @@ export default async function ProjectPage({ params }: { params: Params }) {
           {project.results && project.results.length > 0 && (
             <Section id="results" eyebrow="Outcome" title="Results">
               <Bullets items={project.results} />
+            </Section>
+          )}
+
+          {showcase.length > 0 && (
+            <Section
+              id="showcase"
+              eyebrow={hasRecreations ? "Design reference" : "Product"}
+              title="Screens"
+            >
+              {hasRecreations && (
+                <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
+                  Some of these are hand-built recreations of screens read from
+                  the app&apos;s own source, shown where no screenshot could be
+                  captured. Each one says so on the screen. Real captures are
+                  never labelled this way.
+                </p>
+              )}
+              <ShowcaseStrip project={project} screens={showcase} />
             </Section>
           )}
 
