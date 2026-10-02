@@ -10,6 +10,7 @@ import { ProjectCtas } from "@/components/projects/project-ctas";
 import { ProjectFrame } from "@/components/projects/project-frame";
 import { ProjectGallery } from "@/components/projects/project-gallery";
 import {
+  ShowcaseFigure,
   ShowcaseStrip,
   resolveShowcaseScreens,
 } from "@/components/projects/mock-screens/showcase-strip";
@@ -138,6 +139,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
   // shown twice once a capture lands.
   const showcase = resolveShowcaseScreens(project);
   const hasRecreations = showcase.some((s) => s.kind === "recreation");
+  // A project with no capture shows its first recreation at the top rather
+  // than the dashed "Screenshot coming soon" box: the point of that box is to
+  // mean "nothing to show yet", which stops being true the moment a recreation
+  // exists. Projects with neither captures nor recreations keep their walkthrough.
+  const heroRecreation = project.thumbnail
+    ? undefined
+    : showcase.find((s) => s.kind === "recreation");
 
   // Only sections that actually render appear in the page nav.
   const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
@@ -198,14 +206,20 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
         </div>
 
-        {/* Real capture in a type-appropriate frame, or the walkthrough when
-            there is no capture. Never a mockup. */}
-        <ProjectFrame
-          project={project}
-          priority
-          sizes="(max-width: 1024px) 100vw, 960px"
-          className={framed ? "max-w-64" : undefined}
-        />
+        {/* Real capture in a type-appropriate frame, or the first recreation,
+            or the walkthrough. Never a mockup presented as a capture. */}
+        {heroRecreation ? (
+          <div className={framed ? "mx-auto max-w-64" : "max-w-3xl"}>
+            <ShowcaseFigure project={project} screen={heroRecreation} />
+          </div>
+        ) : (
+          <ProjectFrame
+            project={project}
+            priority
+            sizes="(max-width: 1024px) 100vw, 960px"
+            className={framed ? "max-w-64" : undefined}
+          />
+        )}
 
         <ProjectCtas project={project} size="lg" hideCaseStudy />
       </header>

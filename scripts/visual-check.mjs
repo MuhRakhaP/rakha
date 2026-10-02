@@ -100,14 +100,17 @@ function readProjectMedia() {
     typeBySlug.set(m[1], m[2]);
   }
 
-  // Slugs that declare a walkthrough.
+  // Slugs that declare a walkthrough, and slugs that declare labeled UI
+  // recreations.
   const walkthroughSlugs = new Set();
+  const showcaseSlugs = new Set();
   const wtRe = /slug:\s*"([^"]+)"([\s\S]*?)(?=\n  \{\n|\n\];)/g;
   for (const m of src.matchAll(wtRe)) {
     if (/\n\s+walkthrough:\s*\[/.test(m[2])) walkthroughSlugs.add(m[1]);
+    if (/\n\s+mockScreens:\s*\[/.test(m[2])) showcaseSlugs.add(m[1]);
   }
 
-  return { screenshots, thumbDims, typeBySlug, walkthroughSlugs };
+  return { screenshots, thumbDims, typeBySlug, walkthroughSlugs, showcaseSlugs };
 }
 
 const VIEWPORTS = [
@@ -162,8 +165,12 @@ const MOJIBAKE = [
 ];
 
 const isWindows = process.platform === "win32";
-/** Slugs whose data declares a walkthrough. Needed inside the page loop. */
+/**
+ * Slugs whose data declares a walkthrough, and slugs that declare labeled UI
+ * recreations. Both are needed inside the page loop.
+ */
 const walkthroughSlugs = new Set();
+const showcaseSlugs = new Set();
 const report = [];
 const rows = [];
 let failures = 0;
@@ -424,9 +431,14 @@ async function main() {
     await waitForServer();
     console.log("Server is up.\n");
 
-    // Slugs that must render a WalkthroughPanel.
-    for (const slug of readProjectMedia().walkthroughSlugs) {
+    // Slugs that must render a WalkthroughPanel, and slugs whose hero must
+    // show a recreation rather than the "Screenshot coming soon" box.
+    const media = readProjectMedia();
+    for (const slug of media.walkthroughSlugs) {
       walkthroughSlugs.add(slug);
+    }
+    for (const slug of media.showcaseSlugs) {
+      showcaseSlugs.add(slug);
     }
 
     const browser = await chromium.launch();
@@ -797,6 +809,24 @@ async function main() {
               : `left=${rect.left} right=${rect.right} viewport=${showcase.viewport} internal=${showcase.overflowPx}px`,
           );
         }
+
+        // A project must show something real. If it has no capture but does have a
+        // recreation, the hero renders that recreation rather than the dashed
+        // "Screenshot coming soon" box, which would claim a capture is pending.
+        const heroText = await page.evaluate(() => document.body.innerText);
+        const declaresRecreations = showcaseSlugs.has(target.slug);
+        const noHeroPlaceholder =
+          !heroText.includes("Screenshot coming soon") ||
+          !declaresRecreations;
+        record(
+          target.path,
+          viewport.name,
+          "hero-not-placeholder",
+          noHeroPlaceholder,
+          noHeroPlaceholder
+            ? ""
+            : "project has recreations but the hero still shows 'Screenshot coming soon'",
+        );
 
         // (c) Section order.
         const observed = m.headings.filter((h) => SECTION_ORDER.includes(h));

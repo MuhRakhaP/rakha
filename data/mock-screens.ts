@@ -116,6 +116,12 @@ export const TERAHOME_SCREENS: Record<string, MockScreenDef> = {
     frame: "browser",
     note: "This screen is blocked in the running app: the page calls a state hook after an early return, so React error #310 crashes every visit. The layout below is read from the source, not captured from a browser.",
   },
+  whatsapp: {
+    label: "Notification centre",
+    alt: "Recreated TERAHOME notification centre: sender credentials, template variables, and a message log table with status, recipient, content and sent time",
+    frame: "browser",
+    note: "No capture was possible because the environment blocks all outbound traffic, so a live capture would have shown a misleading provider error. The connection state below reads disconnected because no provider was contacted.",
+  },
 };
 
 /* ------------------------------------------------------------------ *

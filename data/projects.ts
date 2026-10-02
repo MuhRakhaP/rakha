@@ -132,7 +132,7 @@ export const projects: Project[] = [
     screenshots: [],
     // Only the invoice detail screen gets a recreation: it is blocked in the
     // running app by a hooks-order bug, so it could not be captured at all.
-    mockScreens: ["invoice-detail"],
+    mockScreens: ["invoice-detail", "whatsapp"],
     technologies: [
       {
         category: "Frontend",
@@ -326,9 +326,9 @@ export const projects: Project[] = [
     status: "production",
     tagline: "Attendance and workforce management",
     shortDescription:
-      "A Flutter attendance app with QR check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
+      "A Flutter attendance app with check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
     description:
-      "An attendance and workforce management app for Flutter, backed by a Node.js and Express API over PostgreSQL. Attendance is captured where the person actually is: a QR code is scanned, the device records its location, and a photo is taken as evidence. The backend handles authentication, attendance records, and synchronization, with scheduled jobs for the reports and notifications that a supervisor needs each day. Distributed as an APK.",
+      "An attendance and workforce management app for Flutter, backed by a Node.js and Express API over PostgreSQL. Attendance is captured where the person actually is: the device records its location and a photo is taken as evidence. The backend handles authentication, attendance records, and synchronization, with scheduled jobs for the reports and notifications that a supervisor needs each day. Distributed as an APK.",
     // No real capture: the APK needs an emulator, so these four screens are
     // labeled UI recreations drawn from the Flutter source instead.
     thumbnail: null,
@@ -349,7 +349,7 @@ export const projects: Project[] = [
       },
       {
         category: "Capabilities",
-        items: ["QR scanning", "Geolocation", "Camera", "Secure storage", "Scheduled jobs"],
+        items: ["Geolocation", "Camera", "Secure storage", "Scheduled jobs"],
       },
       {
         category: "Delivery",
@@ -357,7 +357,7 @@ export const projects: Project[] = [
       },
     ],
     features: [
-      "QR code scanning for attendance capture",
+      "Attendance capture with geolocation verification",
       "Geolocation verification",
       "Photo capture as attendance evidence",
       "Attendance records and synchronization with the backend",
@@ -369,8 +369,13 @@ export const projects: Project[] = [
     role: "Full-stack developer — Flutter mobile client, Node.js and Express API, PostgreSQL schema, scheduled jobs, and release packaging.",
     problem:
       "Manual attendance meant a paper log that was slow to check, easy to dispute, and impossible to turn into workforce data without retyping it.",
+    // QR scanning is deliberately absent from every field on this project. It is
+    // not in the CV, and in the app it is dead code: lib/sections/
+    // qr_scanner_section.dart exists but nothing imports or navigates to it, so
+    // no user can reach a QR screen. Do not add it back without a working
+    // screen and a CV line that says so.
     solution:
-      "Attendance is captured at the point of work and verified three ways at once — a scanned QR code, the device's location, and a photo — then synchronized to a backend that stores the record once and can report on it. Scheduled jobs handle the recurring summaries and reminders so nobody compiles them by hand.",
+      "Attendance is captured at the point of work and verified two ways at once — the device's location and a photo — then synchronized to a backend that stores the record once and can report on it. Scheduled jobs handle the recurring summaries and reminders so nobody compiles them by hand.",
     challenges: [
       "Making attendance capture reliable on the device, including camera and location permission handling.",
       "Designing attendance and API contracts so the mobile app stays in step with the server.",
@@ -398,9 +403,9 @@ caseStudy: true,
       // cvName omitted: shared with THINKPOS in the CV, see note above.
       sourcePrivate: false,
       contribution: [
-        { area: "Mobile", detail: "Flutter app: QR check-in, geolocation, photo capture, secure storage, Riverpod state." },
+        { area: "Mobile", detail: "Flutter app: attendance check-in, geolocation, photo capture, secure storage, Riverpod state." },
       { area: "Backend", detail: "Node.js + Express REST API, TypeORM, JWT auth, PostgreSQL, scheduled jobs for reports." },
-      { area: "Integration", detail: "QR scanning, geolocation, camera, secure storage, local notifications." },
+      { area: "Integration", detail: "Geolocation, camera, secure storage, local notifications." },
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
     decisions: [

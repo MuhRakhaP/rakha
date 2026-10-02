@@ -54,6 +54,78 @@ export function resolveShowcaseScreens(project: Project): ShowcaseScreen[] {
 }
 
 /**
+ * One framed screen: the device chrome, plus the caption and note when the
+ * screen is a recreation.
+ *
+ * Exported because the hero needs it too. A project with no capture but with
+ * recreations should show its first recreation at the top of the case study,
+ * never the dashed "Screenshot coming soon" box, which would imply a capture
+ * is coming rather than showing what is actually available.
+ */
+export function ShowcaseFigure({
+  project,
+  screen,
+}: {
+  project: Project;
+  screen: ShowcaseScreen;
+}) {
+  const isRecreation = screen.kind === "recreation";
+  const def = screen.def;
+
+  let body: React.ReactNode;
+  if (!isRecreation && screen.shot) {
+    const shot = screen.shot;
+    body = (
+      <Image
+        src={shot.src}
+        alt={shot.alt}
+        width={shot.width}
+        height={shot.height}
+        className="h-auto w-full"
+        sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 30vw"
+      />
+    );
+  } else {
+    const Component = getMockScreens(project.slug)[screen.id];
+    body = Component ? <Component /> : null;
+  }
+
+  const framed =
+    def?.frame === "browser" ? (
+      <BrowserFrame>{body}</BrowserFrame>
+    ) : (
+      <PhoneFrame>{body}</PhoneFrame>
+    );
+
+  // `role="img"` with the caption folded into the accessible name is the alt
+  // text for a hand-drawn screen: there is no <img> element, so the accessible
+  // name is what a screen reader announces.
+  const accessibleName = isRecreation
+    ? `${def?.alt ?? screen.label}. ${RECREATION_CAPTION}`
+    : screen.shot?.alt;
+
+  return (
+    <span className="flex w-full flex-col gap-2">
+      <span
+        role={isRecreation ? "img" : undefined}
+        aria-label={accessibleName}
+        data-testid={isRecreation ? "recreation-figure" : undefined}
+        data-screen-id={screen.id}
+        className="block w-full"
+      >
+        {framed}
+      </span>
+      {isRecreation ? <RecreationCaption /> : null}
+      {screen.note ? (
+        <span className="text-[0.625rem] leading-snug text-muted-foreground">
+          {screen.note}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+/**
  * The showcase strip: warm tinted cards, a short headline on each, the framed
  * screen below, and the recreation caption under every hand-drawn one.
  *
@@ -70,69 +142,14 @@ export function ShowcaseStrip({
 }) {
   if (screens.length === 0) return null;
 
-  const components = getMockScreens(project.slug);
-
-  const items: ShowcaseItem[] = screens.map((screen) => {
-    const isRecreation = screen.kind === "recreation";
-    const def = screen.def;
-
-    let body: React.ReactNode;
-    if (!isRecreation && screen.shot) {
-      const shot = screen.shot;
-      body = (
-        <Image
-          src={shot.src}
-          alt={shot.alt}
-          width={shot.width}
-          height={shot.height}
-          className="h-auto w-full"
-          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 30vw"
-        />
-      );
-    } else {
-      const Component = components[screen.id];
-      body = Component ? <Component /> : null;
-    }
-
-    const framed =
-      def?.frame === "browser" ? (
-        <BrowserFrame>{body}</BrowserFrame>
-      ) : (
-        <PhoneFrame>{body}</PhoneFrame>
-      );
-
-    // `role="img"` with the caption folded into the accessible name is the alt
-    // text for a hand-drawn screen: there is no <img> element, so the
-    // accessible name is what a screen reader announces.
-    const accessibleName = isRecreation
-      ? `${def?.alt ?? screen.label}. ${RECREATION_CAPTION}`
-      : screen.shot?.alt;
-
-    return {
-      id: screen.id,
-      label: screen.label,
-      kind: screen.kind,
-      content: (
-        <span className="flex w-full flex-col gap-2">
-          <span
-            role={isRecreation ? "img" : undefined}
-            aria-label={accessibleName}
-            data-testid={isRecreation ? "recreation-figure" : undefined}
-            data-screen-id={screen.id}
-            className="block w-full"
-          >
-            {framed}
-          </span>
-          {isRecreation ? <RecreationCaption /> : null}
-          {screen.note ? (
-            <span className="text-[0.625rem] leading-snug text-muted-foreground">
-              {screen.note}
-            </span>
-          ) : null}
-        </span>
-      ),
-    };
-  });
+  const items: ShowcaseItem[] = screens.map((screen) => ({
+    id: screen.id,
+    label: screen.label,
+    kind: screen.kind,
+    content: (
+      <ShowcaseFigure project={project} screen={screen} />
+    ),
+  }));
 
   return (
     <div data-testid="project-showcase">

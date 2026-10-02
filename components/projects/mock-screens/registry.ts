@@ -3,6 +3,7 @@ import { ClockoraHome } from "./clockora/home";
 import { ClockoraLogin } from "./clockora/login";
 import { ClockoraReports } from "./clockora/reports";
 import { TerahomeInvoiceDetail } from "./terahome/invoice-detail";
+import { TerahomeWhatsApp } from "./terahome/whatsapp";
 import { ThinkPosCashier } from "./thinkpos/cashier";
 import { ThinkPosDashboard } from "./thinkpos/dashboard";
 import { ThinkPosLogin } from "./thinkpos/login";
@@ -36,6 +37,7 @@ export const MOCK_SCREEN_REGISTRY: Record<
   },
   terahome: {
     "invoice-detail": TerahomeInvoiceDetail,
+    whatsapp: TerahomeWhatsApp,
   },
 };
 
