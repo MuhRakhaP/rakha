@@ -9,7 +9,9 @@ export const TYPE_LABEL: Record<Project["type"], string> = {
 
 export const STATUS_LABEL: Record<Project["status"], string> = {
   production: "Production",
-  "in-development": "In development",
+  // The only in-development project today is KOPIFLOW; "Coming Soon" reads
+  // better on a card than the internal status name.
+  "in-development": "Coming Soon",
 };
 
 /**

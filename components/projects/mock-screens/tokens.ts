@@ -51,8 +51,11 @@ const THINKPOS: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#E0EBFF",
   onPrimaryContainer: "#0B3EA8",
-  accentWash: "#F5EFE6",
-  cardWash: "#EADFCE",
+  // Warm beige card, a step deeper than CLOCKORA's cream so the two mobile
+  // cards read as two shades of the same warm family rather than one flat
+  // colour.
+  accentWash: "#F3EBDD",
+  cardWash: "#E8DCC8",
   background: "#F6F8FC",
   surface: "#FFFFFF",
   surfaceHigh: "#EDF1F8",
@@ -74,8 +77,9 @@ const CLOCKORA: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#EADDFF",
   onPrimaryContainer: "#31005C",
-  accentWash: "#FAF6F0",
-  cardWash: "#F0E8DA",
+  // Warm cream, lighter than THINKPOS's beige.
+  accentWash: "#FBF7F1",
+  cardWash: "#F1E9DB",
   background: "#F8F7FC",
   surface: "#FFFFFF",
   surfaceHigh: "#F0EDF6",

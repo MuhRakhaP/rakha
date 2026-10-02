@@ -109,7 +109,9 @@ export function ProjectCtas({
     links.push({
       key: "source-private",
       node: (
-        <span className="text-muted-foreground text-sm">
+        // A small muted badge rather than a line of body text, so the honest
+        // disclosure stays visible without competing with the buttons.
+        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">
           Source code: Private
         </span>
       ),

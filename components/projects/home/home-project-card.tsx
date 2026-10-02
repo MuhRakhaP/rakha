@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { TYPE_LABEL } from "@/components/projects/project-badges";
+import { STATUS_LABEL, TYPE_LABEL } from "@/components/projects/project-badges";
 import { AbstractVisual } from "@/components/projects/project-visual";
 import type { Project } from "@/data/projects";
 
@@ -42,7 +42,9 @@ export function HomeProjectCard({
 
   const badges = [
     TYPE_LABEL[project.type],
-    ...(project.status === "in-development" ? ["In development"] : []),
+    ...(project.status === "in-development"
+      ? [STATUS_LABEL[project.status]]
+      : []),
   ];
 
   return (
@@ -55,7 +57,13 @@ export function HomeProjectCard({
       style={{ background: accent }}
     >
       {hasDevice(project) ? (
-        <DevicePreview project={project} screenId={screenId} />
+        // Web cards get a wider box so the browser pair fills it instead of
+        // floating in a tall one; mobile cards keep 5:4.
+        <DevicePreview
+          project={project}
+          screenId={screenId}
+          aspect={project.type === "web" ? "4:3" : "5:4"}
+        />
       ) : (
         <div
           data-testid="device-media"

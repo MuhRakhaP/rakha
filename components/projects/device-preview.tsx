@@ -16,18 +16,34 @@ import { LOGICAL, tokensFor } from "@/components/projects/mock-screens/tokens";
  * and web cards used different boxes, their titles would not line up across a
  * row. A 5:4 box is wide enough for an angled pair of browser frames and tall
  * enough for a phone at a believable size.
+ *
+ * The home page widens the box to 4:3 for web projects so the browser pair
+ * fills it instead of floating in a tall box; the /projects grid keeps 5:4
+ * everywhere because its rows mix mobile and web cards.
  */
-const MEDIA_ASPECT = 5 / 4;
+const MEDIA_ASPECT = {
+  "5:4": 5 / 4,
+  "4:3": 4 / 3,
+} as const;
+
+export type MediaAspect = keyof typeof MEDIA_ASPECT;
 
 /**
- * Device widths as a fraction of the box, and how far each one is tucked under
- * its neighbour.
+ * Device widths as a fraction of the box, how far each one is tucked under
+ * its neighbour, and how far it is lifted off the vertical centre.
  *
  * Every device in a composition gets the same width. Unequal widths would give
  * the frames unequal heights, and the strip rule is that phones match phones
  * and browsers match browsers: the row reads as composed only when the devices
- * line up. Depth comes from the rotation, the overlap and the shadow, not from
- * resizing the devices against each other.
+ * line up. Depth comes from the rotation, the overlap, the lift and the
+ * shadow, not from resizing the devices against each other.
+ *
+ * Phones are 90% of their old size so a mobile card no longer swallows the
+ * web card next to it, and the fan is tightened so the three phones span
+ * about the same height as the browser pair: the two kinds of card read as
+ * equally weighted. Browsers are wider and barely rotated, and the pair is
+ * staggered vertically (back up, front down) so the composition fills the box
+ * instead of hovering in its middle.
  *
  * Angling a device grows its bounding box, so a device sized to fill the box
  * upright no longer fits once rotated. These numbers are chosen so the rotated
@@ -36,16 +52,16 @@ const MEDIA_ASPECT = 5 / 4;
  */
 const COMPOSITION: Record<
   "phone" | "browser",
-  { width: number; rotate: number; marginLeft: number; z: number }[]
+  { width: number; rotate: number; marginLeft: number; z: number; lift: number }[]
 > = {
   phone: [
-    { width: 30, rotate: -18, marginLeft: 0, z: 0 },
-    { width: 30, rotate: 14, marginLeft: -12, z: 0 },
-    { width: 30, rotate: -3, marginLeft: -14, z: 10 },
+    { width: 23, rotate: -18, marginLeft: 0, z: 0, lift: -4 },
+    { width: 23, rotate: 14, marginLeft: -10, z: 0, lift: 0 },
+    { width: 23, rotate: -3, marginLeft: -12, z: 10, lift: 3 },
   ],
   browser: [
-    { width: 52, rotate: -9, marginLeft: 0, z: 0 },
-    { width: 52, rotate: 5, marginLeft: -20, z: 10 },
+    { width: 54, rotate: -5, marginLeft: 0, z: 0, lift: -10 },
+    { width: 54, rotate: 3, marginLeft: -20, z: 10, lift: 8 },
   ],
 };
 
@@ -169,10 +185,13 @@ function SlotDevice({
 export function DevicePreview({
   project,
   screenId,
+  aspect = "5:4",
 }: {
   project: Project;
   /** Preferred screen for a single-device project. */
   screenId: string;
+  /** Media box shape. The home page widens web cards to 4:3. */
+  aspect?: MediaAspect;
 }) {
   const tokens = tokensFor(project.slug);
   const isPhone = project.type === "mobile";
@@ -198,7 +217,7 @@ export function DevicePreview({
       data-testid="device-media"
       className="relative w-full shrink-0 overflow-hidden border-b border-border"
       style={{
-        aspectRatio: `${MEDIA_ASPECT}`,
+        aspectRatio: `${MEDIA_ASPECT[aspect]}`,
         // Warm chrome on every card: the wash comes from the project's warm
         // card palette, never from the app's own cool primary colour. The
         // screens inside the devices keep their authentic hues.
@@ -209,7 +228,7 @@ export function DevicePreview({
       <span aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 opacity-60" />
 
       <div
-        className="absolute inset-0 flex items-center justify-center p-4"
+        className="absolute inset-0 flex items-center justify-center p-3 sm:p-4"
         style={{ perspective: "1400px" }}
       >
         {arranged.map((slot, index) => {
@@ -222,13 +241,18 @@ export function DevicePreview({
                 width: `${spec.width}%`,
                 marginLeft: index === 0 ? 0 : `${spec.marginLeft}%`,
                 zIndex: spec.z,
-                transform: `rotate(${spec.rotate}deg)`,
+                transform: `rotate(${spec.rotate}deg) translateY(${spec.lift}%)`,
               }}
             >
               {/* A large soft shadow plus a thin light rim, so the device lifts
-                  off the wash instead of sitting flat on it. */}
+                  off the wash instead of sitting flat on it. Browsers get the
+                  heavier shadow so the pair balances the phones. */}
               <div
-                className="rounded-[1.75rem] shadow-[0_22px_44px_-14px_rgba(35,28,24,0.38)] ring-1 ring-white/45"
+                className={
+                  isPhone
+                    ? "rounded-[1.75rem] shadow-[0_22px_44px_-14px_rgba(35,28,24,0.38)] ring-1 ring-white/45"
+                    : "rounded-lg shadow-[0_30px_60px_-16px_rgba(35,28,24,0.5)] ring-1 ring-white/45"
+                }
               >
                 <SlotDevice project={project} slot={slot} widthPct={100} />
               </div>
