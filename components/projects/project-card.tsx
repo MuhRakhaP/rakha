@@ -3,7 +3,10 @@ import Link from "next/link";
 import { ProjectBadges } from "@/components/projects/project-badges";
 import { ProjectCtas } from "@/components/projects/project-ctas";
 import { ProjectVisual } from "@/components/projects/project-visual";
+import { tokensFor } from "@/components/projects/mock-screens/tokens";
 import type { Project } from "@/data/projects";
+
+import { DevicePreview, hasDevice, preferredScreen } from "./device-preview";
 
 /** Technologies shown on the card — a small, fixed slice of the full stack. */
 function CardTech({ items }: { items: string[] }) {
@@ -41,13 +44,27 @@ export function ProjectCard({
   const Heading = headingLevel === 2 ? "h2" : "h3";
 
   return (
-    <article className="group relative flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-[transform,box-shadow,border-color] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_4px_12px_-2px_oklch(0_0_0/0.10)] focus-within:border-brand focus-within:ring-2 focus-within:ring-ring">
-      <div className="relative block aspect-16/10 w-full overflow-hidden border-b border-border">
-        <ProjectVisual
-          project={project}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-      </div>
+    <article
+      className="group relative flex w-full flex-col overflow-hidden rounded-lg border border-border transition-[transform,box-shadow,border-color] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_4px_12px_-2px_oklch(0_0_0/0.10)] focus-within:border-brand focus-within:ring-2 focus-within:ring-ring"
+      // Each card carries its own warm tint, the same one the home page uses,
+      // so a row of cards reads as one warm family rather than a single flat
+      // colour.
+      style={{ background: tokensFor(project.slug).accentWash }}
+    >
+      {/* The visual box is 5:4 on every card, matching the home page, so a
+          row of cards lines up whether it shows devices or an abstract
+          stand-in. Projects with a UI render the angled device cluster; the
+          rest get the abstract composition. */}
+      {hasDevice(project) ? (
+        <DevicePreview project={project} screenId={preferredScreen(project)} />
+      ) : (
+        <div className="relative block aspect-5/4 w-full overflow-hidden border-b border-border">
+          <ProjectVisual
+            project={project}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <ProjectBadges project={project} />

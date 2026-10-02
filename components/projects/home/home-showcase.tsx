@@ -4,7 +4,7 @@ import type { Project } from "@/data/projects";
 import { RecreationCaption } from "@/components/projects/mock-screens/recreation-caption";
 import { tokensFor } from "@/components/projects/mock-screens/tokens";
 
-import { drawsScreens } from "./device-preview";
+import { drawsScreens } from "../device-preview";
 import { HomeProjectCard } from "./home-project-card";
 
 /**

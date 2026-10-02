@@ -10,7 +10,6 @@ import { ProjectCtas } from "@/components/projects/project-ctas";
 import { ProjectFrame } from "@/components/projects/project-frame";
 import { ProjectGallery } from "@/components/projects/project-gallery";
 import {
-  ShowcaseFigure,
   ShowcaseStrip,
   resolveShowcaseScreens,
 } from "@/components/projects/mock-screens/showcase-strip";
@@ -23,6 +22,11 @@ import { Reveal } from "@/components/reveal";
 import { getProject, getRelatedProjects, projects } from "@/data/projects";
 import { site } from "@/lib/site";
 import { ClosingCta } from "@/components/closing-cta";
+import {
+  DevicePreview,
+  hasDevice,
+  preferredScreen,
+} from "@/components/projects/device-preview";
 
 type Params = Promise<{ slug: string }>;
 
@@ -139,13 +143,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
   // shown twice once a capture lands.
   const showcase = resolveShowcaseScreens(project);
   const hasRecreations = showcase.some((s) => s.kind === "recreation");
-  // A project with no capture shows its first recreation at the top rather
-  // than the dashed "Screenshot coming soon" box: the point of that box is to
-  // mean "nothing to show yet", which stops being true the moment a recreation
-  // exists. Projects with neither captures nor recreations keep their walkthrough.
-  const heroRecreation = project.thumbnail
-    ? undefined
-    : showcase.find((s) => s.kind === "recreation");
 
   // Only sections that actually render appear in the page nav.
   const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
@@ -206,11 +203,23 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
         </div>
 
-        {/* Real capture in a type-appropriate frame, or the first recreation,
-            or the walkthrough. Never a mockup presented as a capture. */}
-        {heroRecreation ? (
-          <div className={framed ? "mx-auto max-w-64" : "max-w-3xl"}>
-            <ShowcaseFigure project={project} screen={heroRecreation} />
+        {/* Real capture in a type-appropriate frame, or the angled device
+            cluster for a project whose screens are drawn, or the walkthrough.
+            Never a mockup presented as a capture. The cluster leads with a
+            working screen — dashboard, transactions — never the sign-in. */}
+        {project.thumbnail ? (
+          <ProjectFrame
+            project={project}
+            priority
+            sizes="(max-width: 1024px) 100vw, 960px"
+            className={framed ? "max-w-64" : undefined}
+          />
+        ) : hasDevice(project) ? (
+          <div className="mx-auto w-full max-w-2xl">
+            <DevicePreview
+              project={project}
+              screenId={preferredScreen(project)}
+            />
           </div>
         ) : (
           <ProjectFrame

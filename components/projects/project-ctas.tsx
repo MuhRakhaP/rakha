@@ -37,7 +37,14 @@ export function ProjectCtas({
       node: (
         <Link
           href={`/projects/${project.slug}`}
-          className={buttonVariants({ variant: "outline", size })}
+          // Solid near-black, same shape as the home card action: the "View
+          // Case Study" button is one style across the whole site, so it never
+          // competes with the card's own tint or with the page it sits on.
+          className={buttonVariants({
+            size,
+            className:
+              "min-h-11 rounded-xl bg-foreground px-4 font-semibold text-background hover:bg-brand hover:text-white",
+          })}
         >
           View Case Study
         </Link>

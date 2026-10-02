@@ -2,9 +2,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { TYPE_LABEL } from "@/components/projects/project-badges";
+import { AbstractVisual } from "@/components/projects/project-visual";
 import type { Project } from "@/data/projects";
 
-import { DevicePreview, hasDevice } from "./device-preview";
+import { DevicePreview, hasDevice } from "../device-preview";
 
 /**
  * One project card.
@@ -56,7 +57,13 @@ export function HomeProjectCard({
       {hasDevice(project) ? (
         <DevicePreview project={project} screenId={screenId} />
       ) : (
-        <FallbackVisual />
+        <div
+          data-testid="device-media"
+          className="relative w-full shrink-0 overflow-hidden border-b border-border"
+          style={{ aspectRatio: "5 / 4" }}
+        >
+          <AbstractVisual project={project} />
+        </div>
       )}
 
       <div className="flex flex-1 flex-col gap-3 p-5 text-left">
@@ -92,32 +99,14 @@ export function HomeProjectCard({
           ))}
         </ul>
 
-        {/* mt-auto pins the action to the bottom of every card in the row. */}
+        {/* mt-auto pins the action to the bottom of every card in the row. The
+            button is the same solid near-black on every card, matching the
+            primary CTA on the rest of the site. */}
         <span className="mt-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-colors group-hover/card:bg-brand group-hover/card:text-white motion-reduce:transition-none">
           View case study
           <ArrowRight aria-hidden="true" className="size-4" />
         </span>
       </div>
     </Link>
-  );
-}
-
-/**
- * Stand-in for a project with no UI to show: an API or an assistant has no
- * screen to photograph, and pretending otherwise would be worse than saying so.
- * It fills the same box the devices would, so the row still lines up.
- */
-function FallbackVisual() {
-  return (
-    <div
-      data-testid="device-media"
-      className="relative flex w-full shrink-0 items-center justify-center overflow-hidden border-b border-border bg-muted/50"
-      style={{ aspectRatio: "5 / 4" }}
-    >
-      <span aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 opacity-60" />
-      <span className="relative rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground">
-        No interface
-      </span>
-    </div>
   );
 }

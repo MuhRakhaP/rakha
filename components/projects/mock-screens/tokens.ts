@@ -23,6 +23,13 @@ export interface ScreenTokens {
   onPrimaryContainer: string;
   /** Very light wash used behind a strip card, so the row reads as one band. */
   accentWash: string;
+  /**
+   * Slightly deeper warm tone used at the top of the card's media box, so the
+   * device cluster sits on a warm gradient rather than on the app's own cool
+   * palette. The card chrome is warm across every project; the screens inside
+   * the devices keep their authentic colours.
+   */
+  cardWash: string;
   background: string;
   surface: string;
   surfaceHigh: string;
@@ -44,7 +51,8 @@ const THINKPOS: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#E0EBFF",
   onPrimaryContainer: "#0B3EA8",
-  accentWash: "#EEF4FF",
+  accentWash: "#F5EFE6",
+  cardWash: "#EADFCE",
   background: "#F6F8FC",
   surface: "#FFFFFF",
   surfaceHigh: "#EDF1F8",
@@ -66,7 +74,8 @@ const CLOCKORA: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#EADDFF",
   onPrimaryContainer: "#31005C",
-  accentWash: "#F6F1FC",
+  accentWash: "#FAF6F0",
+  cardWash: "#F0E8DA",
   background: "#F8F7FC",
   surface: "#FFFFFF",
   surfaceHigh: "#F0EDF6",
@@ -88,7 +97,56 @@ const TERAHOME: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#F6E9E1",
   onPrimaryContainer: "#6B2A0C",
-  accentWash: "#FBF3EE",
+  accentWash: "#EFE6DC",
+  cardWash: "#E3D5C2",
+  background: "#FAF9F7",
+  surface: "#FFFFFF",
+  surfaceHigh: "#F1EFEA",
+  onSurface: "#0F172A",
+  onSurfaceVariant: "#4A4540",
+  outline: "#E2DED5",
+  success: "#DCFCE7",
+  onSuccess: "#14532D",
+  warning: "#FEF3C7",
+  onWarning: "#78350F",
+  error: "#FEE2E2",
+  onError: "#7F1D1D",
+  neutral: "#EFEDE7",
+  onNeutral: "#443F38",
+};
+
+/** KOPIFLOW — web app with no captured screens yet; warm sand card. */
+const KOPIFLOW: ScreenTokens = {
+  primary: "#A14216",
+  onPrimary: "#FFFFFF",
+  primaryContainer: "#F6E9E1",
+  onPrimaryContainer: "#6B2A0C",
+  accentWash: "#F3EADF",
+  cardWash: "#E8DAC4",
+  background: "#FAF9F7",
+  surface: "#FFFFFF",
+  surfaceHigh: "#F1EFEA",
+  onSurface: "#0F172A",
+  onSurfaceVariant: "#4A4540",
+  outline: "#E2DED5",
+  success: "#DCFCE7",
+  onSuccess: "#14532D",
+  warning: "#FEF3C7",
+  onWarning: "#78350F",
+  error: "#FEE2E2",
+  onError: "#7F1D1D",
+  neutral: "#EFEDE7",
+  onNeutral: "#443F38",
+};
+
+/** Outstanding Delivery Automation — backend with no UI; warm grey card. */
+const OUTSTANDING: ScreenTokens = {
+  primary: "#A14216",
+  onPrimary: "#FFFFFF",
+  primaryContainer: "#F6E9E1",
+  onPrimaryContainer: "#6B2A0C",
+  accentWash: "#EAE6E1",
+  cardWash: "#DCD5CA",
   background: "#FAF9F7",
   surface: "#FFFFFF",
   surfaceHigh: "#F1EFEA",
@@ -110,6 +168,8 @@ const BY_SLUG: Record<string, ScreenTokens> = {
   thinkpos: THINKPOS,
   clockora: CLOCKORA,
   terahome: TERAHOME,
+  kopiflow: KOPIFLOW,
+  "outstanding-delivery-automation": OUTSTANDING,
 };
 
 export function tokensFor(slug: string): ScreenTokens {

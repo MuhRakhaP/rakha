@@ -199,7 +199,10 @@ export function DevicePreview({
       className="relative w-full shrink-0 overflow-hidden border-b border-border"
       style={{
         aspectRatio: `${MEDIA_ASPECT}`,
-        backgroundImage: `radial-gradient(120% 90% at 50% 0%, ${tokens.primaryContainer} 0%, ${tokens.accentWash} 55%, ${tokens.background} 100%)`,
+        // Warm chrome on every card: the wash comes from the project's warm
+        // card palette, never from the app's own cool primary colour. The
+        // screens inside the devices keep their authentic hues.
+        backgroundImage: `radial-gradient(120% 90% at 50% 0%, ${tokens.cardWash} 0%, ${tokens.accentWash} 60%, ${tokens.accentWash} 100%)`,
       }}
     >
       {/* Dot texture, borrowed from the hero so the two do not disagree. */}
@@ -269,5 +272,21 @@ export function isRecreated(project: Project, screenId: string): boolean {
 export function drawsScreens(project: Project): boolean {
   return pickSlots(project, COMPOSITION[project.type === "mobile" ? "phone" : "browser"].length).some(
     (slot) => slot.kind === "recreation",
+  );
+}
+
+/**
+ * The screen a card or hero prefers to lead with.
+ *
+ * The sign-in screen is deliberately skipped: it is the least informative
+ * screen a project owns, and a hero that opens on a login form reads as a
+ * placeholder. Falls back to the first declared screen when there is no
+ * alternative.
+ */
+export function preferredScreen(project: Project): string {
+  return (
+    project.mockScreens?.find((id) => id !== "login") ??
+    project.mockScreens?.[0] ??
+    ""
   );
 }
