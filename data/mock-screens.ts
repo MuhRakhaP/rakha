@@ -153,6 +153,21 @@ export const TERAHOME_SCREENS: Record<string, MockScreenDef> = {
 };
 
 /* ------------------------------------------------------------------ *
+ * Home page device previews.
+ *
+ * Which recreated screen represents each project on the landing page. Picked by
+ * slug rather than by name so no component has to match a project literally.
+ * The choice is the project's core flow: the counter for the POS, the check-in
+ * for the attendance app.
+ * ------------------------------------------------------------------ */
+
+export const HOME_HERO_SCREEN: Record<string, string> = {
+  thinkpos: "cashier",
+  clockora: "checkin",
+  terahome: "dashboard",
+};
+
+/* ------------------------------------------------------------------ *
  * Dummy content. Fictional people, fictional shop, round amounts.
  * ------------------------------------------------------------------ */
 

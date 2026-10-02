@@ -664,6 +664,43 @@ async function main() {
           );
         }
 
+        // (c) Section order.
+        const observed = m.headings.filter((h) => SECTION_ORDER.includes(h));
+          let orderOk = observed.length > 0;
+          let cursor = -1;
+          const seen = new Set();
+          for (const h of observed) {
+            const idx = SECTION_ORDER.indexOf(h);
+            if (idx <= cursor || seen.has(h)) {
+              orderOk = false;
+              break;
+            }
+            cursor = idx;
+            seen.add(h);
+          }
+          record(
+            target.path,
+            viewport.name,
+            "section-order",
+            orderOk,
+            orderOk ? observed.join(" > ") : observed.join(" > "),
+          );
+
+          // (f) SectionNav anchors resolve.
+          const brokenLinks = m.navLinks.filter((l) => !l.exists);
+          record(
+            target.path,
+            viewport.name,
+            "nav-anchors-exist",
+            m.navLinks.length === 0 ? true : brokenLinks.length === 0,
+            brokenLinks.length ? `broken: ${brokenLinks.map((l) => l.href).join(",")}` : "",
+          );
+        }
+
+        // Labeled recreations sit outside the case-study gate on purpose:
+        // the landing page renders a strip too, and a recreation shown there
+        // needs its caption and its layout rules exactly as much as one on a
+        // case study.
         // Labeled UI recreations. Three things must hold for every strip:
         //   1. each recreation carries its caption, with role="note" and the
         //      agreed wording, and that wording is also in its alt text;
@@ -1058,13 +1095,15 @@ async function main() {
               : `bottom nav out of spec: ${JSON.stringify(navBad)}`,
           );
 
-          // On a phone the strip is a deliberate scroll-snap carousel, so it may
-          // scroll inside itself. What must never happen is the strip pushing
-          // the page sideways. From 768 up it is a grid, so it must fit outright.
+          // Below `lg` the strip is a deliberate scroll-snap carousel, so it may
+          // scroll inside itself; what must never happen is the strip pushing
+          // the page sideways. From `lg` (1024) up it stops scrolling, so it
+          // then has to fit outright. The threshold has to match the breakpoint
+          // the layout actually uses, not a smaller one.
           const rect = showcase.stripRect;
           const insideViewport =
             rect.left >= -1 && rect.right <= showcase.viewport + 1;
-          const gridFits = showcase.viewport < 768 || showcase.overflowPx <= 1;
+          const gridFits = showcase.viewport < 1024 || showcase.overflowPx <= 1;
           const overflowOk = insideViewport && gridFits;
           record(
             target.path,
@@ -1093,38 +1132,6 @@ async function main() {
             : "project has recreations but the hero still shows 'Screenshot coming soon'",
         );
 
-        // (c) Section order.
-        const observed = m.headings.filter((h) => SECTION_ORDER.includes(h));
-          let orderOk = observed.length > 0;
-          let cursor = -1;
-          const seen = new Set();
-          for (const h of observed) {
-            const idx = SECTION_ORDER.indexOf(h);
-            if (idx <= cursor || seen.has(h)) {
-              orderOk = false;
-              break;
-            }
-            cursor = idx;
-            seen.add(h);
-          }
-          record(
-            target.path,
-            viewport.name,
-            "section-order",
-            orderOk,
-            orderOk ? observed.join(" > ") : observed.join(" > "),
-          );
-
-          // (f) SectionNav anchors resolve.
-          const brokenLinks = m.navLinks.filter((l) => !l.exists);
-          record(
-            target.path,
-            viewport.name,
-            "nav-anchors-exist",
-            m.navLinks.length === 0 ? true : brokenLinks.length === 0,
-            brokenLinks.length ? `broken: ${brokenLinks.map((l) => l.href).join(",")}` : "",
-          );
-        }
 
         await page.screenshot({
           path: path.join(OUT_DIR, `${target.name}-${viewport.name}.png`),

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { HomeShowcase } from "@/components/projects/home/home-showcase";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Reveal } from "@/components/reveal";
 import { buttonVariants } from "@/components/ui/button";
@@ -52,6 +53,7 @@ function getProjectsByCategory() {
 
 export default function HomePage() {
   const featured = getFeaturedProjects(4);
+  const rest = projects.filter((p) => !featured.some((f) => f.slug === p.slug));
   const aiAndAutomation = getProjectsByTags(["ai", "automation"]);
   const categories = getProjectsByCategory();
   const latestRole = roles[0]; // latest role from experience.ts
@@ -164,8 +166,14 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* The strip: one card per featured project, each showing a real
+              capture where one exists and a labeled recreation where it does
+              not. Nothing here is an empty frame. */}
+          <HomeShowcase projects={featured} />
+
+          {/* The rest of the catalogue, as the denser grid. */}
           <ul className="grid gap-6 sm:grid-cols-2">
-            {featured.map((project) => (
+            {rest.map((project) => (
               <li key={project.slug} className="flex">
                 <ProjectCard project={project} />
               </li>
