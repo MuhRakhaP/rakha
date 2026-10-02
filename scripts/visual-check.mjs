@@ -937,6 +937,39 @@ async function main() {
                 ?.textContent ?? ""
             ).trim(),
             altTexts: figures.map((f) => f.getAttribute("aria-label") ?? ""),
+          // A device has to fit inside the box it is given. Overflowing it is
+          // not a layout error the eye can un-miss later: the box clips, so the
+          // card simply looks like it is showing a cropped screenshot.
+          mediaBoxes: Array.from(
+            strip.querySelectorAll('[data-testid="device-media"]'),
+          ).map((box) => {
+            const b = box.getBoundingClientRect();
+            // The direct child is an `absolute inset-0 p-3` wrapper, so it
+            // spans the whole box by construction. The usable area is the box
+            // minus that padding, and the device is what has to fit in it.
+            const pad = box.firstElementChild
+              ? getComputedStyle(box.firstElementChild)
+              : null;
+            const insetX = pad ? parseFloat(pad.paddingLeft) : 0;
+            const insetY = pad ? parseFloat(pad.paddingTop) : 0;
+            const innerH = b.height - insetY * 2;
+
+            const fits = Array.from(
+              box.querySelectorAll(
+                '[data-testid="recreation-figure"], [data-testid="recreation-frame"], img',
+              ),
+            ).every((el) => {
+              const r = el.getBoundingClientRect();
+              return (
+                r.height <= innerH + 1 &&
+                r.top >= b.top + insetY - 1 &&
+                r.bottom <= b.bottom - insetY + 1 &&
+                r.left >= b.left + insetX - 1 &&
+                r.right <= b.right - insetX + 1
+              );
+            });
+            return { fits, w: Math.round(b.width), h: Math.round(b.height) };
+          }),
           // A recreation declares its own frame and authoring size. The drawn
           // screen has to agree with it: a web screen authored at 1280 forced
           // into a 360px phone frame is not scaled, it is crushed.
@@ -1075,6 +1108,17 @@ async function main() {
             ["recreation-no-ellipsis", "ellipsis"],
             ["recreation-in-bounds", "outside"],
           ];
+
+          const mediaBad = showcase.mediaBoxes.filter((m) => !m.fits);
+          record(
+            target.path,
+            viewport.name,
+            "device-fits-media-box",
+            mediaBad.length === 0,
+            mediaBad.length === 0
+              ? ""
+              : `${mediaBad.length} device(s) clipped by their media box`,
+          );
 
           // The frame must match the screen's declared authoring width, and the
           // accessible name must name the screen that was actually drawn.
