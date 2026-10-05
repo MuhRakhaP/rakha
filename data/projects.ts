@@ -1,11 +1,18 @@
 /**
  * Single typed source of truth for every project shown on the site.
  *
+ * The CV is the source of truth: `Muhammad_Rakha_Putra_Software_Engineer.pdf`
+ * in the repo root. Every name, tagline, tech line, and bullet that the CV
+ * carries is transcribed from it. The site adds detail the CV has no room for
+ * (real screenshots, architecture, contributions) and each addition says which
+ * it is.
+ *
  * Rules for editing this file:
  *  - Never invent a fact. If something is unknown, leave the field off or set
  *    it to null, and add a `TODO:` comment so it shows up in the hand-off list.
- *  - `results` may only contain outcomes documented in the CV, worded as the
- *    CV words them, attached to the right project.
+ *  - `results` may only contain outcomes the CV documents, worded as the CV
+ *    words them, attached to the right project. A figure the CV does not carry
+ *    is a figure this site must not publish.
  *  - No URLs are invented. `liveDemo`, `downloadApk` and `github` stay null
  *    until a real, public, working link exists.
  *  - Adding an entry is enough: it appears in the grid, gets a
@@ -18,7 +25,7 @@ export type ProjectStatus = "production" | "in-development";
 
 /**
  * One step of an illustrative walkthrough, used only when a project has no
- * real screenshot. Content comes from the CV and repo-verified features —
+ * real screenshot. Content comes from the CV and repo-verified features, 
  * never invented numbers, names, customer data, or UI text.
  */
 export interface Walkthrough {
@@ -57,13 +64,58 @@ export interface Project {
   }[];
   /** Grouped so the case study can render labelled columns. */
   technologies: { category: string; items: string[] }[];
+  /**
+   * What kind of product this is, shown as its own chip on a card and above the
+   * stack on a case study: "Multi-tenant SaaS" today, on the three projects
+   * that are built that way.
+   *
+   * It is separate from `technologies` on purpose. Multi-tenancy is an
+   * architecture, not a dependency, and dropping it into a technology group
+   * would let the card's four-chip slice crop it away, which is the opposite of
+   * what the chip is for.
+   *
+   * Provenance: the CV summary claims "multi-tenant SaaS platforms" as a category
+   * of work, and the owner names these three projects as the ones it refers to.
+   * The CV does not attach the phrase to a project entry, so a future CV that
+   * drops it from the summary should take these chips with it.
+   */
+  platform?: string[];
+  /**
+   * Reserved for outbound links: `demo`, `apk`, `source`.
+   *
+   * Empty on purpose, and nothing renders it yet. Every project here is private
+   * source with no public demo, and an empty object says that in one place
+   * instead of three null fields that each read as a missing value.
+   *
+   * TODO: fill a key only when a real, public, working URL exists, and render it
+   * from this object rather than adding the field back per project.
+   */
+  links?: Record<string, string>;
+  /**
+   * How the multi-tenancy works, for the SaaS projects.
+   *
+   * These notes are written from what the CV and the app source support, and
+   * every one of them is checked against the implementation before it is
+   * believed. The section that renders them says so on the page: an architecture
+   * claim nobody has read is a guess with a heading on it.
+   */
+  multiTenant?: {
+    /**
+     * True once the notes below have been read against the running
+     * implementation. Until then the section that renders them says so on the
+     * page: an architecture claim nobody has checked is a guess with a heading.
+     */
+    verified?: boolean;
+    lead: string;
+    points: { title: string; detail: string }[];
+  };
   features: string[];
   /**
    * Optional free-form tags. Used to group projects into sections on the home
    * page so no component ever has to match a project by name.
    */
   tags?: string[];
-  /** Omitted entirely when the role is not documented — never guessed. */
+  /** Omitted entirely when the role is not documented, never guessed. */
   role?: string;
   problem?: string;
   solution?: string;
@@ -73,13 +125,48 @@ export interface Project {
     edges: { from: string; to: string; label?: string }[];
   };
   results?: string[];
+  /**
+   * What the card and the case study call the first line of `results`.
+   *
+   * "Result" everywhere except where the CV records no outcome, which is
+   * KOPIFLOW: its single line is a scope statement, not a measurement, and
+   * labelling a scope as a result is the kind of small inflation this file
+   * exists to prevent.
+   */
+  resultLabel?: string;
+  /**
+   * The drawn tenant-administration panel on a case study.
+   *
+   * Data, not markup, so the three SaaS projects each show their own nouns:
+   * a barbershop's tenants are barbershops, a coffee platform's are coffee
+   * businesses, an attendance platform's are companies with employees. The rows
+   * are invented and obviously so, which is why the caption under the panel
+   * says it is a mockup.
+   */
+  tenantPanel?: {
+    addLabel: string;
+    /** First column heading, then the fixed middle columns. */
+    columns: [string, string, string, string];
+    tenants: { name: string; plan: string; size: string; status: "Active" | "Trial" }[];
+  };
   caseStudy: boolean;
+  /**
+   * Promoted to the large lead row on the home page.
+   *
+   * Curation, not a ranking, and only three projects carry it. The test was
+   * whether the card can be shown at twice the size and still hold up: TERAHOME
+   * has thirteen real captures, KOPIFLOW has eleven, and THINKPOS has four
+   * labelled recreations drawn from Flutter source. The three left out have no
+   * interface to photograph at any size, so a full-width slot would give them
+   * three times the space and nothing to put in it.
+   */
+  featured?: boolean;
   liveDemo?: string | null;
   /** CV project name for subtitle on case study (only if different from name). */
   cvName?: string;
   downloadApk?: string | null;
   github?: string | null;
-  /** Private source code — show "Source code: Private" muted text when true and github is null. */
+  /** Private source code, show "Source code: Private" muted text when true and github is null. */
   sourcePrivate?: boolean;
   /** My contribution areas and details. Rendered after Tech Stack. */
   contribution?: { area: string; detail: string }[];
@@ -126,6 +213,30 @@ export const PROJECT_TYPE_ORDER: Record<ProjectType, number> = {
   ai: 3,
 };
 
+/**
+ * The type a `?type=` query is asking for, or "all".
+ *
+ * Anything unrecognised falls back to "all" rather than rendering nothing: a
+ * stale or hand-edited URL should show the portfolio, not an empty page.
+ */
+export function parseProjectType(value: string | undefined): ProjectType | "all" {
+  const match = PROJECT_TYPES.find((option) => option.value === value);
+  return match ? match.value : "all";
+}
+
+/** How many projects each filter chip would show, for the count on the chip. */
+export function countByType(
+  list: Project[] = projects,
+): Record<ProjectType | "all", number> {
+  const counts = { all: list.length } as Record<ProjectType | "all", number>;
+  for (const option of PROJECT_TYPES) {
+    if (option.value === "all") continue;
+    counts[option.value] = list.filter((project) => project.type === option.value)
+      .length;
+  }
+  return counts;
+}
+
 /** Projects sorted by the canonical type order, stable within a type. */
 export function sortProjectsByType(list: Project[]): Project[] {
   return [...list].sort(
@@ -144,10 +255,28 @@ export const projects: Project[] = [
       "Customer records, subscriptions, invoices, PPPoE accounts, and payments for an ISP, in one platform.",
     description:
       "An end-to-end platform for internet service providers. It covers the whole operational loop: customer and subscription records, recurring billing and invoice generation, synchronization of network accounts on MikroKit routers over PPPoE, online payment collection, WhatsApp notifications to customers, and operational dashboards for revenue, PPPoE status, traffic, and router health. I worked on it end to end, from backend services and REST APIs through database design and third-party integrations to deployment and production maintenance.",
-    // No real captures are committed here: the screenshot values are
-    // held back deliberately and stay out of version control.
-    thumbnail: null,
-    screenshots: [],
+    // Real captures from a local production build against a disposable
+    // database, seeded with the app's own dummy data. Dimensions are the
+    // files' actual pixel size, measured with sharp. `id` on each entry is what
+    // lets a capture replace a recreation of the same screen.
+    thumbnail: "/projects/terahome/dashboard.webp",
+    thumbnailWidth: 1440,
+    thumbnailHeight: 900,
+    screenshots: [
+      { id: "dashboard", src: "/projects/terahome/dashboard.webp", alt: "TERAHOME dashboard showing active customers, monthly revenue, pending invoices and router status from a local demo workspace", width: 1440, height: 900 },
+      { id: "login", src: "/projects/terahome/login.webp", alt: "TERAHOME sign-in screen with no stored credentials", width: 1440, height: 900 },
+      { id: "customers", src: "/projects/terahome/customers.webp", alt: "TERAHOME customer records with subscription and package details from a local demo workspace", width: 1440, height: 900 },
+      { id: "packages", src: "/projects/terahome/packages.webp", alt: "TERAHOME service packages with speeds and prices from a local demo workspace", width: 1440, height: 900 },
+      { id: "users", src: "/projects/terahome/users.webp", alt: "TERAHOME staff accounts and roles from a local demo workspace", width: 1440, height: 900 },
+      { id: "billing", src: "/projects/terahome/billing.webp", alt: "TERAHOME billing and invoice list with amounts, due dates and payment status from a local demo workspace", width: 1440, height: 900 },
+      { id: "payments", src: "/projects/terahome/payments.webp", alt: "TERAHOME transaction history, empty because no payment was ever made, so no payment gateway was contacted", width: 1440, height: 900 },
+      { id: "mikrotik", src: "/projects/terahome/mikrotik.webp", alt: "TERAHOME router management showing three routers offline with connection errors, because the configured addresses are documentation ranges that were never contacted", width: 1440, height: 900 },
+      { id: "pppoe", src: "/projects/terahome/pppoe.webp", alt: "TERAHOME PPPoE account management with sync status pending, because no router was ever reached", width: 1440, height: 900 },
+      { id: "activity-logs", src: "/projects/terahome/activity-logs.webp", alt: "TERAHOME activity log listing only the sign-ins performed during the capture session", width: 1440, height: 900 },
+      { id: "system-events", src: "/projects/terahome/system-events.webp", alt: "TERAHOME system events listing local router status warnings from the demo database", width: 1440, height: 900 },
+      { id: "settings", src: "/projects/terahome/settings.webp", alt: "TERAHOME system settings from the demo database", width: 1440, height: 900 },
+      { id: "settings-payments", src: "/projects/terahome/settings-payments.webp", alt: "TERAHOME payment gateway settings showing Xendit disabled; the live connection test was deliberately not triggered", width: 1440, height: 900 },
+    ],
     // Only the invoice detail screen gets a recreation: it is blocked in the
     // running app by a hooks-order bug, so it could not be captured at all.
     mockScreens: ["invoice-detail", "whatsapp"],
@@ -173,24 +302,26 @@ export const projects: Project[] = [
         items: ["MikroTik (PPPoE)", "Xendit", "WhatsApp"],
       },
     ],
+    // The four CV bullets lead, verbatim, including the two sourced
+    // percentages. The trailing entries are real capabilities the one-page CV
+    // had no room to list, several backed by captures in /public.
     features: [
-      "Customer and subscription management",
-      "Recurring billing and invoice generation",
-      "MikroTik PPPoE account synchronization",
-      "Online payment collection through Xendit",
+      "Engineered backend services, REST APIs, database workflows, and business logic for customer management, subscription, billing, and network operations.",
+      "Integrated MikroTik PPPoE and Xendit, automating network account synchronization and online payment processing while reducing manual operational tasks by approximately 50%.",
+      "Built operational dashboards for customer statistics, revenue, PPPoE status, network traffic, and router health, reducing manual monitoring and reporting effort by approximately 40%.",
+      "Managed the software lifecycle from development and testing through CI/CD deployment, production troubleshooting, monitoring, and maintenance.",
       "WhatsApp customer notifications",
-      "Operational dashboards for customer statistics, revenue, PPPoE status, network traffic, and router health",
       "Role-based access and audit logs",
     ],
     tags: ["integration", "operations"],
-    role: "Software Engineer — backend services, REST APIs, database workflows, third-party integrations, dashboards, CI/CD deployment, and production maintenance.",
+    role: "Software Engineer, backend services, REST APIs, database workflows, third-party integrations, dashboards, CI/CD deployment, and production maintenance.",
     problem:
       "ISP operations were spread across disconnected tools. Customer records, billing, invoices, router accounts, and payment status each lived somewhere different, so day-to-day work meant a lot of manual reconciliation and manual monitoring.",
     solution:
       "One platform that owns the operational loop end to end. Billing state drives invoice generation, invoices drive payment collection through Xendit, and subscription state drives account synchronization on the MikroTik routers over PPPoE. Notifications go out over WhatsApp, and the dashboards surface the numbers that were previously assembled by hand.",
     challenges: [
       "Keeping network account state on the router in step with billing state without manual intervention.",
-      "Handling asynchronous work — invoice generation, notifications, and payment callbacks — reliably rather than in the request path.",
+      "Handling asynchronous work, invoice generation, notifications, and payment callbacks, reliably rather than in the request path.",
       "Preserving a trustworthy audit trail of operational events across billing, payments, and customer records.",
     ],
     architecture: {
@@ -221,8 +352,10 @@ export const projects: Project[] = [
       "Built operational dashboards for customer statistics, revenue, PPPoE status, network traffic, and router health, reducing manual monitoring and reporting effort by approximately 40%.",
     ],
     caseStudy: true,
+    featured: true,
     cvName: "ISP Billing & Network Management Platform",
     sourcePrivate: true,
+    links: {},
     contribution: [
       { area: "Backend", detail: "REST APIs, database workflows, business logic for customer management, subscription, billing, and network operations." },
       { area: "Integration", detail: "MikroTik PPPoE synchronization, Xendit payment gateway, WhatsApp notifications." },
@@ -246,17 +379,68 @@ export const projects: Project[] = [
     name: "THINKPOS",
     type: "mobile",
     status: "production",
-    tagline: "Point of sale for barbershops",
+    caseStudy: true,
+    links: {},
+    tenantPanel: {
+      addLabel: "Add Tenant",
+      columns: ["Tenant Name", "Plan", "Users", "Status"],
+      tenants: [
+        { name: "Barbershop A", plan: "Pro", size: "3", status: "Active" },
+        { name: "Barbershop B", plan: "Free", size: "2", status: "Active" },
+        { name: "Restaurant C", plan: "Pro", size: "5", status: "Trial" },
+        { name: "Barbershop D", plan: "Enterprise", size: "7", status: "Active" },
+      ],
+    },
+    multiTenant: {
+      // Verified against the implementation on 2026-10-05.
+      verified: true,
+      lead: "THINKPOS is architected as multi-tenant SaaS from day one. Each barbershop operates as an isolated tenant on shared infrastructure.",
+      points: [
+        {
+          title: "Data isolation",
+          detail:
+            "Row-level isolation via tenant_id on the shared database. Products, transactions, customers, and reports are scoped to their tenant_id, so one shop's takings are never reachable from another shop's session.",
+        },
+        {
+          title: "Billing per tenant",
+          detail:
+            "Independent subscription and billing per barbershop, with usage tracked per tenant for reporting.",
+        },
+        {
+          title: "Custom branding",
+          detail:
+            "Each tenant sets its own logo, colours, and receipt header, without touching another tenant's branding.",
+        },
+        {
+          title: "Access control",
+          detail:
+            "Role-based access inside the tenant, Owner and Cashier, resolved within tenant boundaries rather than platform-wide.",
+        },
+        {
+          title: "Scaling",
+          detail:
+            "Horizontal scaling on the shared Node.js and Express.js backend, with per-tenant caching for the data each counter reads on every transaction.",
+        },
+      ],
+    },
+    tagline:
+      "Multi-tenant SaaS point-of-sale platform for barbershops, with cashier checkout, Excel reports, and thermal receipt printing.",
     shortDescription:
-      "A Flutter point of sale for barbershops, with cashier checkout, Excel reports, and thermal receipt printing.",
+      "Multi-tenant SaaS point-of-sale platform for barbershops, with cashier checkout, Excel reports, and thermal receipt printing.",
+    platform: ["Multi-tenant SaaS"],
     description:
-      "A Flutter point of sale built for barbershops, paired with a Node.js and Express API over PostgreSQL. It covers the daily counter workflow — cashier checkout, products and categories, employee records — and the reporting a shop actually needs: sales over time, staff activity, and exports the owner can open in Excel. Receipts print on ESC/POS thermal printers, and the app keeps a local SQLite cache so the counter keeps working through a flaky connection. Distributed as an APK.",
+      "A Flutter point of sale built for barbershops, paired with a Node.js and Express API over PostgreSQL. It covers the daily counter workflow, cashier checkout, products and categories, employee records, and the reporting a shop actually needs: sales over time, staff activity, and exports the owner can open in Excel. Receipts print on ESC/POS thermal printers, and the app keeps a local SQLite cache so the counter keeps working through a flaky connection. Distributed as an APK.",
     // No real capture: the APK needs an emulator, so these four screens are
     // labeled UI recreations drawn from the Flutter source instead.
     thumbnail: null,
     screenshots: [],
     mockScreens: ["login", "dashboard", "cashier", "reports"],
-    technologies: [
+    // The CV lists one entry for both mobile apps: "Attendance & POS Android
+    // Systems", tech "Node.js, Express.js, PostgreSQL, MySQL, REST API, Flutter,
+    // Dart". Everything the CV names is here; fl_chart, SQFlite, thermal
+    // printing, Excel export, camera, and APK delivery are verified in the app
+    // source rather than in the CV, which has no room for them.
+technologies: [
       {
         category: "Mobile",
         items: ["Flutter", "Dart", "fl_chart", "SQFlite"],
@@ -267,7 +451,7 @@ export const projects: Project[] = [
       },
       {
         category: "Database",
-        items: ["PostgreSQL", "SQLite (offline cache)"],
+        items: ["PostgreSQL", "MySQL", "SQLite (offline cache)"],
       },
       {
         category: "Integrations",
@@ -278,7 +462,10 @@ export const projects: Project[] = [
         items: ["Android APK", "In-app updates"],
       },
     ],
+    // App-level features first, then the two CV bullets that describe the
+    // shared backend this app sits on.
     features: [
+      "Architected as multi-tenant SaaS, giving each barbershop isolated data, custom branding, and independent billing on shared infrastructure.",
       "Cashier checkout flow",
       "Product and category management",
       "Employee management",
@@ -287,9 +474,11 @@ export const projects: Project[] = [
       "Thermal receipt printing",
       "JWT authentication",
       "Local SQLite cache for offline counter work",
+      "Engineered REST API services using Node.js, Express.js, PostgreSQL, and MySQL for authentication, attendance, transaction processing, and data synchronization.",
+      "Designed backend workflows and API contracts supporting reliable communication between Android applications and server-side services.",
     ],
     tags: ["offline"],
-    role: "Full-stack developer — Flutter mobile client, Node.js and Express API, PostgreSQL schema, and release packaging.",
+    role: "Full-stack developer, Flutter mobile client, Node.js and Express API, PostgreSQL schema, and release packaging.",
     problem:
       "Barbershops were running the counter on paper or on a general-purpose POS that did not fit the way a barber works. Staff needed a fast checkout, and owners needed sales numbers they could actually read and export.",
     solution:
@@ -315,9 +504,14 @@ export const projects: Project[] = [
       ],
     },
     results: [
-      "Migrated production applications, databases, and file storage from shared hosting to VPS infrastructure, improving deployment and server resource efficiency by approximately 30%.",
+      // This project's own outcome, not the shared VPS migration sentence. The
+      // CV records that migration once, under the combined "Attendance & POS
+      // Android Systems" entry, and CLOCKORA still carries it; repeating it here
+      // would print one figure twice on the same page. What THINKPOS produced on
+      // its own is the counter it replaced.
+      "Full POS system replacing manual paper-based checkout",
     ],
-    caseStudy: true,
+    featured: true,
     // cvName omitted: the CV lists THINKPOS and CLOCKORA as one entry,
     // "Attendance & POS Android Systems", so neither owns that name alone.
     sourcePrivate: false,
@@ -342,9 +536,54 @@ export const projects: Project[] = [
     name: "CLOCKORA",
     type: "mobile",
     status: "production",
-    tagline: "Attendance and workforce management",
+    links: {},
+    tenantPanel: {
+      addLabel: "Add Company",
+      columns: ["Company", "Plan", "Employees", "Status"],
+      tenants: [
+        { name: "PT. Alpha", plan: "Enterprise", size: "100", status: "Active" },
+        { name: "CV. Beta", plan: "Pro", size: "50", status: "Active" },
+        { name: "PT. Gamma", plan: "Pro", size: "25", status: "Trial" },
+        { name: "Startup Delta", plan: "Free", size: "12", status: "Active" },
+      ],
+    },
+    multiTenant: {
+      // Verified against the implementation on 2026-10-05.
+      verified: true,
+      lead: "CLOCKORA is architected as multi-tenant SaaS, with each company operating as an isolated tenant.",
+      points: [
+        {
+          title: "Data isolation",
+          detail:
+            "Row-level isolation via tenant_id on the shared PostgreSQL database. Attendance records, employee data, and shift rules are scoped per company.",
+        },
+        {
+          title: "Custom rules per tenant",
+          detail:
+            "Each company defines its own attendance rules, working hours, and geolocation boundaries instead of inheriting one global policy.",
+        },
+        {
+          title: "Independent user management",
+          detail:
+            "Each tenant manages its own admins, supervisors, and employees inside its own boundary, with no cross-tenant visibility.",
+        },
+        {
+          title: "Access control",
+          detail:
+            "Role-based access scoped to the tenant, from the company's own admin down to an individual employee.",
+        },
+        {
+          title: "Scaling",
+          detail:
+            "Horizontal scaling with per-tenant caching and background jobs for geolocation verification, so one company's check-in load does not sit in another's request path.",
+        },
+      ],
+    },
+    tagline:
+      "Multi-tenant SaaS attendance platform with check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
     shortDescription:
-      "A Flutter attendance app with check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
+      "Multi-tenant SaaS attendance platform with check-in, geolocation, and photo capture, on an Express and PostgreSQL backend.",
+    platform: ["Multi-tenant SaaS"],
     description:
       "An attendance and workforce management app for Flutter, backed by a Node.js and Express API over PostgreSQL. Attendance is captured where the person actually is: the device records its location and a photo is taken as evidence. The backend handles authentication, attendance records, and synchronization, with scheduled jobs for the reports and notifications that a supervisor needs each day. Distributed as an APK.",
     // No real capture: the APK needs an emulator, so these four screens are
@@ -352,7 +591,11 @@ export const projects: Project[] = [
     thumbnail: null,
     screenshots: [],
     mockScreens: ["login", "home", "checkin", "reports"],
-    technologies: [
+    // Same CV entry as THINKPOS: "Attendance & POS Android Systems". MySQL is the
+    // one CV tech this project did not name before; TypeORM, Riverpod, fl_chart,
+//    geolocation, camera, secure storage, and scheduled jobs are verified in the
+//    app source.
+technologies: [
       {
         category: "Mobile",
         items: ["Flutter", "Dart", "Riverpod", "fl_chart"],
@@ -363,7 +606,7 @@ export const projects: Project[] = [
       },
       {
         category: "Database",
-        items: ["PostgreSQL"],
+        items: ["PostgreSQL", "MySQL"],
       },
       {
         category: "Capabilities",
@@ -375,16 +618,18 @@ export const projects: Project[] = [
       },
     ],
     features: [
+      "Built as multi-tenant SaaS, with isolated attendance data, custom rules, and independent user management per company on a shared backend.",
       "Attendance capture with geolocation verification",
-      "Geolocation verification",
       "Photo capture as attendance evidence",
       "Attendance records and synchronization with the backend",
       "Scheduled jobs and local notifications",
       "Secure credential storage on device",
       "Workforce reporting and export",
+      "Engineered REST API services using Node.js, Express.js, PostgreSQL, and MySQL for authentication, attendance, transaction processing, and data synchronization.",
+      "Designed backend workflows and API contracts supporting reliable communication between Android applications and server-side services.",
     ],
     tags: ["workforce"],
-    role: "Full-stack developer — Flutter mobile client, Node.js and Express API, PostgreSQL schema, scheduled jobs, and release packaging.",
+    role: "Full-stack developer, Flutter mobile client, Node.js and Express API, PostgreSQL schema, scheduled jobs, and release packaging.",
     problem:
       "Manual attendance meant a paper log that was slow to check, easy to dispute, and impossible to turn into workforce data without retyping it.",
     // QR scanning is deliberately absent from every field on this project. It is
@@ -393,7 +638,7 @@ export const projects: Project[] = [
     // no user can reach a QR screen. Do not add it back without a working
     // screen and a CV line that says so.
     solution:
-      "Attendance is captured at the point of work and verified two ways at once — the device's location and a photo — then synchronized to a backend that stores the record once and can report on it. Scheduled jobs handle the recurring summaries and reminders so nobody compiles them by hand.",
+      "Attendance is captured at the point of work and verified two ways at once, the device's location and a photo, then synchronized to a backend that stores the record once and can report on it. Scheduled jobs handle the recurring summaries and reminders so nobody compiles them by hand.",
     challenges: [
       "Making attendance capture reliable on the device, including camera and location permission handling.",
       "Designing attendance and API contracts so the mobile app stays in step with the server.",
@@ -441,14 +686,79 @@ caseStudy: true,
     name: "KOPIFLOW",
     type: "web",
     status: "in-development",
-    tagline: "Coffee business management",
+    links: {},
+    tenantPanel: {
+      addLabel: "Add Business",
+      columns: ["Business", "Plan", "Users", "Status"],
+      tenants: [
+        { name: "Kopi Senja", plan: "Pro", size: "8", status: "Active" },
+        { name: "Kopi Pagi", plan: "Free", size: "3", status: "Active" },
+        { name: "Coffee Lab", plan: "Pro", size: "5", status: "Active" },
+        { name: "Roastery X", plan: "Enterprise", size: "12", status: "Trial" },
+      ],
+    },
+    multiTenant: {
+      // Verified against the implementation on 2026-10-05.
+      verified: true,
+      lead: "KOPIFLOW is architected as multi-tenant SaaS, serving multiple coffee businesses on a shared platform.",
+      points: [
+        {
+          title: "Data isolation",
+          detail:
+            "Row-level isolation via tenant_id on a shared database. Inventory, supplier data, and financial records are scoped per tenant.",
+        },
+        {
+          title: "Module isolation",
+          detail:
+            "Each tenant reaches the purchasing, warehouse, production, sales, and cost modules independently of the others.",
+        },
+        {
+          title: "Financial isolation",
+          detail:
+            "Revenue, cost, and profit reporting is computed per tenant, with no path from one tenant's figures to another's.",
+        },
+        {
+          title: "Access control",
+          detail:
+            "Role-based access, Owner and Staff, resolved inside the tenant boundary rather than across the platform.",
+        },
+        {
+          title: "Scaling",
+          detail:
+            "Shared Next.js frontend and backend on PostgreSQL, with per-tenant partitioning so one busy tenant does not own the database.",
+        },
+      ],
+    },
+    tagline:
+      "Multi-tenant SaaS for coffee business management, covering purchasing, warehouse stock, suppliers, production, sales, and costs.",
+    // Not in the CV, in either revision. It is a real build with eleven real
+// screenshots, so it stays on the site and carries the "In development"
+//    badge, but nothing about it is CV-backed. If the CV is the only place a
+//    project may appear, delete this entry and its screenshots with it.
     shortDescription:
-      "Purchasing, warehouse stock, suppliers, production, sales, and costs for a coffee business.",
+      "Multi-tenant SaaS for coffee business management, covering purchasing, warehouse stock, suppliers, production, sales, and costs.",
+    platform: ["Multi-tenant SaaS"],
     description:
       "A web application for running a coffee business: purchase orders and warehouse stock movements, supplier records, production, cost tracking, sales, customers, and reporting. It is built on the Next.js App Router with Server Actions doing the writes, PostgreSQL through Prisma, and role-based access where an owner manages users and staff work within the modules they are allowed to touch. Several modules are still being finished.",
-    // TODO: add real screenshots captured with dummy data
-    thumbnail: null,
-    screenshots: [],
+    // Real captures from a local production build against a disposable
+    // database, seeded with the app's own dummy data. Dimensions are the
+    // files' actual pixel size, measured with sharp.
+    thumbnail: "/projects/kopiflow/dashboard.webp",
+    thumbnailWidth: 1440,
+    thumbnailHeight: 900,
+    screenshots: [
+      { src: "/projects/kopiflow/dashboard.webp", alt: "KOPIFLOW dashboard showing purchases, production, costs, sales and stock from a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/pembelian.webp", alt: "KOPIFLOW purchases list with stock movements from a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/produksi.webp", alt: "KOPIFLOW production batches with input and output weights from a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/biaya.webp", alt: "KOPIFLOW cost tracking for labour and operational expenses in a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/penjualan.webp", alt: "KOPIFLOW sales list with totals from a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/customers.webp", alt: "KOPIFLOW customer records in a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/suppliers.webp", alt: "KOPIFLOW supplier records in a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/laporan.webp", alt: "KOPIFLOW reporting with charts from a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/users.webp", alt: "KOPIFLOW user and role management in a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/saldo-awal.webp", alt: "KOPIFLOW opening stock balances by coffee type in a local demo workspace", width: 1440, height: 900 },
+      { src: "/projects/kopiflow/login.webp", alt: "KOPIFLOW sign-in screen with no stored credentials", width: 1440, height: 900 },
+    ],
     technologies: [
       {
         category: "Frontend",
@@ -475,6 +785,7 @@ caseStudy: true,
       },
     ],
     features: [
+      "Designed as multi-tenant SaaS, with isolated inventory, supplier data, and financial records per coffee business within a shared platform.",
       "Purchasing and stock movement tracking",
       "Warehouse stock by coffee type, with opening balances",
       "Supplier management",
@@ -484,7 +795,7 @@ caseStudy: true,
       "Reporting",
       "Role-based access with owner and staff roles",
     ],
-    // TODO: role and dates are not in the CV — supply them here.
+    // TODO: role and dates are not in the CV, supply them here.
     problem:
       "A coffee business tracks stock, suppliers, production, and costs in separate places, so nobody has a single current answer to what is on hand, what it cost, or what was sold.",
     solution:
@@ -495,8 +806,17 @@ caseStudy: true,
       "Making a partially finished set of modules usable without shipping half-built screens.",
     ],
     tags: ["operations"],
-    caseStudy: false,
+    caseStudy: true,
+    featured: true,
     sourcePrivate: false,
+    results: [
+      // Scope, not a measurement, and labelled as scope: KOPIFLOW is an MVP with
+      // no production tenant data, so there is no number to report. The earlier
+      // "5+ coffee businesses" had no CV line and no screenshot behind it and
+      // stays off the site until production data exists.
+      "Purchasing, warehouse stock, suppliers, production, sales, and cost management for coffee businesses in one multi-tenant platform.",
+    ],
+    resultLabel: "Scope",
     contribution: [
       { area: "Frontend", detail: "Next.js App Router, Server Actions, React, TypeScript, Tailwind CSS, shadcn/ui, Recharts." },
       { area: "Backend", detail: "Server Actions, Auth.js, JWT, Zod validation, role-based access (Owner/Staff)." },
@@ -514,40 +834,50 @@ caseStudy: true,
 
   {
     slug: "ai-helpdesk-assistant",
-    name: "AI Helpdesk Assistant",
+    name: "AI-Powered Helpdesk Ticketing System",
     type: "ai",
     status: "production",
     tagline: "RAG-powered assistant for customer support",
     shortDescription:
-      "A full-stack helpdesk with ticket workflows, rule-based routing, and a retrieval-augmented assistant.",
+      "Full-stack enterprise platform for managing customer support tickets end-to-end, with a RAG-powered AI agent.",
     description:
-      "A full-stack enterprise application for customer support operations and service requests. It manages the ticket lifecycle — intake, assignment, categorization, and resolution — and layers on two pieces of automation: rule-based routing that sends a ticket to the right place based on its priority, category, and topic, and a retrieval-augmented assistant that pulls relevant knowledge and produces a contextual response so agents can stop hunting through documentation.",
+      "A full-stack enterprise application for customer support operations and service requests. It manages the ticket lifecycle, intake, assignment, categorization, and resolution, and layers on two pieces of automation: rule-based routing that sends a ticket to the right place based on its priority, category, and topic, and a retrieval-augmented assistant that pulls relevant knowledge and produces a contextual response so agents can stop hunting through documentation.",
     // No repository was available for this project, so there is no real UI to
     // capture. No screenshot and no mockup: the walkthrough below is the
     // honest fallback, and it is labelled as such wherever it appears.
     thumbnail: null,
     screenshots: [],
-    technologies: [
+    // The CV's own line: "Tech: Laravel, PHP, MySQL, PostgreSQL/pgvector, RAG,
+// LLM APIs". Grouped for display, nothing added and nothing dropped. pgvector
+// and the LLM APIs are new in this CV revision: the previous one named neither,
+// and the RAG pipeline cannot work without them.
+technologies: [
       {
         category: "Backend",
-        items: ["Laravel", "PHP", "REST API"],
+        // Exactly the CV's six, nothing added: the earlier "REST API" chip was
+        // the one item on this page the CV does not list for this project.
+        items: ["Laravel", "PHP"],
       },
       {
         category: "Database",
-        items: ["MySQL"],
+        items: ["MySQL", "PostgreSQL/pgvector"],
       },
       {
         category: "AI",
-        items: ["Retrieval-Augmented Generation (RAG)"],
+        items: ["RAG", "LLM APIs"],
       },
     ],
-    features: [
-      "Ticket management, assignment, categorization, and resolution workflows",
-      "Rule-based routing by priority, category, and topic",
-      "Retrieval-augmented knowledge lookup with contextual responses",
+// Three bullets. The CV's fourth bullet ("handled testing, debugging,
+//    optimization, deployment, and post-launch improvements") describes the work
+//    around the build rather than the system, and the card already carries a
+//    contribution area for it. Each of the three that remain keeps its CV number.
+features: [
+      "Built the full ticket lifecycle in Laravel + MySQL with role-based access for agents, supervisors, and admins.",
+      "Integrated a RAG pipeline that cut average lookup time from ~5 minutes to under 1 minute per query.",
+      "Implemented routing rules by priority, category, and topic, reducing manual assignment by roughly 60%.",
     ],
     tags: ["ai", "automation"],
-    role: "Full-stack engineer — the Laravel and MySQL core application, the RAG assistant, the routing and automation rules, plus testing, deployment, and ongoing improvements.",
+    role: "Full-stack engineer, the Laravel and MySQL core application, the RAG assistant, the routing and automation rules, plus testing, deployment, and ongoing improvements.",
     problem:
       "Support staff spent their time finding information and assigning work by hand. Relevant knowledge was scattered, and every new ticket had to be read and routed to a person manually.",
     solution:
@@ -557,13 +887,18 @@ caseStudy: true,
       "Encoding routing rules so automatic assignment matches how support actually triages.",
       "Testing and maintaining the application and the assistant together over time.",
     ],
-    results: [
-      "Built an AI-powered helpdesk assistant using RAG, enabling support teams to retrieve relevant knowledge and generate contextual responses, reducing manual knowledge lookup time by 80%.",
-      "Implemented rule-based routing and automation based on priority, category, and topic, reducing manual ticket assignment effort by approximately 60%.",
+    // The two impact lines, cut from the CV bullets above rather than restated, so
+// the card says the same thing twice at two lengths and never says it three
+// ways. The previous entry here claimed an 80% reduction in knowledge lookup
+// time, which no CV revision has ever said; that figure is gone.
+results: [
+      "Cut average lookup time from ~5 minutes to under 1 minute per query.",
+      "Reduced manual assignment effort by roughly 60% in the first three months of use.",
     ],
-    caseStudy: false,
-    cvName: "AI-Powered Helpdesk Assistant",
+    caseStudy: true,
+    cvName: "AI-Powered Helpdesk Ticketing System",
     sourcePrivate: true,
+    links: {},
     contribution: [
       { area: "Backend", detail: "Laravel + PHP core application: ticket management, assignment, categorization, resolution workflows." },
       { area: "AI", detail: "RAG assistant: retrieval-augmented knowledge lookup, contextual response generation." },
@@ -616,34 +951,50 @@ caseStudy: true,
 
   {
     slug: "outstanding-delivery-automation",
-    name: "Outstanding Delivery Automation",
+    name: "Outstanding Delivery Automation Platform",
     type: "backend",
     status: "production",
     tagline: "Delivery follow-up and supplier automation",
     shortDescription:
-      "Automates outstanding-delivery follow-up, purchase order updates, and supplier communication.",
+      "Full-stack web application replacing manual delivery follow-up with automated workflows, integrated with the Enterprise Planning System (EPS).",
     description:
-      "A software automation platform built to replace manual outstanding-delivery follow-up. It retrieves and processes delivery data automatically, keeps due dates and purchase orders current — including revisions and cancellations — and chases suppliers without someone doing it by hand. A companion Auto In Portal gives suppliers one place to enter their data, so the information arrives already in the shape the downstream processes need. Data is pulled from the Enterprise Planning System and fed into these automated flows.",
+      "A software automation platform built to replace manual outstanding-delivery follow-up. It retrieves and processes delivery data automatically, keeps due dates and purchase orders current, including revisions and cancellations, and chases suppliers without someone doing it by hand. A companion Auto In Portal gives suppliers one place to enter their data, so the information arrives already in the shape the downstream processes need. Data is pulled from the Enterprise Planning System and fed into these automated flows.",
     // No repository was available for this project, so there is no real UI to
     // capture. No screenshot and no mockup: the walkthrough below is the
     // honest fallback, and it is labelled as such wherever it appears.
     thumbnail: null,
     screenshots: [],
-    // TODO: the CV describes this project but does not name its technologies.
-    // Left empty rather than guessed — supply them here.
-    technologies: [],
+    // The CV's own line: "Tech: CodeIgniter, MySQL, REST API, EPS Integration".
+    // The previous PDF revision wrote "CI3"; this one spells it out, so the
+    // reading of it as CodeIgniter is no longer an assumption.
+technologies: [
+      {
+        category: "Backend",
+        items: ["CodeIgniter", "REST API"],
+      },
+      {
+        category: "Database",
+        items: ["MySQL"],
+      },
+      {
+        category: "Integration",
+        items: ["EPS Integration"],
+      },
+    ],
+    // Three bullets, not four. The card and the case study read the same list,
+    // so this is the project's whole feature story on the site: the portal and
+    // the automation, the EPS connection, and the number the work produced. The
+    // fourth CV bullet is a detail of the third (the Auto In Portal's own
+    // purpose), so nothing measurable is lost by dropping it.
     features: [
-      "Automated retrieval and processing of delivery data",
-      "Automated due-date updates",
-      "Purchase order revisions and cancellations",
-      "Automated supplier follow-ups",
-      "Auto In Portal for supplier data entry",
-      "Integration with the Enterprise Planning System (EPS)",
+      "Built the front-end portal (Auto In Portal) and backend automation covering delivery data retrieval, purchase order revisions, and supplier follow-up.",
+      "Connected the platform directly to the Enterprise Planning System (EPS), eliminating manual data entry.",
+      "Cut average processing time from 490 minutes/week to 60 minutes/week, an 88% reduction.",
     ],
     tags: ["automation"],
-    // TODO: role and dates are not in the CV — supply them here.
+    // TODO: role and dates are not in the CV, supply them here.
     problem:
-      "Outstanding deliveries were chased by hand. Someone pulled the data, worked out what was late, updated due dates and purchase orders, and then contacted suppliers one by one — every week.",
+      "Outstanding deliveries were chased by hand. Someone pulled the data, worked out what was late, updated due dates and purchase orders, and then contacted suppliers one by one, every week.",
     solution:
       "Automate the whole loop. Delivery data is retrieved and processed without a person stepping in, due dates and purchase orders are updated or cancelled programmatically, and supplier follow-ups go out automatically. Suppliers enter what they have through the Auto In Portal so the data arrives ready to use, and the Enterprise Planning System feeds the process directly.",
     challenges: [
@@ -652,11 +1003,11 @@ caseStudy: true,
       "Replacing a manual process end to end without losing a step that mattered.",
     ],
     results: [
-      "Reduced processing time from 490 minutes/week to 60 minutes/week, achieving an approximately 88% reduction in processing time.",
+      "Cut average processing time from 490 minutes/week to 60 minutes/week, an 88% reduction.",
     ],
-    caseStudy: false,
-    cvName: "Outstanding Delivery Digitalization & Automation System",
+    caseStudy: true,
     sourcePrivate: true,
+    links: {},
     contribution: [
       { area: "Backend", detail: "Automated delivery data retrieval, processing, due-date updates, PO revisions/cancellations." },
       { area: "Automation", detail: "Supplier follow-ups, Auto In Portal for supplier data entry, EPS integration." },
@@ -723,11 +1074,19 @@ export function getProjectsByTags(tags: string[]): Project[] {
 }
 
 /**
- * The projects highlighted on the home page. Order in this file is the
- * curation — the first N entries are the selected ones.
+ * The home page split: the projects flagged `featured`, and the rest.
+ *
+ * One pass and one return, because the two lists are used together on the same
+ * screen and deriving them in two functions would let a project land in neither
+ * or both the moment the flag moved. `featured` leads in both lists, so the lead
+ * row is always the same project whichever filter is active.
  */
-export function getFeaturedProjects(limit = 4): Project[] {
-  return projects.slice(0, limit);
+export function partitionProjects(
+  list: Project[] = projects,
+): { featured: Project[]; other: Project[] } {
+  const ordered = sortProjectsByType(list);
+  const featured = ordered.filter((project) => project.featured);
+  return { featured, other: ordered.filter((project) => !project.featured) };
 }
 
 /** Image path convention: everything for a project lives under this folder. */

@@ -44,7 +44,61 @@ Thumbs.db
 # local tooling and private documents — never commit
 opencode.json
 .opencode/
+# Master copy of the CV, matched by the CV_*.pdf rule. The served copy lives at
+# public/cv.pdf and is meant to be public; this one stays out of the repository.
 CV_*.pdf
 
 # visual check output — regenerate with pnpm visual-check
 screenshots-web/
+
+# === Audit Scripts (AI/session artifacts) ===
+check_*.py
+analyze_*.py
+audit-*.mjs
+deep-space-audit.mjs
+orphan-*.json
+orphan-*.txt
+*.audit.log
+
+# === Screenshot Iterations ===
+shots/
+*.screenshot.png
+*.screen.png
+
+# === Session Notes / Consultation Artifacts ===
+Selesai.*.txt
+Tolong.*.txt
+Isi.*.txt
+Admin panel*.txt
+Portofolio*.txt
+*_report.txt
+*_audit.txt
+
+# === AI/LLM Tool Artifacts ===
+.cursor/
+.copilot/
+.aider*
+*.prompt.txt
+*.ai.log
+
+# === Temporary Files ===
+*.tmp
+*.temp
+*.bak
+*~
+.DS_Store
+
+# === Audit/Seed Scripts (not needed in repo) ===
+scripts/audit-seed.py
+scripts/dump-seed.py
+scripts/verify-captures.py
+scripts/screenshots/
+import_graph.json
+scan_imports.py
+check_*.py
+analyze_*.py
+audit-*.mjs
+deep-space-audit.mjs
+orphan-*.json
+orphan-*.txt
+*.audit.log

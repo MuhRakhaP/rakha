@@ -1,4 +1,5 @@
 import { ProjectCard } from "@/components/projects/project-card";
+import { Reveal } from "@/components/reveal";
 import type { Project } from "@/data/projects";
 
 export function ProjectGrid({ projects }: { projects: Project[] }) {
@@ -10,11 +11,15 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
     );
   }
 
+  // Staggered by position in the list, capped so a long row does not leave the
+  // last cards waiting: past the fifth card the delay stops growing.
   return (
     <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {projects.map((project) => (
+      {projects.map((project, index) => (
         <li key={project.slug} className="flex">
-          <ProjectCard project={project} headingLevel={2} />
+          <Reveal className="flex w-full" delay={Math.min(index, 5) * 80}>
+            <ProjectCard project={project} headingLevel={2} />
+          </Reveal>
         </li>
       ))}
     </ul>

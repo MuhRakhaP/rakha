@@ -16,7 +16,7 @@ import { getMockScreens } from "./registry";
 import { RecreationCaption } from "./recreation-caption";
 import { ScaledCanvas } from "./scaled-canvas";
 import { ScreenSwitcher, type ShowcaseItem } from "./screen-switcher";
-import { LOGICAL, tokensFor } from "./tokens";
+import { LOGICAL } from "./tokens";
 
 const DEFS: Record<string, Record<string, MockScreenDef>> = {
   thinkpos: THINKPOS_SCREENS,
@@ -166,11 +166,7 @@ export function ShowcaseStrip({
 
   return (
     <div data-testid="project-showcase" className="flex flex-col gap-4">
-      <ScreenSwitcher
-        items={items}
-        label={`${project.name} screens`}
-        accent={tokensFor(project.slug).accentWash}
-      />
+      <ScreenSwitcher items={items} label={`${project.name} screens`} />
       {hasRecreations ? (
         <div className="max-w-md">
           <RecreationCaption />

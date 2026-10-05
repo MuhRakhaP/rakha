@@ -46,7 +46,10 @@ function TabsTrigger({
         // soft wash, so the selected step is obvious at a glance. Base UI
         // marks the active tab with data-composite-item-active, not
         // data-selected.
-        "-mb-2 data-composite-item-active:border-brand data-composite-item-active:bg-brand-weak data-composite-item-active:text-brand",
+        // `text-brand-lift` on `bg-brand-weak`: `text-brand` measures 4.25 there
+        // and fails AA for the 14px tab label. The active walkthrough tab is one
+        // of the three places the accent sits on its own tint.
+        "-mb-2 data-composite-item-active:border-brand data-composite-item-active:bg-brand-weak data-composite-item-active:text-brand-lift",
         "disabled:pointer-events-none disabled:opacity-50",
         className
       )}

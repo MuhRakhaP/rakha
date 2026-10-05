@@ -1,15 +1,21 @@
 /**
  * Career content, transcribed from the CV.
  *
- * Do not embellish. Company names, titles, dates, and bullet wording come from
- * the CV as written. Metrics stay attached to the role they belong to.
+ * Source of truth: `CV_Muhammad_Rakha_Putra.pdf` in the repo root, as revised
+ * by the owner. Company names, titles, dates, and bullet wording come from the
+ * CV as written. Metrics stay attached to the role they belong to. When the CV
+ * is replaced, this file is replaced with it.
+ *
+ * Two places where the owner's supplied revision and the PDF file disagree are
+ * recorded inline rather than silently resolved: the school name and the
+ * second certification.
  */
 
 export interface Role {
   company: string;
   location: string;
   title: string;
-  /** Exactly as the CV states it. `null` means ongoing. */
+  /** Exactly as the CV states it, `MM/YYYY` on both ends. `Present` is the CV's word. */
   period: string;
   highlights: string[];
 }
@@ -19,64 +25,112 @@ export const roles: Role[] = [
     company: "PT. Terasys Virtual",
     location: "Jakarta",
     title: "Software Engineer",
-    period: "01/2026 — Present",
+    period: "01/2026 – Present",
     highlights: [
-      "Design, develop, and maintain full-stack applications and internal software systems based on business requirements.",
-      "Design and implement REST APIs, backend services, and database solutions using Laravel, Node.js, TypeScript, and PostgreSQL.",
-      "Translate business requirements into technical solutions, application architecture, workflows, and scalable system functionality, reducing manual business processes by approximately 40%.",
-      "Build and manage CI/CD pipelines and containerized application environments using Docker, supporting automated build, testing, and deployment workflows.",
+      "Cut manual operational work by ~40% by translating business requirements into scalable workflows and application architecture.",
+      "Owned the full lifecycle of internal business applications from requirements analysis to production deployment.",
+      "Built and managed Docker-based environments and CI/CD pipelines supporting automated build, testing, and deployment.",
+      "Maintained production stability across internal applications through ongoing maintenance and improvements.",
     ],
   },
   {
     company: "PT. TD Automotive Compressor Indonesia",
     location: "Cikarang",
-    title: "Full-Stack Developer",
-    period: "11/2024 — 05/2025",
+    title: "Full Stack Developer",
+    period: "11/2024 – 05/2025",
     highlights: [
-      "Designed and developed full-stack internal business applications using HMVC architecture.",
-      "Implemented backend services and system integrations to support internal business workflows.",
-      "Optimized application performance and database queries, improving processing efficiency by approximately 35%.",
-      "Performed application testing, debugging, and continuous improvements to ensure reliability and maintainability.",
+      "Improved processing efficiency by ~35% by optimizing application performance and database queries.",
+      "Built internal business applications end-to-end on HMVC architecture, keeping the codebase maintainable as requirements grew.",
+      "Implemented backend services and system integrations to support internal workflows across departments.",
+      "Raised reliability through systematic testing, debugging, and continuous improvements.",
     ],
   },
   {
-    company: "PT. satu produksi digital",
+    company: "PT. Satu Produksi Digital",
     location: "Jakarta",
     title: "Backend Developer",
-    period: "06/2023 — 10/2024",
+    period: "06/2023 – 10/2024",
     highlights: [
-      "Designed and developed backend services and REST APIs for an e-commerce platform using Node.js and Firebase.",
-      "Designed and optimized database structures to improve application performance and reliability.",
-      "Implemented database indexing and query optimization to improve backend response times.",
-      "Investigated and resolved backend issues through debugging and root-cause analysis.",
+      "Built backend services and REST APIs for an e-commerce platform using Node.js and Firebase.",
+      "Sped up backend response times through database indexing and query optimization.",
+      "Designed database structures built for performance and reliability as the platform scaled.",
+      "Resolved backend incidents quickly through root-cause analysis, fixing underlying problems instead of symptoms.",
     ],
   },
   {
     company: "PT. Metropolitan Land Tbk",
     location: "Jakarta",
-    title: "Full-Stack Developer",
-    period: "09/2022 — 03/2023",
+    title: "Full Stack Developer",
+    period: "09/2022 – 03/2023",
     highlights: [
-      "Developed, tested, and deployed custom web application modules for internal business processes.",
-      "Implemented software improvements to enhance system performance and maintainability.",
-      "Integrated application modules with existing systems and commercial software packages.",
-      "Identified and implemented opportunities to improve system performance and application availability.",
+      "Delivered custom web modules that digitized internal business processes, from development through deployment.",
+      "Integrated new modules with existing systems and commercial software packages, avoiding costly rebuilds of working systems.",
+      "Improved system performance, maintainability, and application availability through targeted software improvements.",
     ],
   },
 ];
 
-export const education = {
-  school: "SMK Pariwisata Metland School",
-  location: "Jakarta, Indonesia",
-  period: "2020 — 2023",
-  major: "Computer Science",
-};
+/**
+ * Education, newest first.
+ *
+ * The school name is "SMK Pariwisata Metland School" from the owner's supplied
+ * revision. The PDF file in the repo root still writes "SMK Metland School", so
+ * the two disagree until the PDF is updated: TODO, re-check this line against
+ * whatever CV is current, because the file is the source of truth.
+ */
+export interface Education {
+  school: string;
+  location: string;
+  /** Exactly as the CV states it. "present" is the CV's own word. */
+  period: string;
+  major: string;
+}
 
-export const certification = {
-  name: "MikroTik Certified Network Associate (MTCNA)",
-  issuer: "MikroTik",
-  date: "05/2023",
-};
+export const education: Education[] = [
+  {
+    school: "Universitas Terbuka",
+    location: "Jakarta, Indonesia",
+    period: "2024 – present",
+    // TODO: the owner's revision says "Bachelor of Information Systems (in
+    // progress)"; the PDF says "Major in Information Systems". The revision
+    // wins here, so fix the PDF.
+    major: "Bachelor of Information Systems (in progress)",
+  },
+  {
+    school: "SMK Pariwisata Metland School",
+    location: "Jakarta, Indonesia",
+    period: "2020 – 2023",
+    major: "Software Engineering (Rekayasa Perangkat Lunak)",
+  },
+];
 
-/** Verbatim CV summary. */
-export const summary = `Software Engineer with 3+ years of professional experience building and maintaining full - stack web applications, backend services, REST APIs, and business automation systems. Experienced with Laravel, Node.js, TypeScript, React.js, Next.js, PostgreSQL, and MySQL, with hands - on experience in API integrations, database design, system deployment, and production troubleshooting. Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, depl oyment, and maintenance.`;
+/**
+ * Certifications, newest first.
+ *
+ * TODO: the owner's supplied revision lists two credentials. The PDF file in
+ * the repo root lists only the first one, so the Coding Studio certificate has
+ * no line in the file to check against. Confirm the name and year, then update
+ * the CV so the two agree.
+ */
+export interface Certification {
+  name: string;
+  issuer: string;
+  date: string;
+}
+
+export const certifications: Certification[] = [
+  {
+    name: "Node.js Application Back-End untuk Pemula",
+    issuer: "Coding Studio",
+    date: "2025",
+  },
+  {
+    name: "MikroTik Certified Network Associate (MTCNA)",
+    issuer: "MikroTik",
+    date: "05/2023",
+  },
+];
+
+/** Verbatim CV PROFESSIONAL SUMMARY. Rendered on /about and mirrored in the hero. */
+export const summary =
+  "Full Stack Developer with 4+ years of experience building business applications, multi-tenant SaaS platforms, backend services, and AI-powered systems. Specialized in Laravel, Node.js, TypeScript, PostgreSQL, and React/Next.js. Proven track record of reducing manual business processes by up to 88% through enterprise integrations and automation. Strong problem-solving and organizational skills.";

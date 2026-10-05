@@ -1,248 +1,205 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { HomeShowcase } from "@/components/projects/home/home-showcase";
-import { Reveal } from "@/components/reveal";
-import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
-import { projects, type Project } from "@/data/projects";
-import { skillGroups, skillHighlights } from "@/lib/skills";
-import { site } from "@/lib/site";
-import { roles } from "@/lib/experience";
+import { EducationSection } from "@/components/education-section";
+import { ExperienceTimeline } from "@/components/experience-timeline";
+import { Hero } from "@/components/hero";
+import { ProjectCard } from "@/components/projects/project-card";
+import { ProjectFilter } from "@/components/projects/project-filter";
+import { SkillsGrid } from "@/components/skills-grid";
+import {
+  countByType,
+  parseProjectType,
+  partitionProjects,
+  projects,
+  sortProjectsByType,
+} from "@/data/projects";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
 /**
- * Hero copy: the shortest CV summary sentence, verbatim.
- * CV has 3 sentences; the shortest is the 3rd one.
- */
-const heroSummary = "Experienced across the full software development lifecycle, from requirements analysis and system design to development, testing, deployment, and maintenance.";
-
-/**
- * Skills shown in the hero panel, sliced out of `lib/skills.ts` so the panel
- * can only ever show skills the CV actually lists. Takes the first N of each
- * named category.
- */
-const panelSkills = [
-  ...(skillGroups.find((g) => g.category === "Frontend")?.items ?? []).slice(0, 2),
-  ...(skillGroups.find((g) => g.category === "Backend")?.items ?? []).slice(0, 2),
-  ...(skillGroups.find((g) => g.category === "Database")?.items ?? []).slice(0, 1),
-  ...(skillGroups.find((g) => g.category === "DevOps")?.items ?? []).slice(0, 1),
-];
-
-/**
- * Projects grouped by type for "What I Build" section.
+ * Hero copy, transcribed from the CV's PROFESSIONAL SUMMARY.
  *
- * Each project appears exactly once, under its own type, in the same order
- * /projects uses (web, mobile, backend, ai). An earlier version also matched
- * the "automation" tag, which put Outstanding Delivery Automation in both
- * Backend Systems and AI & Automation — the duplication this section now
- * avoids by grouping on `type` alone.
+ * The CV paragraph is the source, first three sentences: "4+ years" is the CV's
+ * own figure and matches the dated roles in `lib/experience.ts`, which run from
+ * 09/2022 to present. "multi-tenant SaaS platforms" is the CV's phrase for the
+ * work behind KOPIFLOW, THINKPOS, and CLOCKORA, and it names the category here
+ * because that is where the claim is made. The headline below the name comes
+ * from `site.headline`, which is the CV's headline line verbatim.
  */
-function getProjectsByCategory() {
-  const byType = new Map<Project["type"], Project[]>();
-  for (const project of projects) {
-    const list = byType.get(project.type) ?? [];
-    list.push(project);
-    byType.set(project.type, list);
-  }
+const heroSummary =
+  "Full Stack Developer with 4+ years of experience building business applications, multi-tenant SaaS platforms, backend services, and AI-powered systems. Specialized in Laravel, Node.js, TypeScript, PostgreSQL, and React/Next.js. Proven track record of reducing manual business processes by up to 88% through enterprise integrations and automation.";
 
-  const labels: Record<Project["type"], string> = {
-    web: "Web Applications",
-    mobile: "Mobile Applications",
-    backend: "Backend Systems",
-    ai: "AI & Automation",
-  };
+/** Real status from the CV owner. Nothing on the page implies it otherwise. */
+const heroAvailability = "Available for full-stack and backend roles";
 
-  return (Object.keys(labels) as Project["type"][])
-    .map((type) => ({ label: labels[type], projects: byType.get(type) ?? [] }))
-    .filter((category) => category.projects.length > 0);
-}
+/**
+ * The section headings, in one place.
+ *
+ * Every section on the page is `<h2>` at the same size, and they are written out
+ * once here so the home page, the scroll-spy in the header, and any future
+ * anchor link all read the same string. The id is what the spy watches and what
+ * a footer link would target.
+ */
+const SECTIONS = {
+  projects: "What I build",
+  experience: "Experience",
+  skills: "Skills",
+  education: "Education & certifications",
+} as const;
 
-export default function HomePage() {
-  const categories = getProjectsByCategory();
-  const latestRole = roles[0]; // latest role from experience.ts
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const { type } = await searchParams;
+  const filter = parseProjectType(type);
+
+  // Filtering happens on the server from the query string, so the lead row and
+  // the grid below it always agree about what is on the page, and a filtered
+  // home page is a link somebody can send.
+  const visible =
+    filter === "all"
+      ? projects
+      : projects.filter((project) => project.type === filter);
+  const { featured, other } = partitionProjects(visible);
+  const [lead, ...featuredRest] = featured;
 
   return (
-    <div className="flex flex-col gap-16 py-6">
-      {/* Hero */}
-      <section className="relative -mx-5 overflow-hidden px-5 pt-10 pb-14 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
+    <div className="flex flex-col">
+      <Hero
+        summary={heroSummary}
+        availability={heroAvailability}
+      />
 
-        <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-14">
-          <div className="flex flex-col gap-6">
-            <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-              {site.role} · {site.secondaryRole}
+      {/* Projects. One lead card at full width, the rest of the featured set in
+          a pair, then a three-up grid, which is 3 + 3 across the six projects:
+          no row ever ends with one card stranded beside empty space. */}
+      <section
+        id="projects"
+        className="py-section border-t border-border"
+        aria-labelledby="projects-heading"
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <h2
+              id="projects-heading"
+              className="font-heading text-section font-semibold tracking-[-0.015em]"
+            >
+              {SECTIONS.projects}
+            </h2>
+            <p className="max-w-2xl text-muted-foreground">
+              Six systems across web, mobile, backend, and AI. Each one states the
+              problem it was built for and what it changed.
             </p>
-
-            <h1 className="max-w-3xl font-heading text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
-              {site.name}
-            </h1>
-
-            <p className="max-w-2xl text-lg tracking-[-0.01em] text-muted-foreground">
-              {heroSummary}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/projects"
-                className={buttonVariants({
-                  size: "lg",
-                  className: "hover:bg-brand hover:text-white",
-                })}
-              >
-                View Projects
-              </Link>
-              <a
-                href={`mailto:${site.email}`}
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "lg",
-                  className: "hover:border-brand hover:text-brand",
-                })}
-              >
-                Let&apos;s Talk
-              </a>
-              {site.resumeUrl && (
-                <a
-                  href={site.resumeUrl}
-                  className={buttonVariants({
-                    variant: "secondary",
-                    size: "lg",
-                    className: "hover:bg-secondary hover:text-secondary-foreground",
-                  })}
-                >
-                  Download Resume
-                </a>
-              )}
-            </div>
           </div>
 
-          {/* Desktop-only context panel. Mobile keeps the single column. */}
-          <aside className="hidden self-start lg:flex lg:flex-col lg:gap-6 lg:rounded-lg lg:border lg:border-border lg:bg-card lg:p-6">
-            <div className="flex flex-col gap-1">
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-                Currently
-              </p>
-              <p className="text-sm font-medium">
-                Software Engineer at PT. Terasys Virtual
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Jakarta, Indonesia
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
-                Works with
-              </p>
-              <ul className="flex flex-wrap gap-1.5">
-                {panelSkills.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-md border border-border px-2 py-0.5 text-xs"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+          <ProjectFilter counts={countByType()} basePath="/" />
         </div>
-      </section>
 
-      {/* What I Build. The only place project cards live on this page: each
-          category is an even two column grid, and each card shows the devices
-          itself rather than a placeholder. */}
-      {categories.length > 0 && (
-        <Reveal>
-          <section className="flex flex-col gap-6 border-t border-border pt-12">
-            <div className="flex flex-col gap-2">
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-                What I Build
-              </p>
-              <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-                What I Build
-              </h2>
-            </div>
+        {lead ? (
+          <ul className="mt-8 flex flex-col gap-6">
+            <li className="flex">
+              {/* Priority on this one card only: it is the first project image
+                  in the document and the LCP element on a phone. */}
+              <ProjectCard
+                project={lead}
+                headingLevel={3}
+                variant="featured"
+                priority
+              />
+            </li>
+            {featuredRest.length > 0 ? (
+              <li className="grid gap-6 sm:grid-cols-2">
+                {featuredRest.map((project) => (
+                  <ProjectCard key={project.slug} project={project} />
+                ))}
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
 
-            <ul className="flex flex-col gap-10">
-              {categories.map((category) => (
-                <li key={category.label}>
-                  <h3 className="font-heading mb-4 text-lg font-semibold tracking-tight">
-                    {category.label}
-                  </h3>
-                  <HomeShowcase projects={category.projects} />
+        {other.length > 0 ? (
+          <div className={lead ? "mt-12" : "mt-8"}>
+            <h3 className="font-heading mb-4 text-lg font-semibold tracking-tight">
+              More projects
+            </h3>
+            <ul className="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {sortProjectsByType(other).map((project) => (
+                <li key={project.slug} className="flex">
+                  <ProjectCard project={project} />
                 </li>
               ))}
             </ul>
-          </section>
-        </Reveal>
-      )}
-
-      {/* Experience Teaser */}
-      <Reveal>
-        <section className="flex flex-col gap-6 border-t border-border pt-12">
-          <div className="flex flex-col gap-2">
-            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-              Experience
-            </p>
-            <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-              Experience
-            </h2>
-            <p className="max-w-2xl text-muted-foreground">
-              {latestRole.highlights[0]}
-            </p>
           </div>
-          <Link
-            href="/experience"
-            className="inline-flex w-fit items-center gap-1.5 text-sm text-brand underline-offset-4 transition-colors hover:decoration-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        ) : null}
+
+        {/* Every type has at least one project today, so this only shows if the
+            data changes. It says which filter is empty rather than showing a
+            blank half-page. */}
+        {lead === undefined && other.length === 0 ? (
+          <p className="mt-8 text-sm text-muted-foreground">
+            No projects in this category yet.
+          </p>
+        ) : null}
+      </section>
+
+      {/* Employer list and experience teaser were the same four roles twice.
+          This is the one place they appear on the home page, and /experience
+          renders the same timeline with every highlight rather than three. */}
+      <section
+        id="experience"
+        className="py-section border-t border-border"
+        aria-labelledby="experience-heading"
+      >
+        <div className="flex flex-col gap-2">
+          <h2
+            id="experience-heading"
+            className="font-heading text-section font-semibold tracking-[-0.015em]"
           >
-            View full experience
-          </Link>
-        </section>
-      </Reveal>
+            {SECTIONS.experience}
+          </h2>
+          <p className="max-w-2xl text-muted-foreground">
+            Four roles since 2022, newest first, with the work each one owned.
+          </p>
+        </div>
 
-      {/* Skills */}
-      <Reveal>
-        <section className="flex flex-col gap-6 border-t border-border pt-12">
-          <div className="flex flex-col gap-2">
-            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
-              Toolkit
-            </p>
-            <h2 className="font-heading text-2xl font-semibold tracking-[-0.015em]">
-              Skills
-            </h2>
-          </div>
-          <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {skillHighlights.map((group) => (
-              <div key={group.category}>
-                <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
-                  {group.category}
-                </dt>
-                <dd className="mt-2">
-                  <ul className="flex flex-wrap gap-1.5">
-                    {group.items.map((item) => (
-                      <li
-                        key={item}
-                        className="rounded-md border border-border px-2 py-0.5 text-xs"
-                      >
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      </Reveal>
+        <div className="mt-10">
+          <ExperienceTimeline limit={3} />
+        </div>
+      </section>
+
+      <section
+        id="skills"
+        className="py-section border-t border-border"
+        aria-labelledby="skills-heading"
+      >
+        <div className="flex flex-col gap-2">
+          <h2
+            id="skills-heading"
+            className="font-heading text-section font-semibold tracking-[-0.015em]"
+          >
+            {SECTIONS.skills}
+          </h2>
+          <p className="max-w-2xl text-muted-foreground">
+            Grouped as the CV groups them. No levels, no percentages, no bars.
+          </p>
+        </div>
+
+        <div className="mt-10">
+          <SkillsGrid />
+        </div>
+      </section>
+
+      <EducationSection
+        id="education"
+        heading={SECTIONS.education}
+      />
 
       <ClosingCta />
     </div>
   );
 }
-
-

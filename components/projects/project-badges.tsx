@@ -9,9 +9,11 @@ export const TYPE_LABEL: Record<Project["type"], string> = {
 
 export const STATUS_LABEL: Record<Project["status"], string> = {
   production: "Production",
-  // The only in-development project today is KOPIFLOW; "Coming Soon" reads
-  // better on a card than the internal status name.
-  "in-development": "Coming Soon",
+  // The only in-development project today is KOPIFLOW. It read "Coming Soon",
+  // which is a promise about the future dressed as a status, and "In
+  // development" on its own said stalled rather than built. This says both
+  // facts: there is a working MVP, and it is still being built.
+  "in-development": "MVP (In Development)",
 };
 
 /**

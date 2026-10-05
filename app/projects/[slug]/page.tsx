@@ -14,11 +14,14 @@ import {
   resolveShowcaseScreens,
 } from "@/components/projects/mock-screens/showcase-strip";
 import { WalkthroughPanel } from "@/components/projects/walkthrough-panel";
+import { AdminPanelMockup } from "@/components/sections/admin-panel-mockup";
+import { MultiTenantArchitecture } from "@/components/sections/multi-tenant-architecture";
 import {
   SectionNav,
   type SectionLink,
 } from "@/components/projects/section-nav";
 import { Reveal } from "@/components/reveal";
+import { CountUp } from "@/components/ui/count-up";
 import { getProject, getRelatedProjects, projects } from "@/data/projects";
 import { site } from "@/lib/site";
 import { ClosingCta } from "@/components/closing-cta";
@@ -68,7 +71,7 @@ export async function generateMetadata({
     return { title: "Project not found" };
   }
 
-  const title = `${project.name} — ${site.name}`;
+  const title = `${project.name} · ${site.name}`;
 
   return {
     title: project.name,
@@ -103,7 +106,7 @@ function Section({
   return (
     <Reveal>
       <section id={id} className="scroll-mt-24 border-t border-border pt-8">
-        <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+        <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
           {eyebrow}
         </p>
         <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
@@ -117,15 +120,51 @@ function Section({
 
 function Bullets({ items }: { items: string[] }) {
   return (
-    <ul className="flex max-w-2xl flex-col gap-3">
+    /* Native list markers instead of a decorative glyph: the bullet becomes a
+       marker rather than a character assistive tech has to skip. */
+    <ul className="flex max-w-2xl list-disc flex-col gap-3 pl-5">
       {items.map((item) => (
-        <li key={item} className="flex gap-3 text-sm">
-          <span aria-hidden="true" className="text-muted-foreground">
-            —
-          </span>
-          <span>{item}</span>
+        <li key={item} className="text-sm">
+          {item}
         </li>
       ))}
+    </ul>
+  );
+}
+
+/**
+ * Result lines with the figure counted up.
+ *
+ * The sentence is left exactly as the CV wrote it and only the number is
+ * replaced, so nothing about the claim changes and a reader who never sees the
+ * animation still reads the real figure. Counts that appear in the prose are
+ * the sourced ones: 88%, 60%, 50%, 40%, 35%, 30%.
+ */
+function ResultBullets({ items }: { items: string[] }) {
+  const percent = /(\d+(?:\.\d+)?)(\s*%)/;
+
+  return (
+    <ul className="flex max-w-2xl list-disc flex-col gap-3 pl-5">
+      {items.map((item) => {
+        const match = percent.exec(item);
+        if (!match) {
+          return (
+            <li key={item} className="text-sm">
+              {item}
+            </li>
+          );
+        }
+        const [full, value, suffix] = match;
+        const before = item.slice(0, match.index);
+        const after = item.slice(match.index + full.length);
+        return (
+          <li key={item} className="text-sm">
+            {before}
+            <CountUp value={Number(value)} suffix={suffix} />
+            {after}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -150,6 +189,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
   if (project.solution) sections.push({ id: "solution", title: "Solution" });
   if (project.features.length > 0)
     sections.push({ id: "features", title: "Key Features" });
+  if (project.multiTenant) {
+    sections.push({ id: "multi-tenant", title: "Multi-Tenant Architecture" });
+    sections.push({ id: "tenant-screens", title: "Tenant Screens" });
+  }
   if (project.technologies.length > 0)
     sections.push({ id: "stack", title: "Tech Stack" });
   if (project.contribution && project.contribution.length > 0)
@@ -187,7 +230,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
       {/* Hero */}
       <header className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4">
+        <Reveal className="flex flex-col gap-4">
           <ProjectBadges project={project} />
           <h1 className="font-heading text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">
             {project.name}
@@ -201,34 +244,40 @@ export default async function ProjectPage({ params }: { params: Params }) {
               {project.cvName}
             </p>
           )}
-        </div>
+        </Reveal>
 
         {/* Real capture in a type-appropriate frame, or the angled device
             cluster for a project whose screens are drawn, or the walkthrough.
             Never a mockup presented as a capture. The cluster leads with a
-            working screen — dashboard, transactions — never the sign-in. */}
-        {project.thumbnail ? (
-          <ProjectFrame
-            project={project}
-            priority
-            sizes="(max-width: 1024px) 100vw, 960px"
-            className={framed ? "max-w-64" : undefined}
-          />
-        ) : hasDevice(project) ? (
-          <div className="mx-auto w-full max-w-2xl">
-            <DevicePreview
+            working screen: dashboard, transactions, never the sign-in.
+            Scaled in rather than slid, because the artwork is the thing being
+            introduced. No parallax: scroll-linked motion on a full-bleed image
+            is a documented nausea trigger, and the progress bar already
+            answers "how far down am I". */}
+        <Reveal delay={90}>
+          {project.thumbnail ? (
+            <ProjectFrame
               project={project}
-              screenId={preferredScreen(project)}
+              priority
+              sizes="(max-width: 1024px) 100vw, 960px"
+              className={framed ? "max-w-64" : undefined}
             />
-          </div>
-        ) : (
-          <ProjectFrame
-            project={project}
-            priority
-            sizes="(max-width: 1024px) 100vw, 960px"
-            className={framed ? "max-w-64" : undefined}
-          />
-        )}
+          ) : hasDevice(project) ? (
+            <div className="mx-auto w-full max-w-2xl">
+              <DevicePreview
+                project={project}
+                screenId={preferredScreen(project)}
+              />
+            </div>
+          ) : (
+            <ProjectFrame
+              project={project}
+              priority
+              sizes="(max-width: 1024px) 100vw, 960px"
+              className={framed ? "max-w-64" : undefined}
+            />
+          )}
+        </Reveal>
 
         <ProjectCtas project={project} size="lg" hideCaseStudy />
       </header>
@@ -268,6 +317,26 @@ export default async function ProjectPage({ params }: { params: Params }) {
             </Section>
           )}
 
+          {project.multiTenant && (
+            <>
+              <Section
+                id="multi-tenant"
+                eyebrow="Platform"
+                title="Multi-Tenant Architecture"
+              >
+                <MultiTenantArchitecture project={project} />
+              </Section>
+
+              <Section
+                id="tenant-screens"
+                eyebrow="Illustration"
+                title="Multi-Tenant Screenshots"
+              >
+                <AdminPanelMockup project={project} />
+              </Section>
+            </>
+          )}
+
           {project.technologies.length > 0 && (
             <Section id="stack" eyebrow="Built with" title="Tech Stack">
               <TechStack technologies={project.technologies} />
@@ -284,7 +353,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
               <dl className="grid gap-6 sm:grid-cols-2">
                 {project.contribution.map((item) => (
                   <div key={item.area}>
-                    <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+                    <dt className="text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">
                       {item.area}
                     </dt>
                     <dd className="mt-2 text-sm">{item.detail}</dd>
@@ -321,7 +390,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
           {project.results && project.results.length > 0 && (
             <Section id="results" eyebrow="Outcome" title="Results">
-              <Bullets items={project.results} />
+              <ResultBullets items={project.results} />
             </Section>
           )}
 
@@ -346,7 +415,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
             id="showcase"
             className="scroll-mt-24 border-t border-border pt-8"
           >
-            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+            <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
               {hasRecreations ? "Design reference" : "Product"}
             </p>
             <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
@@ -375,7 +444,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
               id="walkthrough"
               className="scroll-mt-24 border-t border-border pt-8"
             >
-              <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+              <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
                 How it works
               </p>
               <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
@@ -400,7 +469,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           >
             {/* More Projects is full container width and sits OUTSIDE the
                 case study grid, like the ClosingCta below it. */}
-            <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-brand uppercase">
+            <p className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
               Keep going
             </p>
             <h2 className="mt-1.5 font-heading text-xl font-semibold tracking-[-0.015em]">
@@ -435,7 +504,7 @@ function TechStack({
     <dl className="grid gap-6 sm:grid-cols-2">
       {visible.map((group) => (
         <div key={group.category}>
-          <dt className="text-[0.6875rem] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+          <dt className="text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">
             {group.category}
           </dt>
           <dd className="mt-2">

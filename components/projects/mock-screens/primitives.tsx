@@ -617,13 +617,16 @@ export function BottomNav({
   active: string;
 }) {
   return (
-    <nav
-      aria-label="Primary"
+    // A div, not a <nav>. Every recreation is wrapped in `role="img"`, so this
+    // row is a picture of a tab bar rather than a landmark, and axe correctly
+    // reported it as a duplicate "Primary" navigation next to the real one.
+    <div
       className="flex shrink-0 items-center border-t px-3"
       style={{
         height: NAV_HEIGHT,
         borderColor: tokens.outline,
         background: tokens.surface,
+        color: tokens.onSurface,
       }}
     >
       {items.map((item) => {
@@ -660,7 +663,7 @@ export function BottomNav({
           </span>
         );
       })}
-    </nav>
+    </div>
   );
 }
 
@@ -690,10 +693,10 @@ export function Field({
   return (
     <label className="flex flex-col gap-1.5">
       {label ? (
-        <span className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
-          {label}
-        </span>
-      ) : null}
+          <span className={TYPE.label} style={{ color: tokens.onSurfaceVariant }}>
+            {label}
+          </span>
+        ) : null}
       <span
         className="flex min-h-13 items-center gap-2.5 border px-3"
         style={{

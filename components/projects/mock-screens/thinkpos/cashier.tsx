@@ -62,8 +62,12 @@ export function ThinkPosCashier() {
                 style={{ background: t.surfaceHigh }}
               />
               <p className={`${TYPE.body} font-medium`}>{product.name}</p>
+              {/* A price never wraps: "Rp 150.000" broken across two lines reads
+                  as two numbers. At body size it is 80px in a 78px column, so
+                  it sits one step down at label size, which is also how the
+                  drawing reads at card scale. */}
               <p
-                className={`${TYPE.body} mt-0.5 font-semibold tabular-nums`}
+                className={`${TYPE.label} mt-0.5 font-semibold whitespace-nowrap tabular-nums`}
                 style={{ color: t.primary }}
               >
                 {rupiah(product.price)}
@@ -114,10 +118,15 @@ export function ThinkPosCashier() {
         </SectionCard>
       </Screen>
 
-      {/* Sticky cart bar, from the same file's mobile summary. */}
+      {/* Sticky cart bar, from the same file's mobile summary.
+
+          `color` is set here because this bar is a sibling of <Screen>, not a
+          child of it: <Screen> is what gives every other element in this
+          recreation its ink, so without it this bar inherited the portfolio's
+          pale foreground and drew dark-on-dark text on its own white surface. */}
       <div
         className="flex shrink-0 items-center gap-3 border-t px-5 py-3"
-        style={{ borderColor: t.outline, background: t.surface }}
+        style={{ borderColor: t.outline, background: t.surface, color: t.onSurface }}
       >
         <div className="min-w-0 flex-1">
           <Caption tokens={t}>{count} item</Caption>

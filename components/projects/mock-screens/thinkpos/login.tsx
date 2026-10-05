@@ -20,9 +20,12 @@ export function ThinkPosLogin() {
   return (
     <div
       className="flex h-full items-center justify-center p-6"
-      style={{ background: t.background }}
+      style={{ background: t.background, color: t.onSurface }}
     >
-      <div className="flex w-full flex-col gap-6 p-6" style={{ background: t.surface, borderRadius: 20, border: `1px solid ${t.outline}` }}>
+      {/* `color` on the white card, not just the outer surface: this screen does
+          not go through <Screen>, so without it the heading inherited the
+          portfolio's pale foreground and sat at 1.23:1 on white. */}
+      <div className="flex w-full flex-col gap-6 p-6" style={{ background: t.surface, color: t.onSurface, borderRadius: 20, border: `1px solid ${t.outline}` }}>
         <span
           aria-hidden="true"
           className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl"

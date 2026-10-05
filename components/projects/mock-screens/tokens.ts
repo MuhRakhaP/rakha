@@ -21,15 +21,15 @@ export interface ScreenTokens {
   onPrimary: string;
   primaryContainer: string;
   onPrimaryContainer: string;
-  /** Very light wash used behind a strip card, so the row reads as one band. */
-  accentWash: string;
   /**
-   * Slightly deeper warm tone used at the top of the card's media box, so the
-   * device cluster sits on a warm gradient rather than on the app's own cool
-   * palette. The card chrome is warm across every project; the screens inside
-   * the devices keep their authentic colours.
+   * The surface the app screens are drawn on.
+   *
+   * These describe the app itself, not the page: the real apps are light apps,
+   * so a drawn screen stays light and repainting it dark to match the site
+   * would misrepresent the product. The neutrals below are therefore the app's
+   * own greys, kept free of any warm cast, because a warm cream field against a
+   * blue-black page reads as a different theme rather than as a light app.
    */
-  cardWash: string;
   background: string;
   surface: string;
   surfaceHigh: string;
@@ -47,55 +47,48 @@ export interface ScreenTokens {
 }
 
 const THINKPOS: ScreenTokens = {
+  // THINKPOS is a blue app, so its drawn screens are cool greys. Its accent
+  // used to be a navy stage, which is gone with the per-project card wash.
   primary: "#2563EB",
   onPrimary: "#FFFFFF",
   primaryContainer: "#E0EBFF",
   onPrimaryContainer: "#0B3EA8",
-  // Warm beige card, a step deeper than CLOCKORA's cream so the two mobile
-  // cards read as two shades of the same warm family rather than one flat
-  // colour. The screen surfaces are warmed to match, so the phone reads warm
-  // end to end instead of cool with a beige frame.
-  accentWash: "#F3EBDD",
-  cardWash: "#E8DCC8",
-  background: "#F7F2EA",
+  background: "#F5F7FA",
   surface: "#FFFFFF",
-  surfaceHigh: "#F0EAE0",
+  surfaceHigh: "#EDF1F7",
   onSurface: "#111827",
   onSurfaceVariant: "#4B5563",
-  outline: "#E4DDD0",
+  outline: "#E2E7EF",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EFE9DF",
-  onNeutral: "#4A4438",
+  neutral: "#EDF1F7",
+  onNeutral: "#3F4754",
 };
 
 const CLOCKORA: ScreenTokens = {
+  // Violet is the app's own primary, kept as the only violet on the card.
   primary: "#4A148C",
   onPrimary: "#FFFFFF",
   primaryContainer: "#EADDFF",
   onPrimaryContainer: "#31005C",
-  // Warm cream, lighter than THINKPOS's beige. Screen surfaces warmed to
-  // match, so the card reads warm rather than cool with a cream frame.
-  accentWash: "#FBF7F1",
-  cardWash: "#F1E9DB",
-  background: "#FAF6F0",
+  background: "#F7F6FA",
   surface: "#FFFFFF",
-  surfaceHigh: "#F3EEE6",
+  surfaceHigh: "#F0EEF7",
   onSurface: "#1A1A1A",
   onSurfaceVariant: "#4A4553",
-  outline: "#E8E1D4",
+  outline: "#E5E2EF",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#F2EDE5",
-  onNeutral: "#4A4438",
+  neutral: "#F0EEF7",
+  onNeutral: "#464050",
 };
 
 const TERAHOME: ScreenTokens = {
@@ -103,47 +96,45 @@ const TERAHOME: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#F6E9E1",
   onPrimaryContainer: "#6B2A0C",
-  accentWash: "#EFE6DC",
-  cardWash: "#E3D5C2",
-  background: "#FAF9F7",
+  background: "#F7F8FA",
   surface: "#FFFFFF",
-  surfaceHigh: "#F1EFEA",
+  surfaceHigh: "#EFF1F5",
   onSurface: "#0F172A",
-  onSurfaceVariant: "#4A4540",
-  outline: "#E2DED5",
+  onSurfaceVariant: "#454B55",
+  outline: "#E3E6EC",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EFEDE7",
-  onNeutral: "#443F38",
+  neutral: "#EFF1F5",
+  onNeutral: "#3F4754",
 };
 
-/** KOPIFLOW — web app with no captured screens yet; warm sand card. */
+/** KOPIFLOW: same neutral surfaces as TERAHOME, so two warm-brand apps agree. */
 const KOPIFLOW: ScreenTokens = {
   primary: "#A14216",
   onPrimary: "#FFFFFF",
   primaryContainer: "#F6E9E1",
   onPrimaryContainer: "#6B2A0C",
-  accentWash: "#F3EADF",
-  cardWash: "#E8DAC4",
-  background: "#FAF9F7",
+  background: "#F7F8FA",
   surface: "#FFFFFF",
-  surfaceHigh: "#F1EFEA",
+  surfaceHigh: "#EFF1F5",
   onSurface: "#0F172A",
-  onSurfaceVariant: "#4A4540",
-  outline: "#E2DED5",
+  onSurfaceVariant: "#454B55",
+  outline: "#E3E6EC",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EFEDE7",
-  onNeutral: "#443F38",
+  neutral: "#EFF1F5",
+  onNeutral: "#3F4754",
 };
+
+/** Outstanding Delivery Automation: no UI of its own, so it borrows the same. */
 
 /** Outstanding Delivery Automation — backend with no UI; warm grey card. */
 const OUTSTANDING: ScreenTokens = {
@@ -151,22 +142,20 @@ const OUTSTANDING: ScreenTokens = {
   onPrimary: "#FFFFFF",
   primaryContainer: "#F6E9E1",
   onPrimaryContainer: "#6B2A0C",
-  accentWash: "#EAE6E1",
-  cardWash: "#DCD5CA",
-  background: "#FAF9F7",
+  background: "#F7F8FA",
   surface: "#FFFFFF",
-  surfaceHigh: "#F1EFEA",
+  surfaceHigh: "#EFF1F5",
   onSurface: "#0F172A",
-  onSurfaceVariant: "#4A4540",
-  outline: "#E2DED5",
+  onSurfaceVariant: "#454B55",
+  outline: "#E3E6EC",
   success: "#DCFCE7",
   onSuccess: "#14532D",
   warning: "#FEF3C7",
   onWarning: "#78350F",
   error: "#FEE2E2",
   onError: "#7F1D1D",
-  neutral: "#EFEDE7",
-  onNeutral: "#443F38",
+  neutral: "#EFF1F5",
+  onNeutral: "#3F4754",
 };
 
 /** Tokens by project slug, resolved through the registry, never by name. */
@@ -210,6 +199,10 @@ export const TYPE = {
   body: "text-sm",
   label: "text-xs",
   /** Short all-caps chips only, never a sentence or a list label. */
+  // 11px, not the site's 12px floor. These are drawn app screens, and the
+  // visual-check harness measures them at their own floor (`size < 11`) and
+  // fails `recreation-no-wrapped-label` the moment a chip grows a point and
+  // starts wrapping inside a phone-width card. Fidelity to the app wins here.
   chip: "text-[0.6875rem] uppercase tracking-wide",
   metric: "text-[1.75rem] leading-none font-semibold tabular-nums",
   metricSm: "text-lg leading-none font-semibold tabular-nums",

@@ -46,8 +46,11 @@ export function BrowserFrame({
         )}
       </div>
 
-      {/* Real screenshot. Sizing is the caller's business via next/image. */}
-      <div className="overflow-hidden bg-background">{children}</div>
+      {/* Real screenshot. Sizing is the caller's business via next/image.
+          `max-w-full` keeps a 1440px capture inside a narrower frame: the img
+          carries intrinsic dimensions, so without this the frame is widened by
+          its content rather than the image being scaled to the frame. */}
+      <div className="max-w-full overflow-hidden bg-background">{children}</div>
     </div>
   );
 }

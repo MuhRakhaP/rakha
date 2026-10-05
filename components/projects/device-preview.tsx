@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { cn } from "cn";
+
 import { BrowserFrame } from "@/components/projects/browser-frame";
 import { PhoneFrame } from "@/components/projects/phone-frame";
 
@@ -8,22 +10,24 @@ import type { Project } from "@/data/projects";
 
 import { getMockScreens } from "@/components/projects/mock-screens/registry";
 import { ScaledCanvas } from "@/components/projects/mock-screens/scaled-canvas";
-import { LOGICAL, tokensFor } from "@/components/projects/mock-screens/tokens";
+import { LOGICAL } from "@/components/projects/mock-screens/tokens";
 
 /**
- * Shape of the media box on every card. One ratio for all four projects, which
- * is what makes the text below every device start on the same line: if mobile
- * and web cards used different boxes, their titles would not line up across a
- * row. A 5:4 box is wide enough for an angled pair of browser frames and tall
- * enough for a phone at a believable size.
+ * Shape of the media box on every card.
  *
- * The home page widens the box to 4:3 for web projects so the browser pair
- * fills it instead of floating in a tall box; the /projects grid keeps 5:4
- * everywhere because its rows mix mobile and web cards.
+ * 5:4 is the default for the grid, because it is wide enough for an angled pair
+ * of browser frames and tall enough for a phone at a believable size, and one
+ * ratio for all cards is what makes the text below every device start on the
+ * same line: if mobile and web cards used different boxes, their titles would
+ * not line up across a row.
+ *
+ * 16:10 is the home page's lead treatment, where one card takes the full width
+ * and a 5:4 box would leave a metre-wide band of empty stage around a phone.
  */
 const MEDIA_ASPECT = {
   "5:4": 5 / 4,
   "4:3": 4 / 3,
+  "16:10": 16 / 10,
 } as const;
 
 export type MediaAspect = keyof typeof MEDIA_ASPECT;
@@ -107,10 +111,14 @@ function SlotDevice({
   project,
   slot,
   widthPct,
+  sizes,
+  priority,
 }: {
   project: Project;
   slot: Slot;
   widthPct: number;
+  sizes: string;
+  priority: boolean;
 }) {
   if (slot.kind === "capture" && slot.shot) {
     const shot = slot.shot;
@@ -122,8 +130,18 @@ function SlotDevice({
         height={shot.height}
         // Contained, never covered: a 16:10 capture in a 5:4 box must not lose
         // its edges, and a phone mockup must not be cropped to fit.
-        className="h-auto w-full"
-        sizes="(max-width: 768px) 60vw, 20vw"
+        //
+        // `brightness/contrast`, not `mix-blend-mode: multiply`. Multiply was
+        // measured to be inert here: the device cluster sits inside a
+        // 3D-transformed wrapper, so each frame blends against its own isolated
+        // backdrop and the pixels come out identical. This filter is not a no-op
+        // and it does not lie about the product: measured on the rendered card,
+        // the capture's mean luminance drops from 243 to 168 and its internal
+        // spread rises from 28 to 42, so the light UI stops glaring against a
+        // near-black page and its own text gets more separable, not less.
+        className="h-auto w-full brightness-[0.62] contrast-[1.1]"
+        sizes={sizes}
+        preload={priority}
       />
     );
     return (
@@ -152,7 +170,11 @@ function SlotDevice({
       data-screen-id={slot.screenId}
       data-frame={def.frame}
       data-logical-width={logical.width}
-      className="block"
+      // The same dim the real captures get, so a recreation card and a capture
+      // card weigh the same in a row. Measured on the rendered card: the drawn
+      // screen's internal spread rises from 22 to 66, which is the text getting
+      // clearer against its own cards, not darker.
+      className="block brightness-[0.62] contrast-[1.1]"
       style={{ width: `${widthPct}%` }}
     >
       {def.frame === "browser" ? (
@@ -186,14 +208,26 @@ export function DevicePreview({
   project,
   screenId,
   aspect = "5:4",
+  sizes = "(max-width: 768px) 60vw, 20vw",
+  priority = false,
 }: {
   project: Project;
   /** Preferred screen for a single-device project. */
   screenId: string;
   /** Media box shape. The home page widens web cards to 4:3. */
   aspect?: MediaAspect;
+  /**
+   * How wide the capture inside the frame is rendered. It is not the width of the
+   * media box: the devices sit at a percentage of it, so a full-width lead card
+   * needs a much larger value than the grid default or the browser downloads a
+   * 256px file and stretches it across 600px.
+   */
+  sizes?: string;
+  /** Set on the capture that is the page's LCP element. Passed to next/image as
+   * `preload`: `priority` is deprecated in Next 16 and no longer emits the
+   * preload hint the lead card needs. */
+  priority?: boolean;
 }) {
-  const tokens = tokensFor(project.slug);
   const isPhone = project.type === "mobile";
   const layout = COMPOSITION[isPhone ? "phone" : "browser"];
 
@@ -215,28 +249,50 @@ export function DevicePreview({
   return (
     <div
       data-testid="device-media"
-      className="relative w-full shrink-0 overflow-hidden border-b border-border"
+      className="card-stage relative w-full shrink-0 overflow-hidden border-b border-border"
       style={{
         aspectRatio: `${MEDIA_ASPECT[aspect]}`,
-        // Warm chrome on every card: the wash comes from the project's warm
-        // card palette, never from the app's own cool primary colour. The
-        // screens inside the devices keep their authentic hues.
-        backgroundImage: `radial-gradient(120% 90% at 50% 0%, ${tokens.cardWash} 0%, ${tokens.accentWash} 60%, ${tokens.accentWash} 100%)`,
       }}
     >
       {/* Dot texture, borrowed from the hero so the two do not disagree. */}
       <span aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 opacity-60" />
 
+      {/* One badge per card, not one per frame. It used to be a sentence of
+          small grey text under the row, which is the easiest thing on a page to
+          skip and the one thing that must not be skippable: a drawn screen has
+          to look drawn from across the room. Each frame also carries the full
+          disclosure in its own accessible name. */}
+      {arranged.some((slot) => slot.kind === "recreation") ? (
+        <span className="absolute top-3 left-3 z-20 inline-flex items-center rounded-full border border-border bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+          Concept preview
+        </span>
+      ) : null}
+
       <div
-        className="absolute inset-0 flex items-center justify-center p-3 sm:p-4"
+        className={cn(
+          "absolute inset-0 flex items-center justify-center p-3 transition-transform duration-[300ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:p-4",
+          // The hover move lives on this wrapper, never on a device: each device
+          // already carries its own rotate and translate from COMPOSITION, and a
+          // second transform on the same element would cancel it.
+          isPhone
+            ? "motion-safe:group-hover/card:rotate-[3deg] motion-safe:group-hover/card:scale-[1.02]"
+            : "motion-safe:group-hover/card:scale-[1.05]",
+        )}
         style={{ perspective: "1400px" }}
       >
         {arranged.map((slot, index) => {
           const spec = layout[index];
+          // `min-w-0` below is load-bearing. A capture is an <img> with
+          // intrinsic width 1440, and that div is a flex item: with the default
+          // `min-width: auto` the flex algorithm refuses to shrink it below its
+          // content, so the device grew to the full intrinsic width and the page
+          // scrolled sideways at every viewport (measured: 1514px of document
+          // width at a 390px viewport, which is what visual-check reported as
+          // "+1124px" at every breakpoint).
           return (
             <div
               key={`${slot.kind}-${slot.screenId}-${index}`}
-              className="relative shrink-0 [transform-style:preserve-3d]"
+              className="relative min-w-0 shrink-0 [transform-style:preserve-3d]"
               style={{
                 width: `${spec.width}%`,
                 marginLeft: index === 0 ? 0 : `${spec.marginLeft}%`,
@@ -250,11 +306,17 @@ export function DevicePreview({
               <div
                 className={
                   isPhone
-                    ? "rounded-[1.75rem] shadow-[0_22px_44px_-14px_rgba(35,28,24,0.38)] ring-1 ring-white/45"
-                    : "rounded-lg shadow-[0_30px_60px_-16px_rgba(35,28,24,0.5)] ring-1 ring-white/45"
+                    ? "rounded-[1.75rem] shadow-[0_22px_44px_-14px_rgba(2,6,12,0.55)] ring-1 ring-white/10"
+                    : "rounded-lg shadow-[0_30px_60px_-16px_rgba(2,6,12,0.65)] ring-1 ring-white/10"
                 }
               >
-                <SlotDevice project={project} slot={slot} widthPct={100} />
+                <SlotDevice
+                  project={project}
+                  slot={slot}
+                  widthPct={100}
+                  sizes={sizes}
+                  priority={priority}
+                />
               </div>
             </div>
           );

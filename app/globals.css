@@ -7,47 +7,77 @@
 :root {
   --radius: 0.625rem;
 
-  /* Warm neutral palette. Hex equivalents in comments. */
-  --background: oklch(0.9771 0.0074 80.72); /* #FAF7F2 */
-  --foreground: oklch(0.2225 0.0098 52.96); /* #1F1A17 */
-  --card: oklch(0.9508 0.0119 79.78); /* #F3EEE6 */
-  --card-foreground: oklch(0.2225 0.0098 52.96);
-  --popover: oklch(0.9508 0.0119 79.78);
-  --popover-foreground: oklch(0.2225 0.0098 52.96);
-  --primary: oklch(0.2225 0.0098 52.96);
-  --primary-foreground: oklch(0.9771 0.0074 80.72);
-  --secondary: oklch(0.9355 0.0125 79.5);
-  --secondary-foreground: oklch(0.2225 0.0098 52.96);
-  --muted: oklch(0.9508 0.0119 79.78);
-  --muted-foreground: oklch(0.5018 0.0181 67.4); /* #6B6259 */
-  --accent: oklch(0.9355 0.0125 79.5);
-  --accent-foreground: oklch(0.2225 0.0098 52.96);
-  --destructive: oklch(0.5 0.19 27.325);
-  --border: oklch(0.8998 0.0179 81.33); /* #E4DDD1 */
-  --input: oklch(0.8998 0.0179 81.33);
+  /* Deep Space palette. Every pair below was run through the antislop-human
+     contrast checker rather than eyeballed:
+       #E5E7EB on #0A0E1A  15.55  body text
+       #9CA3AF on #0A0E1A   7.58  muted text
+       #9CA3AF on #161B22   6.81  muted text on a card
+       #E5E7EB on #161B22  13.97  body text on a card
+       #3B82F6 on #0A0E1A   5.24  accent text and links
+       #3B82F6 on #161B22   4.70  accent text on a card
+       #0A0E1A on #3B82F6   5.24  primary button label
+     The last one is the reason --primary-foreground is the background colour and
+     not white: white on #3B82F6 is 3.68 and fails AA for normal text. */
+  --background: #0a0e1a;
+  --foreground: #e5e7eb;
+  --card: #161b22;
+  --card-foreground: #e5e7eb;
+  --popover: #161b22;
+  --popover-foreground: #e5e7eb;
+  --primary: #3b82f6;
+  --primary-foreground: #0a0e1a;
+  --secondary: #1c2230;
+  --secondary-foreground: #e5e7eb;
+  --muted: #161b22;
+  --muted-foreground: #9ca3af;
+  --accent: #1e2635;
+  --accent-foreground: #e5e7eb;
+  --destructive: #f87171;
+  --border: #21262d;
+  --input: #21262d;
 
-  /* Accent: terracotta, used only in response states — hover, focus, active.
-     Verified against the warm surfaces above:
-       on --background 5.94 · on --brand-weak 5.34
-       white text on --brand 6.35 · vs --border 4.71 (UI floor 3.0)
-     Focus rings are solid — never `ring-ring/50`, which composites below 3:1. */
-  --brand: oklch(0.5 0.135 41.94); /* #A14216 */
-  --brand-weak: oklch(0.9421 0.0178 53.97); /* #F6E9E1 */
-  --ring: oklch(0.5 0.135 41.94);
+  /* Accent pair. Blue carries interaction on its own; purple is the second end
+     of the gradient and is never used for body copy, where it would sit at
+     4.55 and only just clear AA. */
+  --brand: #3b82f6;
+  --brand-2: #8b5cf6;
+  --brand-weak: #16233d;
+  /* The accent on a surface it is also tinting. `text-brand` on `--brand-weak`
+     measures 4.25 and fails AA for normal text, which is exactly where the
+     selected filter chip and the walkthrough step number put it. #60A5FA is 6.16
+     on `--brand-weak` and 7.57 on the background, so the accent survives. */
+  --brand-lift: #60a5fa;
+  --ring: #3b82f6;
+  --glow: rgb(59 130 246 / 0.15);
 
-  --chart-1: oklch(0.87 0.01 80);
-  --chart-2: oklch(0.6 0.015 70);
-  --chart-3: oklch(0.5 0.018 67);
-  --chart-4: oklch(0.42 0.016 60);
-  --chart-5: oklch(0.32 0.012 55);
-  --sidebar: oklch(0.9771 0.0074 80.72);
-  --sidebar-foreground: oklch(0.2225 0.0098 52.96);
-  --sidebar-primary: oklch(0.2225 0.0098 52.96);
-  --sidebar-primary-foreground: oklch(0.9771 0.0074 80.72);
-  --sidebar-accent: oklch(0.9355 0.0125 79.5);
-  --sidebar-accent-foreground: oklch(0.2225 0.0098 52.96);
-  --sidebar-border: oklch(0.8998 0.0179 81.33);
-  --sidebar-ring: oklch(0.5 0.135 41.94);
+  /* The availability dot and the badge that carries it. A real status the owner
+     supplies, so it is a real token: #10B981 on #0A0E1A is 7.59, on a card
+     6.82. It was previously written as a hex literal in the hero and as
+     `bg-success` in a component, which resolved to nothing at all because no
+     `--color-success` existed. */
+  --success: #10b981;
+
+  /* Border for form controls only.
+     --border at #21262D is 1.27 on the background, which is right for a hairline
+     separating two surfaces and wrong for a control someone has to find: WCAG
+     1.4.11 asks 3:1 of any boundary that carries information. #6F7A8A is 4.43,
+     so it clears the bar with room to spare. Card and section hairlines keep
+     --border, because raising those too would outline the whole page. */
+  --control-border: #6f7a8a;
+
+  --chart-1: #3b82f6;
+  --chart-2: #8b5cf6;
+  --chart-3: #22d3ee;
+  --chart-4: #a78bfa;
+  --chart-5: #64748b;
+  --sidebar: #0a0e1a;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #0a0e1a;
+  --sidebar-accent: #1e2635;
+  --sidebar-accent-foreground: #e5e7eb;
+  --sidebar-border: #21262d;
+  --sidebar-ring: #3b82f6;
 }
 
 @theme inline {
@@ -70,7 +100,11 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
   --color-brand-weak: var(--brand-weak);
+  --color-brand-lift: var(--brand-lift);
+  --color-success: var(--success);
+  --color-control-border: var(--control-border);
 
   --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -78,8 +112,35 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-heading: var(--font-sans);
+
+  /* Archivo for display, Inter for reading. They are different jobs: Inter's
+     wide counters and tall x-height are what keep 16px body copy legible in the
+     muted grey this site uses, and Archivo is what carries a 56px name without
+     going soft. One font for both sizes would have cost one of the two. */
+  --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Vertical rhythm, one value for every section on every page.
+     `py-section` is the whole rule. Sections used to carry `pt-24` plus a
+     `gap-24` on the parent, which meant the space between two sections was one
+     value plus a second value, and a section could inherit two rhythms at once.
+     72px on a phone, 128px on a desktop, fluid between: tall enough that a
+     section reads as its own band, short enough that a phone does not scroll
+     through three screens of nothing to reach the next heading. */
+  --spacing-section: clamp(4.5rem, 3rem + 6vw, 8rem);
+
+  /* Display scale. The hero lands at 56px on a wide screen and 40px on a
+     phone; the step below it holds section titles at 40px. Everything is fluid
+     rather than pinned, so a 320px viewport still gets a readable headline
+     instead of a clipped one. */
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 3.5rem);
+  --text-title: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  /* Section titles sit one clear step below a page title and one clear step
+     above a card title, which is at text-base. This used to be 1.25 to 1.5rem,
+     barely wider than the body copy it was supposed to be organising. */
+  --text-section: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -105,10 +166,45 @@
 
   body {
     @apply bg-background text-foreground;
+    /* 1.6 on body copy, per the type spec. Component-level leading still wins
+       where a heading needs to sit tighter. */
+    line-height: 1.6;
+    /* Deep space is a dark ground, so the browser paints the gap between page
+       and chrome to match rather than flashing white. */
+    color-scheme: dark;
   }
 
   html {
     @apply font-sans;
+  }
+
+  /* One long word at large text sizes would otherwise set the min-content width
+     of the grid track it sits in, which widens the track past the viewport and
+     pushes the whole page sideways. WCAG 1.4.4 asks for 200% text without loss
+     of content, and this is the one place a heading can lose it.
+
+     `anywhere` and not `break-word`: a grid track is sized from its items'
+     min-content, and `break-word` deliberately does not lower min-content, so
+     it fixes nothing here. `anywhere` does, and it still only breaks a word
+     when the word genuinely does not fit. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: anywhere;
+  }
+
+  /* The base layer sits on the body so every page gets it, rather than each
+     page re-declaring its own background. Four stacked radial washes over the
+     base colour: two at 5%, one at 3%, all inside the site palette, so the
+     page reads as deep space rather than as a flat dark rectangle. */
+  body {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgb(59 130 246 / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 85% 80%, rgb(139 92 246 / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgb(16 185 129 / 0.03) 0%, transparent 60%);
+    background-attachment: fixed;
   }
 
   /* Respect reduced-motion: disable transitions, not content. */
@@ -133,16 +229,168 @@
 }
 
 @layer components {
-  /* Hero backdrop: a faint dot grid with a single soft accent wash.
-     No gradient mesh, no glass, no 3D. */
+  /* The stage every device cluster sits on, one value for all projects.
+     Per-project stages were the reason six cards read as six themes: warm brown
+     beside navy beside violet. It sits one step darker than the card so the
+     media box reads as a recess rather than as a second surface. */
+  .card-stage {
+    background-color: #10151d;
+    background-image: radial-gradient(
+      120% 90% at 50% 0%,
+      #172033 0%,
+      #10151d 62%
+    );
+  }
+
+  /* Depth for the long sections. One wash per section, anchored to the two
+     corners the content does not reach, at 5% and 4%: enough that a reader
+     scrolling sees separate bands instead of one flat sheet, low enough that no
+     section reads as tinted. Same two hues and the same ceiling as the body
+     wash above, so it reads as one system rather than a second decoration. */
+  .section-wash {
+    background-image:
+      radial-gradient(70% 55% at 0% 0%, rgb(59 130 246 / 0.05) 0%, transparent 70%),
+      radial-gradient(60% 50% at 100% 100%, rgb(139 92 246 / 0.04) 0%, transparent 72%);
+  }
+
+  /* Grid, fixed to the viewport so it does not scroll with the content.
+     56px cells at 1.2% white, masked out by 45% of the viewport: enough to
+     give the dark ground a scale, not enough to read behind a dense list. The
+     hero gets the louder grid it asked for, in `.hero-grid`, because that is
+     the one screen where the pattern is the composition. */
+  .page-grid {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.012) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: linear-gradient(#000 0%, rgb(0 0 0 / 0.35) 26%, transparent 45%);
+    mask-image: linear-gradient(#000 0%, rgb(0 0 0 / 0.35) 26%, transparent 45%);
+  }
+
+  /* Film grain, as an inline SVG turbulence. Static, at 2.5%, and it covers
+     the whole viewport once. Its only job is to stop the large flat dark areas
+     from banding on cheap panels. */
+  .noise-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.025;
+  }
+
+  /* The slow aurora. Three colour fields on one element, moved by animating
+     background-position across a box twice its own width, so the movement
+     never shows an edge. 28s, which is slow enough to read as drifting light
+     rather than as an animation. */
+  .aurora {
+    background-image:
+      radial-gradient(40% 45% at 20% 30%, rgb(59 130 246 / 0.16) 0%, transparent 70%),
+      radial-gradient(35% 40% at 75% 60%, rgb(139 92 246 / 0.14) 0%, transparent 70%),
+      radial-gradient(45% 35% at 50% 85%, rgb(16 185 129 / 0.09) 0%, transparent 70%);
+    background-size: 200% 200%;
+    filter: blur(40px);
+  }
+
+  /* Pointer sheen across a project card.
+     Position comes from two custom properties the card writes on pointermove,
+     defaulting to the centre so a keyboard-focused card with no pointer event
+     gets an even wash rather than a hotspot stuck in one corner. It sits under
+     the artwork, never over the type. */
+  .card-sheen {
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 50%),
+      var(--glow) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Accent bloom on the two things that are the call to action. Kept to the
+     button and the hero name so it reads as emphasis rather than decoration
+     sprayed over every surface. */
+  .glow-accent {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--brand) 55%, transparent),
+      0 8px 30px -8px var(--glow);
+  }
+
+  .glow-accent-strong {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--brand) 70%, transparent),
+      0 10px 40px -6px color-mix(in srgb, var(--brand) 38%, transparent);
+  }
+
+  /* Blue to purple on the display type. Applied to large text only: the purple
+     end is 4.55 against the background, which clears AA for a heading and
+     would be too close to call for body copy. */
+  .text-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--brand) 0%,
+      var(--brand-2) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Hero backdrop: a nebula wash under a faint dot grid, plus the pointer
+     bloom the hero writes --mx/--my on. */
+  .hero-wash {
+    background-image:
+      radial-gradient(
+        55% 50% at 50% 0%,
+        color-mix(in srgb, var(--brand) 22%, transparent) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        45% 40% at 82% 18%,
+        color-mix(in srgb, var(--brand-2) 20%, transparent) 0%,
+        transparent 72%
+      );
+  }
+
+  /* The bloom that follows the pointer across the hero. Separate from the
+     wash because it tracks the cursor and the wash does not. */
+  .hero-pointer-glow {
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 30%),
+      color-mix(in srgb, var(--brand) 16%, transparent) 0%,
+      transparent 70%
+    );
+  }
+
+  /* One star. The field is 28 of these, so the twinkle has to come from a
+     shared keyframe on a staggered delay rather than 28 animations. Opacity
+     only: no transform, no layout, nothing for the compositor to re-raster. */
+  .star {
+    position: absolute;
+    border-radius: 9999px;
+    background: var(--foreground);
+    animation: star-twinkle 4s ease-in-out infinite;
+  }
+
+  /* The hero role types itself once. `overflow: hidden` on an inline-block
+     clips the string one character at a time. No width is set here, so with
+     animation off the full role is simply present. */
+  .hero-role-type {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    /* An inline-block with hidden overflow reports its bottom edge as the
+       baseline, which drops it below the rest of the line. */
+    vertical-align: bottom;
+  }
+
   .hero-grid {
     background-image:
       radial-gradient(
         circle at 1px 1px,
-        color-mix(in oklch, var(--brand) 42%, transparent) 1px,
+        color-mix(in srgb, var(--brand) 34%, transparent) 1px,
         transparent 0
-      );
-    background-size: 20px 20px;
+      ),
+      linear-gradient(rgb(255 255 255 / 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.022) 1px, transparent 1px);
+    background-size:
+      22px 22px,
+      56px 56px,
+      56px 56px;
     -webkit-mask-image: radial-gradient(
       ellipse 85% 75% at 50% 0%,
       #000 0%,
@@ -155,5 +403,128 @@
       rgb(0 0 0 / 0.55) 55%,
       transparent 100%
     );
+  }
+}
+
+/* Hero motion.
+ *
+ * Both animations live in a `no-preference` block rather than relying on the
+ * reduced-motion reset above, so the reduced-motion case is the finished static
+ * state and not a first frame frozen by a collapsed duration.
+ *
+ * The wash is the only thing on the page that moves before you touch it. That
+ * is the reason it is here: it gives the hero one living gesture while every
+ * section below stays still until you scroll or hover. At 4% of travel over 36s
+ * it reads as a surface with light on it, not as an animation. */
+@keyframes hero-wash-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, 4%, 0) scale(1.08);
+  }
+}
+
+/* 18 steps for the 18 characters in the role string, so each step reveals one
+   character rather than an arbitrary slice of the width. The step count comes
+   from the component so it always matches the string it is clipping. */
+@keyframes hero-role-reveal {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Page entrance. One pass, fade plus a short rise, so a route change reads as
+   the new page arriving rather than as a fade through black. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The timeline marker announces its own arrival once, then stops. A dot that
+   pulses forever would be an endless loop competing with the content for
+   attention, and it marks no state. */
+@keyframes marker-arrive {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* A star brightening and fading. Opacity alone, so the compositor never has to
+   touch layout, and it stays inside 0.2 to 0.4 so the field reads as depth
+   rather than as sparkle. Negative delays put the field out of phase with
+   itself, which is what stops the stars pulsing together like one sign. */
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.page-enter,
+.marker-arrive {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation-name: page-enter;
+  }
+
+  .marker-arrive {
+    animation-name: marker-arrive;
+  }
+
+  /* Under reduced motion the field renders as a still scatter of points,
+     which is the intended composition minus the twinkle. */
+  .star {
+    opacity: 0.3;
+  }
+
+  .hero-wash {
+    animation: hero-wash-drift 36s ease-in-out infinite;
+  }
+
+  .aurora {
+    animation: aurora-drift 28s ease-in-out infinite;
+  }
+
+  .hero-role-type {
+    animation: hero-role-reveal var(--type-duration, 1800ms)
+      steps(var(--steps, 18), end) var(--type-delay, 150ms) both;
   }
 }

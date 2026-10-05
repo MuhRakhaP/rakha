@@ -25,6 +25,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Reveal } from "@/components/reveal";
 
 import type { Walkthrough } from "@/data/projects";
 
@@ -78,8 +79,9 @@ function stepIcon(line: string): LucideIcon {
  * The caption is permanent, visible, and exposed to assistive technology as a
  * note. The harness fails if a panel renders without it.
  *
- * Interaction lives only in the tabs, which are keyboard accessible and
- * honour prefers-reduced-motion.
+ * Interaction lives only in the tabs. The steps additionally reveal as they
+ * scroll into view, which Reveal does without moving focus and without any
+ * behaviour a keyboard user has to learn.
  */
 export function WalkthroughPanel({
   projectName,
@@ -123,34 +125,48 @@ export function WalkthroughPanel({
               {lines.length > 0 ? (
                 /* The flow: one node per step, joined by arrows. Horizontal on
                    sm+ so the steps read left to right; vertical on mobile so
-                   the text never gets squeezed or cut off. */
+                   the text never gets squeezed or cut off.
+                   Each step reveals on its own via Reveal, staggered 90ms
+                   apart. Stacked on mobile that is one at a time as the reader
+                   scrolls; in the horizontal row, where every step enters the
+                   viewport together, the stagger is what keeps them reading as
+                   a sequence instead of one block appearing at once. */
                 <ol className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-0">
                   {lines.map((line, i) => {
                     const Icon = stepIcon(line);
                     return (
                       <Fragment key={line}>
-                        <li className="flex flex-1 flex-col gap-2 rounded-lg border border-border bg-card/60 p-3">
-                          <div className="flex items-center gap-2">
-                            <span
-                              aria-hidden="true"
-                              className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-weak text-brand"
-                            >
-                              <Icon className="size-4" />
-                            </span>
-                            <span className="text-[0.6875rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                              Step {i + 1}
-                            </span>
-                          </div>
-                          <p className="text-sm text-foreground">{line}</p>
-                        </li>
-                        {i < lines.length - 1 ? (
-                          <li
-                            aria-hidden="true"
-                            className="flex shrink-0 items-center justify-center py-1 text-muted-foreground sm:px-1.5 sm:py-0"
-                          >
-                            <ArrowDown className="size-4 sm:hidden" />
-                            <ArrowRight className="hidden size-4 sm:block" />
+                        <Reveal className="flex-1" delay={i * 90}>
+                          <li className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card/60 p-3">
+                            <div className="flex items-center gap-2">
+                              <span
+                                aria-hidden="true"
+                                className="marker-arrive flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-weak text-brand-lift"
+                              >
+                                <Icon className="size-4" />
+                              </span>
+                              {/* The number pops on its own so the sequence reads
+                                  as counting up, not as four blocks appearing at
+                                  once. */}
+                              <Reveal variant="pop" delay={i * 90 + 60} className="inline-block">
+                                <span className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+                                  Step {i + 1}
+                                </span>
+                              </Reveal>
+                            </div>
+                            <p className="text-sm text-foreground">{line}</p>
                           </li>
+                        </Reveal>
+                        {i < lines.length - 1 ? (
+                          <Reveal className="shrink-0" delay={i * 90 + 45}>
+                            <li
+                              aria-hidden="true"
+                              className="flex items-center justify-center py-1 text-muted-foreground sm:px-1.5 sm:py-0"
+                            >
+                              <ArrowDown className="size-4 sm:hidden" />
+                              <ArrowRight className="hidden size-4 sm:block" />
+                            </li>
+                          </Reveal>
                         ) : null}
                       </Fragment>
                     );

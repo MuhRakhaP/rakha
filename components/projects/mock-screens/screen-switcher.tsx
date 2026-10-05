@@ -15,7 +15,7 @@ export interface ShowcaseItem {
 /**
  * The only client component in this feature.
  *
- * Layout follows the app-store screenshot pattern: one tinted card per screen,
+ * Layout follows the app-store screenshot pattern: one card per screen,
  * a short headline and a one-line subline above the device, and a single focus
  * per card. Headlines are supplied as data by `ShowcaseStrip`, which reads them
  * from the project's own documented features.
@@ -29,12 +29,9 @@ export interface ShowcaseItem {
 export function ScreenSwitcher({
   items,
   label,
-  accent,
 }: {
   items: ShowcaseItem[];
   label: string;
-  /** Warm wash behind every card, taken from the project's palette. */
-  accent: string;
 }) {
   const [active, setActive] = useState(0);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -86,7 +83,7 @@ export function ScreenSwitcher({
             data-screen-kind={item.kind}
             data-active={on ? "true" : "false"}
             className={[
-              "relative flex shrink-0 snap-start flex-col gap-3 rounded-2xl p-4 text-left",
+              "relative flex shrink-0 snap-start flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-left",
               "transition-transform motion-reduce:transition-none",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               item.width === "phone"
@@ -94,7 +91,6 @@ export function ScreenSwitcher({
                 : "w-[22rem] lg:w-[30rem]",
               on ? "z-10 lg:scale-105" : "z-0 lg:scale-95 lg:-mx-6",
             ].join(" ")}
-            style={{ background: accent }}
           >
             <span className="block">
               <span className="block text-sm leading-snug font-semibold text-foreground">
