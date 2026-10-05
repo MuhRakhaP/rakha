@@ -50,4 +50,4 @@ export const site = {
  * index the wrong address. Nothing else has to change when the real domain
  * arrives.
  */
-export const SITE_URL = "https://rakha.dev";
+export const SITE_URL = "https://mrakha.vercel.app";
