@@ -10,7 +10,15 @@
  *    week behind it is in `data/projects.ts` under the same project.
  *  - The system count is counted from the project data rather than typed, so
  *    adding a project updates it and it can never drift from what the page
- *    actually shows.
+ *    actually shows. It counts `status: "production"` only, so it reads 5 while
+ *    `projects` holds 6. A hand-written "6" here would have claimed six live
+ *    systems on the strength of one that is still in development.
+ *
+ * Three, not four. A fourth card would repeat the shape of the 88% one, since
+ * the 50% TERAHOME figure is the same claim about a different account, and the
+ * strip is three across from `sm` up, so a fourth entry strands one cell on its
+ * own row. If a fourth figure with a genuinely different shape is measured
+ * later, it goes in here.
  *
  * Nothing here is invented, and nothing is a placeholder. If a figure stops
  * being true, delete the entry rather than softening the wording: an empty

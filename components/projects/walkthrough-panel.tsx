@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -130,14 +129,25 @@ export function WalkthroughPanel({
                    apart. Stacked on mobile that is one at a time as the reader
                    scrolls; in the horizontal row, where every step enters the
                    viewport together, the stagger is what keeps them reading as
-                   a sequence instead of one block appearing at once. */
-                <ol className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-0">
+                   a sequence instead of one block appearing at once.
+
+                   The <li> is the child of the <ol>, not the Reveal that wraps
+                   its contents. Putting the wrapper outside made every item an
+                   orphan: the browser dropped the list semantics entirely, so a
+                   screen reader announced the steps as loose paragraphs and
+                   announced "list, 4 items" over nothing. The arrow is a plain
+                   span inside the preceding item, because an arrow is not a
+                   step and must not be counted as one. */
+                <ol className="flex list-none flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-0">
                   {lines.map((line, i) => {
                     const Icon = stepIcon(line);
                     return (
-                      <Fragment key={line}>
+                      <li
+                        key={line}
+                        className="flex flex-1 list-none flex-col items-stretch sm:flex-row sm:items-stretch"
+                      >
                         <Reveal className="flex-1" delay={i * 90}>
-                          <li className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card/60 p-3">
+                          <div className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card/60 p-3">
                             <div className="flex items-center gap-2">
                               <span
                                 aria-hidden="true"
@@ -155,20 +165,20 @@ export function WalkthroughPanel({
                               </Reveal>
                             </div>
                             <p className="text-sm text-foreground">{line}</p>
-                          </li>
+                          </div>
                         </Reveal>
                         {i < lines.length - 1 ? (
                           <Reveal className="shrink-0" delay={i * 90 + 45}>
-                            <li
+                            <span
                               aria-hidden="true"
                               className="flex items-center justify-center py-1 text-muted-foreground sm:px-1.5 sm:py-0"
                             >
                               <ArrowDown className="size-4 sm:hidden" />
                               <ArrowRight className="hidden size-4 sm:block" />
-                            </li>
+                            </span>
                           </Reveal>
                         ) : null}
-                      </Fragment>
+                      </li>
                     );
                   })}
                 </ol>

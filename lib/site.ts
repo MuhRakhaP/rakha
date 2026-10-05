@@ -16,13 +16,31 @@ export const site = {
   /** The CV's current job title. */
   role: "Software Engineer",
   /**
-   * The CV's headline line, verbatim:
-   * "Full Stack Developer | Laravel + Node.js + TypeScript | 4+ Years Building
-   * Business Systems". It is data rather than markup so the hero, the page
-   * metadata, and any future share card all read the same string.
+   * The one line that names both roles, the stack, and the years.
+   *
+   * The CV's headline line is "Full Stack Developer | Laravel + Node.js +
+   * TypeScript | 4+ Years Building Business Systems". `role` above now leads
+   * with "Software Engineer", which is the current CV job title, so this line
+   * keeps "Full Stack Developer" for the ATS keyword while carrying the newer
+   * title too. Both phrases are on the CV, in different places, so the line is
+   * a merge of two real lines rather than a new claim.
+   *
+   * It is data rather than markup so the hero, the page metadata, and any share
+   * card all read the same string, and so there is one place to edit it.
    */
   headline:
-    "Full Stack Developer | Laravel + Node.js + TypeScript | 4+ Years Building Business Systems",
+    "Full Stack Developer · Software Engineer | Laravel + Node.js + TypeScript | 4+ Years Building Production Systems",
+
+  /**
+   * The same line for search results and link previews.
+   *
+   * Composed from what is already above: the two roles, the stack from
+   * `headline`, and the categories the six case studies actually cover. No
+   * figure appears here, because a figure in a meta description has nothing
+   * behind it on the page it describes.
+   */
+  metaDescription:
+    "Software Engineer and Full Stack Developer building backend systems, multi-tenant SaaS platforms, delivery automation, and AI integrations with Laravel, Node.js, TypeScript, PostgreSQL, and Next.js.",
   email: "mrakha184@gmail.com",
   phone: "+62 812 9691 4059",
   phoneHref: "tel:+6281296914059",

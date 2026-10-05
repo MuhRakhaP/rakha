@@ -795,7 +795,7 @@ caseStudy: true,
       "Reporting",
       "Role-based access with owner and staff roles",
     ],
-    // TODO: role and dates are not in the CV, supply them here.
+    role: "Full-stack developer responsible for the Next.js frontend, the backend modules covering purchasing, warehouse, suppliers, production, sales, and costs, multi-tenant data isolation, and role-based access control.",
     problem:
       "A coffee business tracks stock, suppliers, production, and costs in separate places, so nobody has a single current answer to what is on hand, what it cost, or what was sold.",
     solution:
@@ -809,6 +809,25 @@ caseStudy: true,
     caseStudy: true,
     featured: true,
     sourcePrivate: false,
+    // Every node is a technology this project already lists above; the shape is
+    // Next.js App Router with Server Actions as the only server entry point,
+    // which is what `decisions` and `contribution` both describe.
+    architecture: {
+      nodes: [
+        { id: "browser", label: "Staff browser", group: "Client" },
+        { id: "next", label: "Next.js App Router", group: "Server" },
+        { id: "actions", label: "Server Actions", group: "Server" },
+        { id: "auth", label: "Auth.js session", group: "Server" },
+        { id: "db", label: "PostgreSQL", group: "Data" },
+      ],
+      edges: [
+        { from: "browser", to: "next" },
+        { from: "next", to: "actions", label: "mutation" },
+        { from: "next", to: "auth", label: "check role" },
+        { from: "actions", to: "db", label: "Prisma" },
+        { from: "auth", to: "db" },
+      ],
+    },
     results: [
       // Scope, not a measurement, and labelled as scope: KOPIFLOW is an MVP with
       // no production tenant data, so there is no number to report. The earlier
@@ -891,7 +910,30 @@ features: [
 // the card says the same thing twice at two lengths and never says it three
 // ways. The previous entry here claimed an 80% reduction in knowledge lookup
 // time, which no CV revision has ever said; that figure is gone.
-results: [
+// The RAG path and the routing path are separate on purpose: retrieval-augmented
+    // generation answers an agent's question, rule-based routing assigns a ticket,
+    // and `solution` above describes them as two distinct automations. Every node
+    // is a technology the project already lists in `technologies`.
+    architecture: {
+      nodes: [
+        { id: "agent", label: "Support agent", group: "Client" },
+        { id: "laravel", label: "Laravel app", group: "Server" },
+        { id: "routes", label: "Routing rules", group: "Server" },
+        { id: "rag", label: "RAG pipeline", group: "AI" },
+        { id: "llm", label: "LLM API", group: "AI" },
+        { id: "mysql", label: "MySQL", group: "Data" },
+        { id: "vectors", label: "pgvector", group: "Data" },
+      ],
+      edges: [
+        { from: "agent", to: "laravel", label: "ask, triage" },
+        { from: "laravel", to: "routes", label: "on create" },
+        { from: "laravel", to: "rag", label: "question" },
+        { from: "rag", to: "vectors", label: "retrieve" },
+        { from: "rag", to: "llm", label: "generate" },
+        { from: "laravel", to: "mysql", label: "tickets" },
+      ],
+    },
+    results: [
       "Cut average lookup time from ~5 minutes to under 1 minute per query.",
       "Reduced manual assignment effort by roughly 60% in the first three months of use.",
     ],
@@ -992,7 +1034,7 @@ technologies: [
       "Cut average processing time from 490 minutes/week to 60 minutes/week, an 88% reduction.",
     ],
     tags: ["automation"],
-    // TODO: role and dates are not in the CV, supply them here.
+    role: "Full-stack developer responsible for the backend automation workflows, the EPS integration, the Auto In Portal, and the processing optimization.",
     problem:
       "Outstanding deliveries were chased by hand. Someone pulled the data, worked out what was late, updated due dates and purchase orders, and then contacted suppliers one by one, every week.",
     solution:
@@ -1002,6 +1044,27 @@ technologies: [
       "Keeping due dates and purchase order state correct across updates, revisions, and cancellations.",
       "Replacing a manual process end to end without losing a step that mattered.",
     ],
+    // EPS is the system this one replaced the manual work in, so it sits on the
+    // outside and the portal is where supplier data enters. Both edges are named
+    // because the direction is the point: the portal only feeds inward, EPS
+    // only feeds inward.
+    architecture: {
+      nodes: [
+        { id: "supplier", label: "Supplier", group: "People" },
+        { id: "eps", label: "EPS", group: "External" },
+        { id: "portal", label: "Auto In Portal", group: "Client" },
+        { id: "api", label: "REST API", group: "Server" },
+        { id: "jobs", label: "Processing jobs", group: "Server" },
+        { id: "mysql", label: "MySQL", group: "Data" },
+      ],
+      edges: [
+        { from: "supplier", to: "portal" },
+        { from: "eps", to: "api", label: "delivery data" },
+        { from: "portal", to: "api", label: "supplier entry" },
+        { from: "api", to: "jobs" },
+        { from: "jobs", to: "mysql", label: "due dates, POs" },
+      ],
+    },
     results: [
       "Cut average processing time from 490 minutes/week to 60 minutes/week, an 88% reduction.",
     ],

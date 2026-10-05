@@ -128,6 +128,7 @@ const VIEWPORTS = [
  */
 const SECTION_ORDER = [
   "Overview",
+  "My Role",
   "Problem",
   "Solution",
   "Key Features",

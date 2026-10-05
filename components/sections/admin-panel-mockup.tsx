@@ -70,8 +70,19 @@ export function AdminPanelMockup({ project }: { project: Project }) {
                 The horizontal scroll is the mobile answer: at 375px five columns
                 do not fit, and squeezing them turns every cell into a stack of
                 two-letter fragments. `min-w` holds the row readable and the box
-                scrolls sideways instead of clipping anything. */}
-            <div className="-mx-1 overflow-x-auto px-1">
+                scrolls sideways instead of clipping anything.
+
+                `tabIndex` and `role="region"` are what make that scroll usable
+                without a mouse: a scroll container that cannot be focused is
+                unreachable content for a keyboard user, and WCAG 2.1.1 asks for
+                every scrollable region to be operable that way. The label says
+                what scrolls, so the focus stop announces itself. */}
+            <div
+              role="region"
+              aria-label={`${nameHeading}, ${planHeading}, ${sizeHeading} and ${statusHeading} for each tenant. Scrolls sideways.`}
+              tabIndex={0}
+              className="-mx-1 overflow-x-auto px-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
               <div className="min-w-[34rem]">
                 <div className="grid grid-cols-[minmax(0,1.5fr)_0.8fr_0.6fr_0.7fr_7.5rem] gap-3 border-b border-border pb-2 text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">
                   <span>{nameHeading}</span>

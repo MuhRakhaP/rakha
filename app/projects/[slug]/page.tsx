@@ -185,6 +185,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
   // Only sections that actually render appear in the page nav.
   const sections: SectionLink[] = [{ id: "overview", title: "Overview" }];
+  if (project.role) sections.push({ id: "role", title: "My Role" });
   if (project.problem) sections.push({ id: "problem", title: "Problem" });
   if (project.solution) sections.push({ id: "solution", title: "Solution" });
   if (project.features.length > 0)
@@ -270,12 +271,21 @@ export default async function ProjectPage({ params }: { params: Params }) {
               />
             </div>
           ) : (
-            <ProjectFrame
-              project={project}
-              priority
-              sizes="(max-width: 1024px) 100vw, 960px"
-              className={framed ? "max-w-64" : undefined}
-            />
+            /* An API-only project has no browser chrome to draw, so
+               `ProjectFrame` returns null for it and this whole Reveal rendered
+               an empty block: the AI Helpdesk hero measured 240px and the
+               delivery automation hero 196px, against 923px on TERAHOME. The
+               architecture diagram is the honest stand-in, because an API and a
+               data pipeline are what these two actually are, and it is already
+               drawn from the same data further down the page. */
+            project.architecture ? (
+              <ProjectArchitecture architecture={project.architecture} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No interface capture for this system. It runs as a service, and
+                its architecture is described below.
+              </p>
+            )
           )}
         </Reveal>
 
@@ -289,6 +299,17 @@ export default async function ProjectPage({ params }: { params: Params }) {
             <Section id="overview" eyebrow="Overview" title="Overview">
             <p className="max-w-2xl">{project.description}</p>
           </Section>
+
+          {/* My Role sits here, before Problem, because the reader wants to know
+              what he owned before they read what the problem was. It is prose
+              rather than a definition list: `contribution` further down already
+              breaks the same work into areas, and repeating it twice would make
+              the page say the same claim at three lengths. */}
+          {project.role && (
+            <Section id="role" eyebrow="My work" title="My Role">
+              <p className="max-w-2xl text-sm">{project.role}</p>
+            </Section>
+          )}
 
           {project.problem && (
             <Section id="problem" eyebrow="Context" title="Problem">
@@ -344,12 +365,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
 
           {project.contribution && project.contribution.length > 0 && (
-            <Section id="contribution" eyebrow="My work" title="My Contribution">
-              {project.role && (
-                <p className="mb-4 text-sm text-muted-foreground">
-                  <span className="font-medium">Role:</span> {project.role}
-                </p>
-              )}
+            <Section id="contribution" eyebrow="Breakdown" title="My Contribution">
               <dl className="grid gap-6 sm:grid-cols-2">
                 {project.contribution.map((item) => (
                   <div key={item.area}>

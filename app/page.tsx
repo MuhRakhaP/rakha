@@ -20,17 +20,20 @@ export const metadata: Metadata = {
 };
 
 /**
- * Hero copy, transcribed from the CV's PROFESSIONAL SUMMARY.
+ * Hero summary, in his own words rather than the CV paragraph.
  *
- * The CV paragraph is the source, first three sentences: "4+ years" is the CV's
- * own figure and matches the dated roles in `lib/experience.ts`, which run from
- * 09/2022 to present. "multi-tenant SaaS platforms" is the CV's phrase for the
- * work behind KOPIFLOW, THINKPOS, and CLOCKORA, and it names the category here
- * because that is where the claim is made. The headline below the name comes
- * from `site.headline`, which is the CV's headline line verbatim.
+ * The CV summary opens "Full Stack Developer with 4+ years of experience...",
+ * which is the third person and reads like a form field. This is first person
+ * and drops the one number, because `ImpactMetrics` below already carries the
+ * 4+ years with the dated roles as its proof, and a figure repeated in two
+ * places on one screen is one figure to keep in sync.
+ *
+ * Two words were changed from the draft wording. "Scalable" is an unevidenced
+ * claim, so it came out. "Modern web technologies" names nothing, so it became
+ * Next.js, which is on the CV and in `lib/skills.ts`.
  */
 const heroSummary =
-  "Full Stack Developer with 4+ years of experience building business applications, multi-tenant SaaS platforms, backend services, and AI-powered systems. Specialized in Laravel, Node.js, TypeScript, PostgreSQL, and React/Next.js. Proven track record of reducing manual business processes by up to 88% through enterprise integrations and automation.";
+  "Software Engineer building business systems and AI-powered applications. I build production-ready applications, backend services, automation workflows, and AI integrations using Laravel, Node.js, TypeScript, PostgreSQL, and Next.js.";
 
 /** Real status from the CV owner. Nothing on the page implies it otherwise. */
 const heroAvailability = "Available for full-stack and backend roles";
@@ -92,8 +95,9 @@ export default async function HomePage({
               {SECTIONS.projects}
             </h2>
             <p className="max-w-2xl text-muted-foreground">
-              Six systems across web, mobile, backend, and AI. Each one states the
-              problem it was built for and what it changed.
+              Five systems in production and one in development, across web,
+              mobile, backend, and AI. Each one states the problem it was built
+              for and what it changed.
             </p>
           </div>
 

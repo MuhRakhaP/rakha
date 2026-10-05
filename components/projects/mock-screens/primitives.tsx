@@ -72,7 +72,11 @@ export function Screen({
                 {subtitle}
               </p>
             ) : null}
-            <h3 className={TYPE.title}>{title}</h3>
+            {/* A <p>, not an <h3>. The recreation sits inside a `role="img"`
+                figure, so its contents are a picture rather than page
+                structure, and the heading put an h3 straight under the case
+                study's h1. */}
+            <p className={TYPE.title}>{title}</p>
           </div>
           {action}
         </header>
@@ -134,7 +138,11 @@ export function SectionCard({
   return (
     <Card tokens={tokens} className={className}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h4 className={TYPE.section}>{title}</h4>
+        {/* A <p> styled as a section title, not an <h4>. A recreation sits inside
+            a `role="img"` figure on a page whose outline already runs h1 to h3,
+            so an h4 here skipped a level. It is a card title inside a picture,
+            not a document section, and no heading is the honest element. */}
+        <p className={TYPE.section}>{title}</p>
         {trailing}
       </div>
       {children}

@@ -27,7 +27,7 @@
 
 ## Completed
 - [x] Deep space minimalist redesign
-- [x] 6 projects with multi-tenant SaaS positioning
+- [x] 6 projects, 3 of them multi-tenant SaaS (THINKPOS, CLOCKORA, KOPIFLOW)
 - [x] Skills grid (the accordion was removed; every group is open)
 - [x] Education & Certifications section
 - [x] CV PDF sync

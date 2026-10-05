@@ -134,11 +134,15 @@ function SlotDevice({
         // `brightness/contrast`, not `mix-blend-mode: multiply`. Multiply was
         // measured to be inert here: the device cluster sits inside a
         // 3D-transformed wrapper, so each frame blends against its own isolated
-        // backdrop and the pixels come out identical. This filter is not a no-op
-        // and it does not lie about the product: measured on the rendered card,
-        // the capture's mean luminance drops from 243 to 168 and its internal
-        // spread rises from 28 to 42, so the light UI stops glaring against a
-        // near-black page and its own text gets more separable, not less.
+        // backdrop and the pixels come out identical.
+        //
+        // Applied to real captures only. A photograph of a light app is
+        // unpredictable at any brightness, so dimming it is the only lever. A
+        // recreation is not: its text is real DOM text at a known colour, and
+        // the filter pushed those pairs to 2.75:1, which fails AA. Axe caught 22
+        // nodes of it. The drawn screens keep their own authored colours, which
+        // measure 8.06:1 at their worst pair, so they sit unfiltered and the
+        // recreation card is a little brighter than its neighbour by intent.
         className="h-auto w-full brightness-[0.62] contrast-[1.1]"
         sizes={sizes}
         preload={priority}
@@ -170,11 +174,10 @@ function SlotDevice({
       data-screen-id={slot.screenId}
       data-frame={def.frame}
       data-logical-width={logical.width}
-      // The same dim the real captures get, so a recreation card and a capture
-      // card weigh the same in a row. Measured on the rendered card: the drawn
-      // screen's internal spread rises from 22 to 66, which is the text getting
-      // clearer against its own cards, not darker.
-      className="block brightness-[0.62] contrast-[1.1]"
+      // No brightness filter, unlike the capture branch above. These are drawn
+      // from known tokens, and dimming them failed WCAG AA on 22 text nodes at
+      // the worst pair (2.75:1). Authored colours clear it at 8.06:1.
+      className="block"
       style={{ width: `${widthPct}%` }}
     >
       {def.frame === "browser" ? (

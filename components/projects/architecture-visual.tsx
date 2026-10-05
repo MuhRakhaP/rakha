@@ -11,8 +11,8 @@ import type { Project } from "@/data/projects";
  * lists are verifiable, so the card now shows the real shape of the system
  * instead of a mood piece.
  *
- * Two projects have no architecture list yet, only a written `walkthrough`. They
- * render that as a step panel instead of an empty box, because an empty media
+ * Every project now has an architecture list, so the walkthrough fallback below
+ * only runs if a project is added with no nodes. It stays because an empty media
  * area on a card is the one thing worse than the illustration it replaced.
  *
  * It renders on the same `.card-stage` as the device cluster and inside the
@@ -189,8 +189,9 @@ function wrapLabel(label: string): string[] {
  * so the card shows the flow the owner documented instead of an invented bar
  * chart. Four steps is what fits the box at card size without clipping.
  *
- * TODO: if the owner supplies a node and edge list for these two, add
- * `architecture` to the entry in `data/projects.ts` and this stops being used.
+ * Unused while every project carries an `architecture` list. Kept as the
+ * fallback: a project added with only a `walkthrough` gets its real flow rather
+ * than a blank media box.
  */
 function WalkthroughVisual({ project }: { project: Project }) {
   const group = project.walkthrough?.[0];

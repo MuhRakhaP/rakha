@@ -50,17 +50,21 @@ export const metadata: Metadata = {
     default: `${site.name} · ${site.role}`,
     template: `%s · ${site.name}`,
   },
-  description:
-    "Full Stack Developer building multi-tenant SaaS platforms, full-stack web applications, backend services, REST APIs, business systems, and automation.",
+  // `site.metaDescription` rather than a string written here: it carries both
+  // role keywords, and a second copy of the same claim in this file is one more
+  // place for the two to drift apart.
+  description: site.metaDescription,
   openGraph: {
     type: "website",
     siteName: site.name,
     title: `${site.name} · ${site.role}`,
-    description:
-      "Full Stack Developer building multi-tenant SaaS platforms, full-stack web applications, backend services, REST APIs, business systems, and automation.",
+    description: site.metaDescription,
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",
+    title: `${site.name} · ${site.role}`,
+    description: site.metaDescription,
   },
 };
 
