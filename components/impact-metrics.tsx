@@ -28,7 +28,7 @@ export function ImpactMetrics() {
             <CountUp value={metric.value} suffix={metric.suffix} />
           </span>
           <span className="text-sm font-medium text-foreground">{metric.label}</span>
-          <span className="text-xs leading-snug text-muted-foreground">
+          <span className="text-sm leading-snug text-muted-foreground">
             {metric.proof}
           </span>
         </li>

@@ -153,7 +153,7 @@ export default function RootLayout({
               it does not draw a box around the whole page after a skip. */}
           {/* No `pt` for the header: it is `sticky`, which is in flow, so it
               already takes its own height out of the document. */}
-          <main id="main" tabIndex={-1} className="flex-1 py-10 outline-none">
+          <main id="main" tabIndex={-1} className="flex-1 pt-10 outline-none">
             {children}
           </main>
           <SiteFooter />

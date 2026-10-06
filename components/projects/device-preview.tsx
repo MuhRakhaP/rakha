@@ -28,6 +28,12 @@ const MEDIA_ASPECT = {
   "5:4": 5 / 4,
   "4:3": 4 / 3,
   "16:10": 16 / 10,
+  /**
+   * The full-width card at the end of a two-column row. A three-item row would
+   * otherwise leave the last cell half empty, and at 1120px wide the 5:4 box
+   * would be an 896px band taller than the lead card it sits under.
+   */
+  "16:9": 16 / 9,
 } as const;
 
 export type MediaAspect = keyof typeof MEDIA_ASPECT;
@@ -213,6 +219,7 @@ export function DevicePreview({
   aspect = "5:4",
   sizes = "(max-width: 768px) 60vw, 20vw",
   priority = false,
+  className,
 }: {
   project: Project;
   /** Preferred screen for a single-device project. */
@@ -230,6 +237,13 @@ export function DevicePreview({
    * `preload`: `priority` is deprecated in Next 16 and no longer emits the
    * preload hint the lead card needs. */
   priority?: boolean;
+  /**
+   * Layout on the box itself, for the one card that sits beside its own text
+   * rather than above it. `sm:w-1/2 sm:self-stretch` beats the `w-full` and the
+   * inline aspect ratio, which is what makes the media fill the column instead
+   * of keeping its own height.
+   */
+  className?: string;
 }) {
   const isPhone = project.type === "mobile";
   const layout = COMPOSITION[isPhone ? "phone" : "browser"];
@@ -252,7 +266,10 @@ export function DevicePreview({
   return (
     <div
       data-testid="device-media"
-      className="card-stage relative w-full shrink-0 overflow-hidden border-b border-border"
+      className={cn(
+        "card-stage relative w-full shrink-0 overflow-hidden border-b border-border",
+        className,
+      )}
       style={{
         aspectRatio: `${MEDIA_ASPECT[aspect]}`,
       }}
@@ -260,16 +277,14 @@ export function DevicePreview({
       {/* Dot texture, borrowed from the hero so the two do not disagree. */}
       <span aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 opacity-60" />
 
-      {/* One badge per card, not one per frame. It used to be a sentence of
-          small grey text under the row, which is the easiest thing on a page to
-          skip and the one thing that must not be skippable: a drawn screen has
-          to look drawn from across the room. Each frame also carries the full
-          disclosure in its own accessible name. */}
-      {arranged.some((slot) => slot.kind === "recreation") ? (
-        <span className="absolute top-3 left-3 z-20 inline-flex items-center rounded-full border border-border bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-          Concept preview
-        </span>
-      ) : null}
+      {/* A recreation carries its own disclosure, so the media box itself says
+          nothing: the script that draws it adds the "not a live screenshot"
+          wording to every frame's accessible name, and each consumer site
+          renders a visible caption under the box. The old badge lived here, a
+          floating pill on the artwork, and the owner asked for it on the card
+          instead, below the mockup, where it reads as a caption rather than as
+          a watermark over the image. The badge has gone; the disclosure has
+          not. */}
 
       <div
         className={cn(

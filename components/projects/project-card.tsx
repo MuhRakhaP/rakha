@@ -1,12 +1,13 @@
 import Link from "next/link";
 
+import { CountUp } from "@/components/ui/count-up";
 import { ProjectBadges } from "@/components/projects/project-badges";
 import { ProjectCtas } from "@/components/projects/project-ctas";
 import { ProjectVisual } from "@/components/projects/project-visual";
 import { cn } from "cn";
 import type { Project } from "@/data/projects";
 
-import { DevicePreview, hasDevice, preferredScreen } from "./device-preview";
+import { DevicePreview, drawsScreens, hasDevice, preferredScreen } from "./device-preview";
 
 /** Technologies shown on the card, a short slice of the full stack. */
 function CardTech({ items }: { items: string[] }) {
@@ -40,47 +41,46 @@ function pickCardTech(project: Project, limit: number): string[] {
 }
 
 /**
- * Problem, solution, result. The three lines a hiring manager reads before the
- * feature list, in the order they would ask for them.
+ * What the card shows instead of the case study's three paragraphs: one
+ * sentence of problem, and the one figure that came out of it.
  *
- * Every field is optional in the data because the CV does not document all three
- * for every project. What is missing is stated rather than filled in: a card
- * with no recorded outcome says the project has none yet, which is the truth for
- * an in-development build, where an invented percentage would not be.
+ * `cardProblem` is its own field rather than `problem` truncated with CSS,
+ * because truncation lands wherever the width happens to run out. Each line is
+ * written in the same entry as the paragraph it came from.
+ *
+ * The figure counts up on scroll, and it sits in a tinted block of its own so a
+ * reader's eye lands on it before the sentence above. Where the CV records no
+ * outcome there is no block: THINKPOS and KOPIFLOW render only the problem, and
+ * an empty block would advertise that something is missing.
+ *
+ * `resultsIndex` reads the source sentence straight from `results`, so the
+ * number on the card and the sentence in the case study come from one place.
+ * An out-of-range index drops the metric rather than printing an index error.
  */
-function ProblemSolutionResult({ project }: { project: Project }) {
-  const result = project.results?.[0];
-  const label = project.resultLabel ?? "Result";
+function CardSummary({ project }: { project: Project }) {
+  const metric = project.cardMetric;
+  const source = metric ? project.results?.[metric.resultsIndex] : undefined;
 
   return (
-    <dl className="grid gap-2.5 border-t border-border pt-3">
-      <div>
-        <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-          Problem
-        </dt>
-        <dd className="mt-0.5 text-sm leading-snug text-muted-foreground">
-          {project.problem ?? "Not documented."}
-        </dd>
-      </div>
+    <div className="flex flex-col gap-3">
+      <p className="text-base leading-relaxed text-muted-foreground">
+        {project.cardProblem ?? project.problem ?? "Not documented."}
+      </p>
 
-      <div>
-        <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-          Solution
-        </dt>
-        <dd className="mt-0.5 text-sm leading-snug text-muted-foreground">
-          {project.solution ?? "Not documented."}
-        </dd>
-      </div>
-
-      <div>
-        <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">
-          {label}
-        </dt>
-        <dd className="mt-0.5 text-sm leading-snug text-muted-foreground">
-          {result ?? "No outcome measured yet."}
-        </dd>
-      </div>
-    </dl>
+      {metric && source ? (
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="font-heading text-title font-semibold tracking-[-0.02em] text-foreground tabular-nums">
+            <CountUp value={metric.value} suffix={metric.suffix} />
+          </p>
+          <p className="mt-1 text-sm leading-snug text-muted-foreground">
+            {metric.label}
+          </p>
+          <p className="mt-2 text-sm leading-snug text-muted-foreground">
+            {source}
+          </p>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -106,6 +106,7 @@ export function ProjectCard({
   headingLevel = 3,
   variant = "default",
   priority = false,
+  wide = false,
 }: {
   project: Project;
   /** Keep the page's heading order intact: 2 under a bare h1, 3 under an h2. */
@@ -113,10 +114,27 @@ export function ProjectCard({
   variant?: "default" | "featured";
   /** Set on the one card that is in the first viewport. */
   priority?: boolean;
+  /**
+   * Set when this card spans both grid columns because the row would otherwise
+   * end with one card alone beside an empty cell.
+   *
+   * The media box goes landscape for it. At 1120px the card's default 5:4 ratio
+   * would be a 896px image area taller than the lead card it sits below, and a
+   * diagram drawn for a 333px phone card would scale its labels to three times
+   * their intended size. 16:9 keeps the block near the height of a normal card.
+   */
+  wide?: boolean,
 }) {
   const featured = variant === "featured";
   const tech = pickCardTech(project, featured ? 6 : 4);
   const Heading = headingLevel === 2 ? "h2" : "h3";
+  // `wide` does not change the media box shape, only its placement. Below 640px
+  // the card stacks, so the box is the same 5:4 a normal card uses: at 16:9 and
+  // 335px wide the diagram measured 188px tall and its labels came out at 10.1px,
+  // under the floor. In the row layout at 640px and up, `sm:self-stretch` sets
+  // the height from the flex line and the aspect ratio stops applying, which is
+  // what makes the media match its own column.
+  const mediaAspect = featured ? "aspect-16/10" : "aspect-5/4";
 
   return (
     <article
@@ -128,8 +146,18 @@ export function ProjectCard({
         "transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
         "hover:border-brand hover:shadow-[0_0_30px_-6px_var(--glow)] motion-safe:hover:-translate-y-1",
         "focus-within:border-brand focus-within:ring-2 focus-within:ring-ring",
+        // Side by side above 640px. A full-width card that stacked its media
+        // on top ran to 1047px, as tall as the lead card, and scaled a diagram
+        // drawn for a 333px phone card up to 39px labels. Halving the media
+        // keeps the label scale near a normal card and the block to the height
+        // of a row instead of the height of the lead.
+        wide && "sm:flex-row sm:items-stretch",
       )}
     >
+      {/* The media box. Two shapes because two things provide it: a device
+          preview carries its own aspect ratio inline, so it is the element that
+          takes the wide layout directly, while a drawn diagram has no box of
+          its own and needs one here. */}
       {hasDevice(project) ? (
         <DevicePreview
           project={project}
@@ -144,12 +172,16 @@ export function ProjectCard({
               : undefined
           }
           priority={priority}
+          className={cn(
+            wide && "sm:w-1/2 sm:self-stretch sm:border-r sm:border-b-0",
+          )}
         />
       ) : (
         <div
           className={cn(
             "relative w-full shrink-0 overflow-hidden border-b border-border",
-            featured ? "aspect-16/10" : "aspect-5/4",
+            mediaAspect,
+            wide && "sm:w-1/2 sm:self-stretch sm:border-r sm:border-b-0",
           )}
         >
           <ProjectVisual
@@ -164,7 +196,28 @@ export function ProjectCard({
         </div>
       )}
 
-      <div className={cn("flex flex-1 flex-col gap-3", featured ? "p-6" : "p-5")}>
+      {/* Caption under a recreation mockup. The badge that used to float on the
+          artwork is gone: it read as a watermark over the image, and the owner
+          asked for the disclosure under the box instead. Only a card showing
+          drawn screens gets one, because a card showing a capture has nothing
+          to disclose. `mt-2` and left-aligned so it reads as a caption to the
+          picture above, not as a second title under the image. */}
+      {drawsScreens(project) ? (
+        <p
+          role="note"
+          className="px-5 pt-0 pb-1 text-xs leading-snug text-muted-foreground"
+        >
+          Concept preview. Actual screenshots coming soon.
+        </p>
+      ) : null}
+
+      <div
+        className={cn(
+          "flex flex-1 flex-col gap-3",
+          featured ? "p-6" : "p-5",
+          wide && "sm:justify-center",
+        )}
+      >
         <ProjectBadges project={project} />
 
         <Heading
@@ -201,7 +254,7 @@ export function ProjectCard({
           </ul>
         ) : null}
 
-        <ProblemSolutionResult project={project} />
+        <CardSummary project={project} />
 
         <CardTech items={tech} />
 

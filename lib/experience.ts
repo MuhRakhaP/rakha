@@ -1,3 +1,5 @@
+import { yearsExperience } from "@/lib/site";
+
 /**
  * Career content, transcribed from the CV.
  *
@@ -131,6 +133,11 @@ export const certifications: Certification[] = [
   },
 ];
 
-/** Verbatim CV PROFESSIONAL SUMMARY. Rendered on /about and mirrored in the hero. */
+/**
+ * Verbatim CV PROFESSIONAL SUMMARY, with the years figure read from
+ * `lib/site.ts` rather than typed here. Rendered on /about and mirrored in the
+ * hero. Updating the figure in one place moves it everywhere, including this
+ * sentence, which is otherwise quoted exactly as the CV writes it.
+ */
 export const summary =
-  "Full Stack Developer with 4+ years of experience building business applications, multi-tenant SaaS platforms, backend services, and AI-powered systems. Specialized in Laravel, Node.js, TypeScript, PostgreSQL, and React/Next.js. Proven track record of reducing manual business processes by up to 88% through enterprise integrations and automation. Strong problem-solving and organizational skills.";
+  `Full Stack Developer with ${yearsExperience} years of experience building business applications, multi-tenant SaaS platforms, backend services, and AI-powered systems. Specialized in Laravel, Node.js, TypeScript, PostgreSQL, and React/Next.js. Proven track record of reducing manual business processes by up to 88% through enterprise integrations and automation. Strong problem-solving and organizational skills.`;

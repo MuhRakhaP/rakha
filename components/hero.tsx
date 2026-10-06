@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowDownToLine } from "lucide-react";
 import { useRef } from "react";
 
@@ -92,6 +93,15 @@ export function Hero({
             {site.headline}
           </p>
 
+          {/* The keyword line. It sits under the sentence because a keyword list
+              is metadata a reader and an ATS both scan for, and stacking it
+              above would make the sentence look like the tail of a list. Muted
+              and one step down in size so it does not compete with the line it
+              supports. */}
+          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+            {site.stackLine}
+          </p>
+
           <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
             {summary}
           </p>
@@ -124,31 +134,40 @@ export function Hero({
               Let&apos;s Talk
             </a>
           </div>
-
-          <p className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand-weak px-4 py-1.5 text-sm font-medium text-foreground">
-            <span aria-hidden="true" className="size-2 rounded-full bg-success" />
-            {availability}
-          </p>
-
-          {/* Employer and city on their own line, separated by a real middot.
-              The dot inherits the line's colour rather than the border token,
-              which sits at 1.27 against the background and would render a
-              separator nobody can see. */}
-          <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm text-muted-foreground lg:justify-start">
-            <span>{site.role} at PT. Terasys Virtual</span>
-            <span aria-hidden="true">·</span>
-            <span>{site.location}</span>
-          </p>
         </div>
 
-        {/* Right: info panel — replaces the old portrait slot. The portrait
-            slot was a circle of initials, which read as decoration competing
-            with the name. A small, dense fact box is what the right column was
-            meant to be: dense, specific, scannable. */}
+        {/* Right: avatar and facts.
+            The right column used to be a five-row fact list that repeated what
+            the left column had already said in two places: the availability
+            pill under the buttons, the employer line under that, and then Role,
+            Status, Location and Availability again in the panel. Four of those
+            rows were the same two facts.
+            It is now one avatar, one availability badge, and the three facts a
+            recruiter checks but cannot get from the headline. The employer line
+            under the CTA is gone: this panel is where employment lives. */}
         <div className="lg:w-1/3 flex items-start min-w-0">
           <aside className="w-full rounded-xl border border-border bg-card p-5 text-sm min-w-0 overflow-hidden">
-            {/* A panel label, not a heading. As an `h3` it skipped a level under the
-              hero's `h1`, which axe reports, and nothing here is a section. */}
+            {/* TODO: replace public/avatar.png with a real photo, then update the
+                alt text to describe it. Today it is an initials placeholder, so
+                the alt says what it is rather than pretending to be a portrait. */}
+            <div className="mb-4 flex items-center gap-4">
+              <Image
+                src="/avatar.png"
+                alt="Muhammad Rakha Putra, initials placeholder until a photograph is supplied"
+                width={64}
+                height={64}
+                priority
+                className="size-16 shrink-0 rounded-2xl border border-border glow-accent object-cover"
+              />
+              <p className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand-weak px-3 py-1.5 text-xs font-medium text-foreground">
+                <span aria-hidden="true" className="size-2 rounded-full bg-success" />
+                {availability}
+              </p>
+            </div>
+
+            {/* A panel label, not a heading. As an `h3` it skipped a level under
+                the hero's `h1`, which axe reports, and nothing here is a
+                section. */}
             <p className="mb-3 text-xs font-medium tracking-[0.08em] text-brand uppercase">
               Currently
             </p>
@@ -162,19 +181,8 @@ export function Hero({
                 <dd>PT. Terasys Virtual</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">Status</dt>
-                <dd className="inline-flex items-center gap-2 text-foreground">
-                  <span aria-hidden="true" className="size-2 rounded-full bg-success" />
-                  {availability}
-                </dd>
-              </div>
-              <div>
                 <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">Location</dt>
                 <dd>{site.location}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium tracking-[0.08em] text-brand uppercase">Availability</dt>
-                <dd className="text-brand">Open to work</dd>
               </div>
             </dl>
           </aside>

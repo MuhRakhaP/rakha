@@ -44,6 +44,12 @@ export default function OpengraphImage() {
           <div style={{ fontSize: 34, color: "#9ca3af", lineHeight: 1.35 }}>
             {site.headline}
           </div>
+          {/* The keyword line carries what the sentence above leaves out: both
+              role keywords and the years figure, so a shared card still reads
+              for an ATS-style match. */}
+          <div style={{ fontSize: 26, color: "#6b7280", lineHeight: 1.35 }}>
+            {site.stackLine}
+          </div>
         </div>
 
         <div style={{ display: "flex", fontSize: 30, color: "#9ca3af" }}>

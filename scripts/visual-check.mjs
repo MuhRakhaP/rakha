@@ -391,8 +391,30 @@ async function measureCaseStudy(page) {
  * Scroll the whole page once so IntersectionObserver reveals fire.
  * Without this, axe skips anything still at opacity-0 inside a <Reveal>
  * and reports a false pass on the sections below the fold.
+ *
+ * The wait is a poll over the settled states, and transitions are ended first
+ * rather than raced.
+ *
+ * A fixed sleep cannot be long enough: the stagger on the project grid runs to
+ * 400ms on its own and the fade adds 250ms, so a card can still be part-way
+ * through when the last scroll lands. Text measured during the fade is blended
+ * with its backdrop and reads as a low-contrast pair the finished page does not
+ * have: #9CA3AF at 0.6 over #0A0E1A measures #626874 and 3.43:1, which is the
+ * number the contrast check reported before this replaced the fixed sleep.
+ *
+ * Waiting alone does not close it, because an element sitting in its transition
+ * delay reports opacity 0, which looks settled and is not: it starts fading the
+ * moment the check runs. Switching transitions off puts every reveal in its
+ * final state at once, which is the state the check is asking about. The reveal
+ * itself still fires and is still asserted elsewhere, so this does not weaken
+ * the check it feeds; it only removes the animation from under the ruler.
  */
 async function settleReveals(page) {
+  await page.addStyleTag({
+    content:
+      ".reveal{transition:none!important}*,*::before,*::after{transition-delay:0ms!important}",
+  });
+
   await page.evaluate(async () => {
     const step = window.innerHeight * 0.8;
     for (let y = 0; y < document.body.scrollHeight; y += step) {
@@ -400,8 +422,22 @@ async function settleReveals(page) {
       await new Promise((r) => setTimeout(r, 60));
     }
     window.scrollTo(0, 0);
-    await new Promise((r) => setTimeout(r, 120));
   });
+
+  // Only elements that have started are checked. One below the fold at opacity 0
+  // never started, and axe skips it for the same reason.
+  await page.waitForFunction(
+    () => {
+      const mid = [...document.querySelectorAll(".reveal")].filter((el) => {
+        const opacity = Number.parseFloat(getComputedStyle(el).opacity);
+        return opacity > 0 && opacity < 1;
+      });
+      return mid.length === 0;
+    },
+    null,
+    { timeout: 5000, polling: 50 },
+  ).catch(() => {});
+
   await page.waitForTimeout(200);
 }
 

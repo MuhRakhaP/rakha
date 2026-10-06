@@ -58,7 +58,7 @@ export function EducationSection({
             <p className="mt-auto text-sm text-muted-foreground tabular-nums">
               {entry.period}
             </p>
-            <p className="text-xs text-muted-foreground">{entry.location}</p>
+            <p className="text-sm text-muted-foreground">{entry.location}</p>
           </article>
         ))}
 
@@ -79,7 +79,7 @@ export function EducationSection({
             <p className="mt-auto text-sm text-muted-foreground tabular-nums">
               {certification.date}
             </p>
-            <p className="text-xs text-muted-foreground">Certification</p>
+            <p className="text-sm text-muted-foreground">Certification</p>
           </article>
         ))}
       </div>

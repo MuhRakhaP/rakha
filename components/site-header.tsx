@@ -16,7 +16,20 @@ const NAV = [
   { href: "/contact", label: "Contact" },
 ];
 
+/**
+ * Sections the home page scroll-spy highlights, in document order.
+ *
+ * `about` leads because it is the first section on the page after the hero; the
+ * loop below takes the last section whose top has passed the spy line, so the
+ * order of this array has to match the order of the sections in the DOM or the
+ * underline will mark the wrong link.
+ *
+ * `skills` and `education` are absent deliberately: there is no route behind
+ * those links, so highlighting anything for them would light up a nav item that
+ * points somewhere else entirely.
+ */
 const SPY_SECTIONS = [
+  { id: "about", href: "/about" },
   { id: "projects", href: "/projects" },
   { id: "experience", href: "/experience" },
 ];

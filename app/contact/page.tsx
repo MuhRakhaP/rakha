@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: `Contact · ${site.name}`,
     description,
     url: `${SITE_URL}/contact`,
+    images: ["/opengraph-image"],
   },
   twitter: { title: `Contact · ${site.name}`, description },
 };
@@ -32,7 +33,7 @@ const CHANNELS = [
 
 export default function ContactPage() {
   return (
-    <div className="flex flex-col gap-16 py-6">
+    <div className="flex flex-col gap-16 pt-6 pb-section">
       <Reveal>
         <header className="flex max-w-2xl flex-col gap-4">
           <h1 className="font-heading text-title font-semibold tracking-[-0.02em]">

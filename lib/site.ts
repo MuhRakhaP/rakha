@@ -10,26 +10,49 @@
  * the two actions the hero asks for, and the footer and /contact are where a
  * visitor looks for one.
  */
+/**
+ * Years in professional roles, as one string every part of the site reads.
+ *
+ * Sourced from the CV's own figure and from the dated roles in
+ * `lib/experience.ts`, which start 09/2022. It is interpolated rather than
+ * typed per page, because it used to be written out in seven places and two of
+ * them had already drifted into different sentences.
+ *
+ * TODO: update to "5+" in Sept 2027, or the moment the CV says so.
+ */
+export const yearsExperience = "4+";
+
+/** The year the first role started, paired with the figure above. */
+export const careerStart = 2022;
+
 export const site = {
   name: "Muhammad Rakha Putra",
   shortName: "Rakha",
   /** The CV's current job title. */
   role: "Software Engineer",
   /**
-   * The one line that names both roles, the stack, and the years.
+   * The one sentence the hero says about the work.
    *
-   * The CV's headline line is "Full Stack Developer | Laravel + Node.js +
-   * TypeScript | 4+ Years Building Business Systems". `role` above now leads
-   * with "Software Engineer", which is the current CV job title, so this line
-   * keeps "Full Stack Developer" for the ATS keyword while carrying the newer
-   * title too. Both phrases are on the CV, in different places, so the line is
-   * a merge of two real lines rather than a new claim.
+   * Twelve words, one claim, no list. It used to be the CV headline verbatim,
+   * which is a keyword string rather than a sentence: three pipe-separated
+   * fragments that read as an ATS dump because that is what it was.
+   * `stackLine` below carries the keywords this line gave up, so nothing that
+   * matched a search drops off the page.
    *
-   * It is data rather than markup so the hero, the page metadata, and any share
-   * card all read the same string, and so there is one place to edit it.
+   * "Full Stack Developer" moves to `stackLine` rather than disappearing: it is
+   * the ATS keyword the earlier passes insisted on keeping.
    */
-  headline:
-    "Full Stack Developer · Software Engineer | Laravel + Node.js + TypeScript | 4+ Years Building Production Systems",
+  headline: "Software Engineer building business systems and AI integrations.",
+
+  /**
+   * The keyword line under the headline, where a keyword list belongs.
+   *
+   * Format mirrors the CV's own headline line, separators and all, so the
+   * string an ATS reads matches the string on the CV. Both role keywords and
+   * the years figure are here, and the years come from `yearsExperience` so the
+   * two cannot drift apart.
+   */
+  stackLine: `Full Stack Developer | Laravel + Node.js + TypeScript | ${yearsExperience} Years Building Systems`,
 
   /**
    * The same line for search results and link previews.

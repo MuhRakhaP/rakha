@@ -73,7 +73,7 @@ export function ExperienceTimeline({
           <div className="flex flex-col gap-2">
             <ul className="flex list-disc flex-col gap-2 pl-5">
               {pickHighlights(role, limit).map((highlight) => (
-                <li key={highlight} className="text-sm leading-relaxed text-muted-foreground">
+                <li key={highlight} className="text-base leading-relaxed text-muted-foreground">
                   {highlight}
                 </li>
               ))}

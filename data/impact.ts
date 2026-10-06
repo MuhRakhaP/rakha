@@ -4,10 +4,14 @@
  * Every number here is traceable, and the `proof` line travels with it so no
  * figure on the page stands on its own:
  *
- *  - 4+ years is the CV's own figure and matches the dated roles in
- *    `lib/experience.ts`, which run from 09/2022 to present.
+ *  - `${yearsExperience} years` is interpolated from `lib/site.ts`, not typed
+ *    here, and matches the dated roles in `lib/experience.ts`, which run from
+ *    09/2022 to present. The numeric `value` parses the same string so the
+ *    count-up and the label can never disagree.
  *  - 88% is the CV's Outstanding Delivery figure, and the 490 to 60 minutes a
- *    week behind it is in `data/projects.ts` under the same project.
+ *    week behind it is in `data/projects.ts` under the same project, where it is
+ *    labelled to that one process: the figure is not a claim about every system
+ *    on the site.
  *  - The system count is counted from the project data rather than typed, so
  *    adding a project updates it and it can never drift from what the page
  *    actually shows. It counts `status: "production"` only, so it reads 5 while
@@ -25,6 +29,8 @@
  * slot reads as "not measured", which is honest, where a vague one does not.
  */
 import { projects } from "@/data/projects";
+import { careerStart, yearsExperience } from "@/lib/site";
+import { roles } from "@/lib/experience";
 
 export interface ImpactMetric {
   /** Held as a number so the count-up animates real digits rather than a string. */
@@ -38,16 +44,22 @@ export interface ImpactMetric {
 
 export const impactMetrics: ImpactMetric[] = [
   {
-    value: 4,
-    suffix: "+",
+    // Parsed from the shared string rather than written twice: the suffix is
+    // everything after the digits, so "5+" next year becomes 5/+ with no edit
+    // here.
+    value: Number.parseInt(yearsExperience, 10),
+    suffix: yearsExperience.replace(/\d+/g, ""),
     label: "Years in production engineering roles",
-    proof: "Four employers, September 2022 to present",
+    proof: `Across ${roles.length} companies since ${careerStart}`,
   },
   {
+    // The figure is a per-process measurement, so the proof says which process
+    // and what it measured. A number without that is a claim about the whole
+    // portfolio, which this is not.
     value: 88,
     suffix: "%",
-    label: "Cut in manual processing time",
-    proof: "490 to 60 minutes a week, one account",
+    label: "Cut in delivery follow-up processing time",
+    proof: "490 to 60 minutes a week, one delivery process",
   },
   {
     value: projects.filter((project) => project.status === "production").length,

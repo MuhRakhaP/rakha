@@ -100,7 +100,7 @@ export function ArchitectureVisual({ project }: { project: Project }) {
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={`${project.name} architecture: ${described}`}
-        className="relative h-full w-full p-4"
+        className="relative h-full w-full p-2"
       >
         {edges}
         {architecture.nodes.map((node) => {
@@ -129,17 +129,25 @@ export function ArchitectureVisual({ project }: { project: Project }) {
                   x={box.x}
                   y={box.y - 6}
                   fill="var(--muted-foreground)"
-                  fontSize={9}
-                  letterSpacing={0.6}
+                  // 11.5, not 9. The SVG scales with the card, and at 375px the
+                  // media box is 333px against a 320-unit viewBox, so this drew
+                  // at about 9px: under the floor the harness checks and under
+                  // anything a person reads without leaning in. Sized from the
+                  // narrowest card it appears on rather than the widest.
+                  fontSize={12.5}
+                  letterSpacing={0.4}
                 >
                   {group.toUpperCase()}
                 </text>
               ) : null}
               <text
                 x={box.x + box.w / 2}
-                y={box.y + box.h / 2 + 3.5}
+                y={box.y + box.h / 2 + 4}
                 fill="var(--card-foreground)"
-                fontSize={10.5}
+                // Same reasoning: 10.5 drew at ~9px on a phone. 13 lands at
+                // about 12px at 375px and about 20px on a full-width desktop
+                // card, which is large but not cramped in a 66-unit column.
+                fontSize={13}
                 textAnchor="middle"
               >
                 {lines.map((line, index) => (
@@ -161,24 +169,31 @@ export function ArchitectureVisual({ project }: { project: Project }) {
 }
 
 /**
- * Split a label into at most two lines of at most fifteen characters, on a
+ * Split a label into at most two lines of at most thirteen characters, on a
  * space where one exists. Anything longer than two lines is left as the first
- * thirty characters: it is a diagram, and the full label is in the accessible
- * name and on the case study.
+ * twenty-six characters: it is a diagram, and the full label is in the
+ * accessible name and on the case study.
+ *
+ * Thirteen, not fifteen: at a three-column layout a node box is 92 units wide
+ * and the label draws at 13 units, so fifteen characters overran the box by six
+ * units on "Processing jobs". The number is the column width divided by the
+ * character width, rounded down, and it is checked rather than guessed: the
+ * measurement that found this compared every text bbox against its own rect.
  */
 function wrapLabel(label: string): string[] {
-  if (label.length <= 15) return [label];
+  const MAX = 13;
+  if (label.length <= MAX) return [label];
 
   const words = label.split(" ");
   let first = words[0];
   for (const word of words) {
-    if (`${first} ${word}`.length > 15) break;
+    if (`${first} ${word}`.length > MAX) break;
     first = `${first} ${word}`;
   }
 
   const rest = label.slice(first.length).trim();
   if (!rest) return [first];
-  return [first, rest.length > 16 ? `${rest.slice(0, 15)}…` : rest];
+  return [first, rest.length > MAX + 3 ? `${rest.slice(0, MAX)}…` : rest];
 }
 
 /**

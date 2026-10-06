@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download, ExternalLink } from "lucide-react";
+import { ArrowRight, Download, ExternalLink } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import type { Project } from "@/data/projects";
@@ -47,29 +47,25 @@ export function ProjectCtas({
       node: (
         <Link
           href={`/projects/${project.slug}`}
-          // `variant: "outline"` plus explicit colours, rather than the default
-          // fill with overrides: the base variant's `bg-primary` is not beaten by
-          // a colour class alone, so the button stayed solid blue with a blue
-          // label. Transparent background, accent border, accent label: #3B82F6
-          // on the card surface measures 4.70, which clears AA.
+          // Solid, not outline. It was an outline with an accent border and it
+          // read as the quieter of the two things on a card next to the title
+          // link, when it is the one action the card exists to sell. The fill is
+          // `--primary` at the token's own foreground: #0A0E1A on #3B82F6
+          // measures 5.24 and clears AA for normal text, where white on the same
+          // blue measures 3.68 and would not.
           //
-          // The `!` suffixes are load-bearing. The button base carries
-          // `border-transparent` and the outline variant carries
-          // `hover:bg-muted`; both are the same property as the classes below and
-          // are emitted later in the stylesheet, so without the important
-          // modifier the accent border and hover fill lose and the button renders
-          // with no border at all. Verified in the rendered DOM, not assumed.
-          //
-          // The hover fill carries the near-black label rather than white: white
-          // on #3B82F6 measures 3.68 and fails AA for normal text.
+          // `min-h-10` lifts it to 40px off the size scale, which stops at
+          // `lg`/36px and then jumps to `xl`/44px with its own padding. 40px is
+          // the target the card wants without the button outweighing the metric
+          // block above it.
           className={buttonVariants({
-            variant: "outline",
+            variant: "default",
             size,
-            className:
-              "border-brand! bg-transparent text-brand hover:border-brand! hover:bg-brand! hover:text-primary-foreground",
+            className: "min-h-10 gap-2 px-4 hover:bg-primary/85",
           })}
         >
           View Case Study
+          <ArrowRight aria-hidden="true" data-icon="inline-end" className="size-4" />
         </Link>
       ),
     });

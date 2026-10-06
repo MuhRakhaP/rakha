@@ -27,6 +27,7 @@ import { site } from "@/lib/site";
 import { ClosingCta } from "@/components/closing-cta";
 import {
   DevicePreview,
+  drawsScreens,
   hasDevice,
   preferredScreen,
 } from "@/components/projects/device-preview";
@@ -269,6 +270,15 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 project={project}
                 screenId={preferredScreen(project)}
               />
+              {/* Same caption as the cards: this hero shows drawn screens, so it
+                  says so. The badge that used to sit on the artwork has moved
+                  here, under the box, in both places, so the wording cannot
+                  differ between a card and a case study. */}
+              {drawsScreens(project) ? (
+                <p role="note" className="mt-2 text-center text-xs leading-snug text-muted-foreground">
+                  Concept preview. Actual screenshots coming soon.
+                </p>
+              ) : null}
             </div>
           ) : (
             /* An API-only project has no browser chrome to draw, so
@@ -405,7 +415,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
           )}
 
           {project.results && project.results.length > 0 && (
-            <Section id="results" eyebrow="Outcome" title="Results">
+            // The eyebrow reads `resultLabel` where it exists. KOPIFLOW's single
+            // line is a scope statement with no measurement behind it, and
+            // labelling that "Outcome" would be the inflation the field exists
+            // to prevent. Every other project falls through to "Outcome".
+            <Section id="results" eyebrow={project.resultLabel ?? "Outcome"} title="Results">
               <ResultBullets items={project.results} />
             </Section>
           )}

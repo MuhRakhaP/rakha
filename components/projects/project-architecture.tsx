@@ -203,7 +203,7 @@ export function ProjectArchitecture({
                   x={midX}
                   y={(from.cy + to.cy) / 2 - 7}
                   textAnchor="middle"
-                  className="fill-foreground text-[11px]"
+                  className="fill-foreground text-[12px]"
                   /* Halo so the label stays legible where it crosses a line. */
                   stroke="var(--background)"
                   strokeWidth={3}
@@ -234,7 +234,7 @@ export function ProjectArchitecture({
               x={node.cx}
               y={node.cy - 8}
               textAnchor="middle"
-              className="fill-foreground text-[12px] font-medium"
+              className="fill-foreground text-[13px] font-medium"
             >
               {node.label}
             </text>
@@ -244,7 +244,7 @@ export function ProjectArchitecture({
                 x={node.cx}
                 y={node.cy + 10}
                 textAnchor="middle"
-                className="fill-foreground text-[10px] tracking-[0.08em] uppercase opacity-70"
+                className="fill-foreground text-[12px] tracking-[0.08em] uppercase opacity-70"
               >
                 {node.group}
               </text>

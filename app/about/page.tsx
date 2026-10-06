@@ -9,7 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
 import { projects } from "@/data/projects";
 import { summary } from "@/lib/experience";
-import { SITE_URL, site } from "@/lib/site";
+import { SITE_URL, careerStart, site, yearsExperience } from "@/lib/site";
 
 const description =
   "Muhammad Rakha Putra, Software Engineer and Full Stack Developer. Multi-tenant SaaS platforms, backend services, and business systems, with education, certifications, and the tools he works with.";
@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     title: `About · ${site.name}`,
     description,
     url: `${SITE_URL}/about`,
+    images: ["/opengraph-image"],
   },
   twitter: { title: `About · ${site.name}`, description },
 };
@@ -34,12 +35,12 @@ const FACTS = [
   { label: "Currently", value: "PT. Terasys Virtual" },
   { label: "Based in", value: "Jakarta, Indonesia" },
   { label: "Focus", value: "Backend services, REST APIs, business systems" },
-  { label: "Experience", value: "4+ years, four employers since 2022" },
+  { label: "Experience", value: `${yearsExperience} years, four employers since ${careerStart}` },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col py-6">
+    <div className="flex flex-col pt-6">
       <Reveal>
         <header className="flex flex-col gap-4">
           <h1 className="font-heading text-title font-semibold tracking-[-0.02em]">
@@ -110,7 +111,7 @@ export default function AboutPage() {
         <h2 className="font-heading text-section font-semibold tracking-[-0.015em]">
           Projects
         </h2>
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid items-stretch gap-6 sm:grid-cols-2">
           {projects.map((project) => (
             <li key={project.slug} className="flex">
               <ProjectCard project={project} />

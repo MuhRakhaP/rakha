@@ -119,6 +119,37 @@ export interface Project {
   role?: string;
   problem?: string;
   solution?: string;
+  /**
+   * The one-sentence problem the card shows.
+   *
+   * The card shows this, not `problem`. `problem` is written for the case study
+   * where a reader has already decided to read: TERAHOME's is four sentences and
+   * a card cannot hold it without becoming a paragraph with a picture on top.
+   *
+   * Each line here is the first sentence of its own `problem`, moved rather than
+   * rewritten, so the card and the case study can never disagree about what the
+   * issue was. Written once in the same entry as the source, which is the only
+   * place the two cannot drift apart.
+   */
+  cardProblem?: string;
+  /**
+   * The headline figure the card shows.
+   *
+   * `value` is what counts up, `label` is what it measures, and `resultsIndex`
+   * points at the line in `results` the figure was cut from. The source sentence
+   * is read from there rather than copied here: a duplicate of a sentence is a
+   * second place for it to change without the first one knowing.
+   *
+   * Omitted where the CV records no outcome rather than filled with a
+   * plausible-looking number. THINKPOS and KOPIFLOW have none.
+   */
+  cardMetric?: {
+    value: number;
+    suffix: string;
+    label: string;
+    /** Index into `results`. Out of range means the metric is dropped. */
+    resultsIndex: number;
+  };
   challenges?: string[];
   architecture?: {
     nodes: { id: string; label: string; group?: string }[];
@@ -317,6 +348,14 @@ export const projects: Project[] = [
     role: "Software Engineer, backend services, REST APIs, database workflows, third-party integrations, dashboards, CI/CD deployment, and production maintenance.",
     problem:
       "ISP operations were spread across disconnected tools. Customer records, billing, invoices, router accounts, and payment status each lived somewhere different, so day-to-day work meant a lot of manual reconciliation and manual monitoring.",
+    // First sentence of `problem` above, verbatim. The card cannot hold four.
+    cardProblem: "ISP operations were spread across disconnected tools.",
+    cardMetric: {
+      value: 50,
+      suffix: "%",
+      label: "Less manual operational work",
+      resultsIndex: 0,
+    },
     solution:
       "One platform that owns the operational loop end to end. Billing state drives invoice generation, invoices drive payment collection through Xendit, and subscription state drives account synchronization on the MikroTik routers over PPPoE. Notifications go out over WhatsApp, and the dashboards surface the numbers that were previously assembled by hand.",
     challenges: [
@@ -481,6 +520,11 @@ technologies: [
     role: "Full-stack developer, Flutter mobile client, Node.js and Express API, PostgreSQL schema, and release packaging.",
     problem:
       "Barbershops were running the counter on paper or on a general-purpose POS that did not fit the way a barber works. Staff needed a fast checkout, and owners needed sales numbers they could actually read and export.",
+    // Compressed from the first sentence of `problem`. No figure exists for this
+    // one: the CV records no percentage for THINKPOS on its own, so the card
+    // shows the outcome sentence instead of a number.
+    cardProblem:
+      "Barbershops were running the counter on paper or on a POS that did not fit.",
     solution:
       "A purpose-built Flutter app for the counter. Checkout is the primary screen, sales data is charted for the owner, reports export to Excel, and receipts print on the thermal printers already sitting on the counter. A local SQLite cache keeps checkout working when the connection to the API is slow or down.",
     challenges: [
@@ -632,6 +676,18 @@ technologies: [
     role: "Full-stack developer, Flutter mobile client, Node.js and Express API, PostgreSQL schema, scheduled jobs, and release packaging.",
     problem:
       "Manual attendance meant a paper log that was slow to check, easy to dispute, and impossible to turn into workforce data without retyping it.",
+    // First sentence of `problem`, trimmed at the comma so the card holds two
+    // lines instead of three.
+    cardProblem:
+      "Manual attendance meant a paper log that was slow to check and easy to dispute.",
+    // The CV records this figure once, under the combined Attendance & POS
+    // entry, and CLOCKORA is where it lives on the site.
+    cardMetric: {
+      value: 30,
+      suffix: "%",
+      label: "Better deployment and server resource efficiency",
+      resultsIndex: 0,
+    },
     // QR scanning is deliberately absent from every field on this project. It is
     // not in the CV, and in the app it is dead code: lib/sections/
     // qr_scanner_section.dart exists but nothing imports or navigates to it, so
@@ -798,6 +854,11 @@ caseStudy: true,
     role: "Full-stack developer responsible for the Next.js frontend, the backend modules covering purchasing, warehouse, suppliers, production, sales, and costs, multi-tenant data isolation, and role-based access control.",
     problem:
       "A coffee business tracks stock, suppliers, production, and costs in separate places, so nobody has a single current answer to what is on hand, what it cost, or what was sold.",
+    // First sentence of `problem`, cut at the "so nobody..." clause. No metric:
+    // KOPIFLOW has no production tenant data, and the card says the status
+    // instead of borrowing a number from a project that does.
+    cardProblem:
+      "A coffee business tracks stock, suppliers, production, and costs in separate places.",
     solution:
       "One web application covering that loop. Purchases move stock, stock feeds production and sales, and costs are captured as they happen, so the numbers on the dashboard come from the same records the staff actually enter.",
     challenges: [
@@ -899,6 +960,15 @@ features: [
     role: "Full-stack engineer, the Laravel and MySQL core application, the RAG assistant, the routing and automation rules, plus testing, deployment, and ongoing improvements.",
     problem:
       "Support staff spent their time finding information and assigning work by hand. Relevant knowledge was scattered, and every new ticket had to be read and routed to a person manually.",
+    // First sentence of `problem`, verbatim.
+    cardProblem:
+      "Support staff spent their time finding information and assigning work by hand.",
+    cardMetric: {
+      value: 60,
+      suffix: "%",
+      label: "Less manual ticket assignment",
+      resultsIndex: 1,
+    },
     solution:
       "Two targeted automations. Retrieval-augmented generation lets an agent ask the system and get a contextual answer grounded in the knowledge base. Rule-based routing assigns the ticket automatically from its priority, category, and topic, so assignment stops being a manual read-and-guess step.",
     challenges: [
@@ -914,13 +984,17 @@ features: [
     // generation answers an agent's question, rule-based routing assigns a ticket,
     // and `solution` above describes them as two distinct automations. Every node
     // is a technology the project already lists in `technologies`.
+    // Four groups made four columns inside a 320-unit viewBox, which left 66
+    // units per column: at the size a phone card needs, "Support agent" overflowed
+    // its box. Three groups puts 92 units behind each label. "AI" and "AI-powered"
+    // survive as node names, which is where a reader looks for them anyway.
     architecture: {
       nodes: [
         { id: "agent", label: "Support agent", group: "Client" },
         { id: "laravel", label: "Laravel app", group: "Server" },
         { id: "routes", label: "Routing rules", group: "Server" },
-        { id: "rag", label: "RAG pipeline", group: "AI" },
-        { id: "llm", label: "LLM API", group: "AI" },
+        { id: "rag", label: "RAG pipeline", group: "Server" },
+        { id: "llm", label: "LLM API", group: "Server" },
         { id: "mysql", label: "MySQL", group: "Data" },
         { id: "vectors", label: "pgvector", group: "Data" },
       ],
@@ -1037,6 +1111,16 @@ technologies: [
     role: "Full-stack developer responsible for the backend automation workflows, the EPS integration, the Auto In Portal, and the processing optimization.",
     problem:
       "Outstanding deliveries were chased by hand. Someone pulled the data, worked out what was late, updated due dates and purchase orders, and then contacted suppliers one by one, every week.",
+    // First sentence of `problem`, verbatim. Scoped to one process on the card
+    // the same way the hero figure is: this is the delivery follow-up loop, not
+    // a claim about every system on the site.
+    cardProblem: "Outstanding deliveries were chased by hand.",
+    cardMetric: {
+      value: 88,
+      suffix: "%",
+      label: "Less delivery follow-up processing time",
+      resultsIndex: 0,
+    },
     solution:
       "Automate the whole loop. Delivery data is retrieved and processed without a person stepping in, due dates and purchase orders are updated or cancelled programmatically, and supplier follow-ups go out automatically. Suppliers enter what they have through the Auto In Portal so the data arrives ready to use, and the Enterprise Planning System feeds the process directly.",
     challenges: [
@@ -1048,17 +1132,19 @@ technologies: [
     // outside and the portal is where supplier data enters. Both edges are named
     // because the direction is the point: the portal only feeds inward, EPS
     // only feeds inward.
+    // Five groups in a 320-unit viewBox was four labels too wide. Three groups
+    // and one node fewer: the Supplier drops out because the edge out of the
+    // portal is already labelled "supplier entry", and the people using a
+    // supplier portal are not a system tier worth a column.
     architecture: {
       nodes: [
-        { id: "supplier", label: "Supplier", group: "People" },
-        { id: "eps", label: "EPS", group: "External" },
-        { id: "portal", label: "Auto In Portal", group: "Client" },
+        { id: "eps", label: "EPS", group: "Inputs" },
+        { id: "portal", label: "Auto In Portal", group: "Inputs" },
         { id: "api", label: "REST API", group: "Server" },
         { id: "jobs", label: "Processing jobs", group: "Server" },
         { id: "mysql", label: "MySQL", group: "Data" },
       ],
       edges: [
-        { from: "supplier", to: "portal" },
         { from: "eps", to: "api", label: "delivery data" },
         { from: "portal", to: "api", label: "supplier entry" },
         { from: "api", to: "jobs" },

@@ -33,7 +33,12 @@ export function ProjectBadges({
         {TYPE_LABEL[project.type]}
       </span>
       {project.status === "in-development" && (
-        <span className="inline-flex items-center rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        // Brand-weak rather than the neutral pill beside it. A card for a
+        // shipped system and a card for an MVP have to read as different
+        // weights before they are read as different contents, and this is the
+        // one signal on the card that says so. Same tokens as the platform
+        // chips: no new colour for a status the design system already covers.
+        <span className="inline-flex items-center rounded-md border border-brand/40 bg-brand-weak px-2 py-0.5 text-xs font-medium text-foreground">
           {STATUS_LABEL[project.status]}
         </span>
       )}

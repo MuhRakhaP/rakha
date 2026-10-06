@@ -16,6 +16,9 @@ const description =
 
 // Without this the page inherits the layout's Open Graph title and description,
 // so a link to /projects shared into a chat advertised the home page instead.
+// `images` is here because a route that defines its own `openGraph` replaces the
+// layout's object wholesale, dropping the file-convention image with it: a share
+// card needs a picture, not just words.
 export const metadata: Metadata = {
   title: "Projects",
   description,
@@ -24,6 +27,7 @@ export const metadata: Metadata = {
     title: `Projects · ${site.name}`,
     description,
     url: `${SITE_URL}/projects`,
+    images: ["/opengraph-image"],
   },
   twitter: { title: `Projects · ${site.name}`, description },
 };
@@ -45,7 +49,7 @@ export default async function ProjectsPage({
   );
 
   return (
-    <div className="flex flex-col py-6">
+    <div className="flex flex-col pt-6 pb-section">
       <Reveal>
         <header className="max-w-2xl">
           <h1 className="font-heading text-title font-semibold tracking-[-0.02em]">
