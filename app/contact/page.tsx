@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 
 import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/reveal";
-import { site } from "@/lib/site";
+import { SITE_URL, site } from "@/lib/site";
+
+const description =
+  `Get in touch with ${site.name} by email at ${site.email}, or on GitHub and LinkedIn.`;
 
 export const metadata: Metadata = {
   title: "Contact",
-  description:
-    "Get in touch with Muhammad Rakha Putra by email, GitHub, or LinkedIn.",
+  description,
   alternates: { canonical: "/contact" },
+  openGraph: {
+    title: `Contact · ${site.name}`,
+    description,
+    url: `${SITE_URL}/contact`,
+  },
+  twitter: { title: `Contact · ${site.name}`, description },
 };
 
 const CHANNELS = [

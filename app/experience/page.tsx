@@ -3,12 +3,21 @@ import type { Metadata } from "next";
 import { EducationSection } from "@/components/education-section";
 import { ExperienceTimeline } from "@/components/experience-timeline";
 import { Reveal } from "@/components/reveal";
+import { SITE_URL, site } from "@/lib/site";
+
+const description =
+  "Work experience as Software Engineer and Full-Stack Developer, including backend services, REST APIs, and business systems.";
 
 export const metadata: Metadata = {
   title: "Experience",
-  description:
-    "Work experience as Software Engineer and Full-Stack Developer, including backend services, REST APIs, and business systems.",
+  description,
   alternates: { canonical: "/experience" },
+  openGraph: {
+    title: `Experience · ${site.name}`,
+    description,
+    url: `${SITE_URL}/experience`,
+  },
+  twitter: { title: `Experience · ${site.name}`, description },
 };
 
 export default function ExperiencePage() {

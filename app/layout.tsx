@@ -7,6 +7,8 @@ import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SITE_URL, site } from "@/lib/site";
+import { skillGroups } from "@/lib/skills";
+import { certifications, education } from "@/lib/experience";
 
 import "./globals.css";
 
@@ -54,17 +56,66 @@ export const metadata: Metadata = {
   // role keywords, and a second copy of the same claim in this file is one more
   // place for the two to drift apart.
   description: site.metaDescription,
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: site.name,
     title: `${site.name} · ${site.role}`,
     description: site.metaDescription,
-    url: "/",
+    // Absolute, because a share scraper reads this without resolving it against
+    // anything. It was absent before, which is why every shared link had no
+    // canonical address of its own.
+    url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
     title: `${site.name} · ${site.role}`,
     description: site.metaDescription,
+  },
+};
+
+/**
+ * Structured data, one `Person` wrapped in a `ProfilePage`.
+ *
+ * Built from the same `site` and `skills` records the visible page reads, so a
+ * skill cannot be listed here and missing from the page, or the reverse. Nothing
+ * is added that is not already on the site: no `award`, no `alumniOf` beyond the
+ * two entries in `lib/experience.ts`, and no `numberOfEmployees` nonsense.
+ *
+ * `ProfilePage` is the container type for a page whose subject is a person, and
+ * `mainEntity` is how the two are tied together. Search engines read either.
+ */
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: site.name,
+    alternateName: site.shortName,
+    jobTitle: site.role,
+    description: site.metaDescription,
+    url: SITE_URL,
+    email: `mailto:${site.email}`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Jakarta",
+      addressCountry: "ID",
+    },
+    knowsLanguage: ["en", "id"],
+    sameAs: [site.github, site.linkedin],
+    knowsAbout: skillGroups.flatMap((group) => group.items),
+    alumniOf: education.map((entry) => ({
+      "@type": "EducationalOrganization",
+      name: entry.school,
+    })),
+    hasCredential: certifications.map((entry) => ({
+      "@type": "EducationalOccupationalCredential",
+      name: entry.name,
+      recognizedBy: {
+        "@type": "Organization",
+        name: entry.issuer,
+      },
+    })),
   },
 };
 
@@ -84,6 +135,13 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        {/* Structured data for crawlers. `application/ld+json` is not executed,
+            so there is no hydration cost and nothing for assistive tech to read
+            out loud, which is why it is a script rather than visible markup. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        />
         <ScrollProgress />
         <BackgroundLayers />
         {/* Header sits outside the page container so its background and border

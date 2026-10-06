@@ -59,13 +59,10 @@ export const site = {
 } as const;
 
 /**
- * TODO: replace with the real deployment origin before publishing.
+ * The deployment origin.
  *
- * "rakha.dev" is a placeholder domain, and it is used in three places at once:
- * `metadataBase` for canonical URLs and Open Graph images, the sitemap, and
- * robots.txt. Until it points at the deployed site, every absolute URL the site
- * emits is wrong, which is worse than a relative one because search engines
- * index the wrong address. Nothing else has to change when the real domain
- * arrives.
+ * Read in three places at once: `metadataBase` for canonical URLs and Open Graph
+ * images, the sitemap, and robots.txt. Change it here and all three move. A
+ * trailing slash would double up in the paths built from it, so there is none.
  */
 export const SITE_URL = "https://mrakha.vercel.app";

@@ -9,12 +9,23 @@ import {
   projects,
   sortProjectsByType,
 } from "@/data/projects";
+import { SITE_URL, site } from "@/lib/site";
 
+const description =
+  "Selected projects: multi-tenant SaaS for coffee business management, point of sale, and attendance, plus ISP billing and network management and support automation.";
+
+// Without this the page inherits the layout's Open Graph title and description,
+// so a link to /projects shared into a chat advertised the home page instead.
 export const metadata: Metadata = {
   title: "Projects",
-  description:
-    "Selected projects: multi-tenant SaaS for coffee business management, point of sale, and attendance, plus ISP billing and network management and support automation.",
+  description,
   alternates: { canonical: "/projects" },
+  openGraph: {
+    title: `Projects · ${site.name}`,
+    description,
+    url: `${SITE_URL}/projects`,
+  },
+  twitter: { title: `Projects · ${site.name}`, description },
 };
 
 export default async function ProjectsPage({

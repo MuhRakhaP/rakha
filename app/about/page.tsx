@@ -9,12 +9,21 @@ import { buttonVariants } from "@/components/ui/button";
 import { ClosingCta } from "@/components/closing-cta";
 import { projects } from "@/data/projects";
 import { summary } from "@/lib/experience";
+import { SITE_URL, site } from "@/lib/site";
+
+const description =
+  "Muhammad Rakha Putra, Software Engineer and Full Stack Developer. Multi-tenant SaaS platforms, backend services, and business systems, with education, certifications, and the tools he works with.";
 
 export const metadata: Metadata = {
   title: "About",
-  description:
-    "Muhammad Rakha Putra, Full Stack Developer. Multi-tenant SaaS platforms, backend services, and business systems, with education, certifications, and the tools he works with.",
+  description,
   alternates: { canonical: "/about" },
+  openGraph: {
+    title: `About · ${site.name}`,
+    description,
+    url: `${SITE_URL}/about`,
+  },
+  twitter: { title: `About · ${site.name}`, description },
 };
 
 /**
