@@ -201,6 +201,19 @@ export interface Project {
   sourcePrivate?: boolean;
   /** My contribution areas and details. Rendered after Tech Stack. */
   contribution?: { area: string; detail: string }[];
+  /**
+   * How the project reads and writes its database, for the "Database & ORM"
+   * section that follows Tech Stack.
+   *
+   * `engine` names the access layer the app source actually uses: raw SQL over
+   * `pg`, TypeORM, or Prisma. Each `points` entry was read against the project
+   * source before it was written, because an ORM claim is easy to make and
+   * easy to check. A project with no ORM says so instead of borrowing one.
+   */
+  databaseOrm?: {
+    engine: string;
+    points: { title: string; detail: string }[];
+  };
   /** Engineering decisions: title + reason. Max 5. Rendered after Architecture. */
   decisions?: { title: string; reason: string }[];
   /**
@@ -401,6 +414,29 @@ export const projects: Project[] = [
       { area: "Database", detail: "PostgreSQL schema design, Prisma migrations, query optimization." },
       { area: "Deployment", detail: "Docker multi-stage builds, CI/CD pipelines, production maintenance." },
     ],
+    // Prisma verified in D:\terahome\prisma\schema.prisma on 2026-10-07.
+    // The PPPoE account model is named PppoeSecret in that schema, not
+    // NetworkAccount, so the section says what the schema calls it.
+    databaseOrm: {
+      engine: "Prisma ORM",
+      points: [
+        {
+          title: "Schema",
+          detail:
+            "prisma/schema.prisma defines Customer, Subscription, Invoice, Payment and PppoeSecret (the PPPoE account records), with User, Role, RouterDevice and BillingCycle alongside them.",
+        },
+        {
+          title: "Type-safe access",
+          detail:
+            "PrismaClient is generated from the schema, so statuses such as CustomerStatus, SubscriptionStatus and InvoiceStatus come from schema enums instead of string literals.",
+        },
+        {
+          title: "Migrations",
+          detail:
+            "Versioned SQL under prisma/migrations, applied with prisma migrate deploy.",
+        },
+      ],
+    },
     decisions: [
       { title: "BullMQ job queue", reason: "Handles invoice generation, payment callbacks, and WhatsApp notifications outside the HTTP request cycle." },
       { title: "Multi-stage Docker build", reason: "Produces a standalone Next.js output for containerized deployment." },
@@ -565,6 +601,28 @@ technologies: [
       { area: "Integration", detail: "ESC/POS thermal printing, Excel export, camera for product images." },
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
+    // No ORM: D:\thinkpos\backend carries `pg` in package.json, no prisma
+    // dependency, and no .prisma file on any branch. Schema work is SQL.
+    databaseOrm: {
+      engine: "Raw SQL with the pg library",
+      points: [
+        {
+          title: "Schema",
+          detail:
+            "Table definitions and DDL live in backend/database.sql, applied by migrations.js under an advisory lock, with rollback SQL in backend/migrations.",
+        },
+        {
+          title: "Multi-tenant isolation",
+          detail:
+            "Every tenant table carries branch_id, and routes scope their queries by branch, so one shop's rows never reach another shop's session.",
+        },
+        {
+          title: "Indexing",
+          detail:
+            "Indexes sit on the columns the counter filters by: branch, timestamp and foreign key, for example idx_transactions_branch_id and idx_transactions_created_at.",
+        },
+      ],
+    },
     decisions: [
       { title: "SQLite offline cache", reason: "sqflite provides local persistence; counter operates when backend is unreachable." },
       { title: "Express.js REST API with JWT", reason: "Serves checkout, products, employees, reports endpoints; JWT auth on each request." },
@@ -727,6 +785,28 @@ caseStudy: true,
       { area: "Integration", detail: "Geolocation, camera, secure storage, local notifications." },
       { area: "Deployment", detail: "APK packaging, in-app updates, VPS migration (30% efficiency gain)." },
     ],
+    // TypeORM 0.3.20 verified in D:\clockora\backend\package.json and
+    // backend/models on 2026-10-07. No prisma dependency anywhere.
+    databaseOrm: {
+      engine: "TypeORM with PostgreSQL",
+      points: [
+        {
+          title: "Entity models",
+          detail:
+            "backend/models declares EntitySchema entities: User, Attendance, Leave, Company, Department and Overtime among the workforce records.",
+        },
+        {
+          title: "Relations",
+          detail:
+            "Relations are declared on the entities themselves, for example User.department as many-to-one against Department.",
+        },
+        {
+          title: "Migrations",
+          detail:
+            "Schema changes ship as versioned files run through typeorm migration:run against data-source.js, with synchronize switched off so the schema is never auto-synced.",
+        },
+      ],
+    },
     decisions: [
       { title: "TypeORM with PostgreSQL", reason: "Entity decorators define attendance, user, file entities; migrations manage schema." },
       { title: "Scheduled report jobs", reason: "node-cron runs daily report generation and supervisor notifications on the backend." },
@@ -903,6 +983,30 @@ caseStudy: true,
       { area: "Database", detail: "PostgreSQL, Prisma ORM, stock movements, suppliers, production, costs, sales." },
       { area: "Infra", detail: "Docker Compose for local development." },
     ],
+    // TODO: multi-tenant isolation was not found in the source: prisma/schema.prisma
+    // has no tenant column and src/lib/prisma.ts is a plain PrismaClient with no
+    // $use or $extend. The multiTenant block above claims tenant_id isolation;
+    // reconcile the two before this section repeats that claim.
+    databaseOrm: {
+      engine: "Prisma ORM",
+      points: [
+        {
+          title: "Schema",
+          detail:
+            "prisma/schema.prisma defines Supplier, Pembelian (purchasing), StokMovement (warehouse stock), Produksi (production), Penjualan (sales) and the cost models BiayaOperasional and BiayaTenagaKerja, with relations between them.",
+        },
+        {
+          title: "Access path",
+          detail:
+            "Server Actions call the shared PrismaClient from src/lib/prisma.ts, so writes go through the schema rather than hand-written SQL.",
+        },
+        {
+          title: "Migrations",
+          detail:
+            "Versioned SQL under prisma/migrations, applied with prisma migrate deploy.",
+        },
+      ],
+    },
     decisions: [
       { title: "Server Actions for mutations", reason: "Next.js Server Actions handle purchase, supplier, production mutations with Zod validation." },
       { title: "Prisma with PostgreSQL", reason: "Prisma schema defines Supplier, Purchase, StockMovement, Production models with relations." },

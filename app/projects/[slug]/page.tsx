@@ -197,6 +197,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
   }
   if (project.technologies.length > 0)
     sections.push({ id: "stack", title: "Tech Stack" });
+  if (project.databaseOrm)
+    sections.push({ id: "database-orm", title: "Database & ORM" });
   if (project.contribution && project.contribution.length > 0)
     sections.push({ id: "contribution", title: "My Contribution" });
   if (project.architecture)
@@ -371,6 +373,27 @@ export default async function ProjectPage({ params }: { params: Params }) {
           {project.technologies.length > 0 && (
             <Section id="stack" eyebrow="Built with" title="Tech Stack">
               <TechStack technologies={project.technologies} />
+            </Section>
+          )}
+
+          {/* Same dl shape as My Contribution: the engine in one line, then the
+              facts the project source supports. A project with no ORM names raw
+              SQL instead of borrowing one. */}
+          {project.databaseOrm && (
+            <Section id="database-orm" eyebrow="Data layer" title="Database & ORM">
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                {project.databaseOrm.engine}
+              </p>
+              <dl className="mt-4 grid gap-6 sm:grid-cols-2">
+                {project.databaseOrm.points.map((point) => (
+                  <div key={point.title}>
+                    <dt className="text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">
+                      {point.title}
+                    </dt>
+                    <dd className="mt-2 text-sm">{point.detail}</dd>
+                  </div>
+                ))}
+              </dl>
             </Section>
           )}
 

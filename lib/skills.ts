@@ -11,6 +11,10 @@
  * names as the architecture behind KOPIFLOW, THINKPOS, and CLOCKORA. It sits with
  * the backend group because that is where the tenancy lives.
  *
+ * Prisma sits in "Backend & Databases", not in "Tools": it is the ORM behind
+ * TERAHOME (production) and KOPIFLOW (in development), so the database group is
+ * where a reader looks for it. Listing it twice would read as two skills.
+ *
  * The brief also asked for a five-group, thirty-skill cap. Six groups and
  * forty-one skills is what the CV actually lists, so the content won over the
  * cap; cutting to thirty would mean hiding skills the CV claims. The count is in
@@ -51,6 +55,7 @@ export const skillGroups: SkillGroup[] = [
       "MongoDB",
       "Firebase",
       "Redis",
+      "Prisma",
     ],
   },
   { category: "Mobile", items: ["Flutter", "Dart", "Riverpod", "SQLite"] },
@@ -62,5 +67,5 @@ export const skillGroups: SkillGroup[] = [
     category: "AI & Integrations",
     items: ["RAG", "LLM APIs", "pgvector", "Xendit", "MikroTik", "REST APIs"],
   },
-  { category: "Tools", items: ["Composer", "Prisma", "n8n"] },
+  { category: "Tools", items: ["Composer", "n8n"] },
 ];
